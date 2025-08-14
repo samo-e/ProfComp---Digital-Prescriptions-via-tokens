@@ -1,3 +1,26 @@
 div {
     border: 1px solid red;
 }
+.asl-date,
+.asl-item {
+    font-weight: bold;
+}
+td > p {
+    font-weight: normal;
+    margin-bottom: 0;
+}
+.paper > td {
+    color: #999 !important;
+}
+.paper > td > p {
+    visibility: hidden;
+}
+.paper .asl-cloud-prescription {
+    visibility: hidden;
+}
+.asl-cloud-prescription img {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    display: block;
+}
