@@ -36,3 +36,8 @@ td > p {
     margin: auto;
     display: block;
 }
+
+.asl-check:hover > *, 
+.printer:hover {
+    cursor: pointer;
+}
