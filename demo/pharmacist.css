@@ -8,6 +8,17 @@ body > .container {
     margin-bottom: 3%;
 }
 
+.asl-check * {
+    margin: auto;
+    display: block;
+}
+.asl-qty,
+.asl-rpt,
+.alr-qty,
+.alr-rpt {
+    text-align: center;
+}
+
 .asl-date,
 .asl-item {
     font-weight: bold;
