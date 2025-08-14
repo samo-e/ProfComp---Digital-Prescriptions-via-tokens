@@ -9,16 +9,21 @@ td > p {
     font-weight: normal;
     margin-bottom: 0;
 }
-.paper > td {
+.asl-paper > td {
     color: #999 !important;
 }
-.paper > td > p {
+.asl-paper > td > p {
     visibility: hidden;
 }
-.paper .asl-cloud-prescription {
+.alr-paper > td > p {
     visibility: hidden;
 }
-.asl-cloud-prescription img {
+.alr-paper .alr-cloud-prescription,
+.asl-paper .asl-cloud-prescription {
+    visibility: hidden;
+}
+.asl-cloud-prescription img,
+.alr-cloud-prescription img {
     width: 20px;
     height: 20px;
     margin: auto;
