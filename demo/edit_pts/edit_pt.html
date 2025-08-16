@@ -5,11 +5,11 @@
     
     <link rel="stylesheet" href="./edit_pt.css">
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <!-- Bootstrap JS and Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
     {% import "edit_pts/pt_detail_input.html" as pt %}
 </head>
 <body class="bg-light d-flex justify-content-center align-items-center py-5">
@@ -17,20 +17,20 @@
     <h3 class="text-center mb-4">Patient Details</h3>
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-        {{ pt.add_tab("basicDetails",            "Basic Details",            "basic", active=True) }}
-        {{ pt.add_tab("safetyNet",               "Safety Net Details",       "safetynet") }}
+        {{ pt.add_tab("basic-details",           "Basic Details",            "basic", active=True) }}
+        {{ pt.add_tab("safety-net",              "Safety Net Details",       "safety-net") }}
         {{ pt.add_tab("allergies",               "Allergies/Health",         "allergies") }}
         {{ pt.add_tab("accounts",                "Accounts",                 "accounts", disabled=True) }}
         {{ pt.add_tab("notes",                   "Notes",                    "notes", disabled=True) }}
-        {{ pt.add_tab("clinicalInterventions",   "Clinical Interventions",   "clinical", disabled=True) }}
+        {{ pt.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical", disabled=True) }}
         {{ pt.add_tab("sms",                     "SMS",                      "sms", disabled=True) }}
         {{ pt.add_tab("clubs",                   "Clubs/Providers",          "clubs", disabled=True) }}
-        {{ pt.add_tab("other", "                 Other",                     "others", disabled=True) }}
+        {{ pt.add_tab("other",                   "Other",                    "others", disabled=True) }}
     </ul>
     <!-- Tab panes -->
     <div class="tab-content">
         <!-- Personal Tab -->
-        {{ pt.add_tab_panel("basicDetails", "Basic Details", "basic", active=True) }}
+        {{ pt.add_tab_panel("basic-details", "Basic Details", "basic", active=True) }}
             <form>
                 <!-- Personal Info -->
                 <h5 class="mb-3">Personal</h5>
@@ -127,7 +127,7 @@
         </div>
 
         <!-- Saftey Net Tab -->
-        {{ pt.add_tab_panel("safetyNet", "Safety Net Details", "safetynet", active=False) }}
+        {{ pt.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
             <p>Saftey Net Tab Not implemented</p>
         </div>
 
