@@ -3,7 +3,7 @@
 <head>
     <title>Edit Patient Details</title>
     
-    <link rel="stylesheet" href="./edit_pt.css">
+    <!--<link rel="stylesheet" href="./edit_pt.css">-->
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons CSS -->
@@ -17,15 +17,15 @@
     <h3 class="text-center mb-4">Patient Details</h3>
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-        {{ pt.add_tab("basic-details",           "Basic Details",            "basic", active=True) }}
-        {{ pt.add_tab("safety-net",              "Safety Net Details",       "safety-net") }}
-        {{ pt.add_tab("allergies",               "Allergies/Health",         "allergies") }}
-        {{ pt.add_tab("accounts",                "Accounts",                 "accounts", disabled=True) }}
-        {{ pt.add_tab("notes",                   "Notes",                    "notes", disabled=True) }}
-        {{ pt.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical", disabled=True) }}
-        {{ pt.add_tab("sms",                     "SMS",                      "sms", disabled=True) }}
-        {{ pt.add_tab("clubs",                   "Clubs/Providers",          "clubs", disabled=True) }}
-        {{ pt.add_tab("other",                   "Other",                    "others", disabled=True) }}
+        {{ pt.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
+        {{ pt.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
+        {{ pt.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
+        {{ pt.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
+        {{ pt.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
+        {{ pt.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
+        {{ pt.add_tab("sms",                     "SMS",                      "sms",         disabled=True) }}
+        {{ pt.add_tab("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
+        {{ pt.add_tab("other",                   "Other",                    "others",      disabled=True) }}
     </ul>
     <!-- Tab panes -->
     <div class="tab-content">
@@ -127,14 +127,19 @@
         </div>
 
         <!-- Saftey Net Tab -->
+        <!--
         {{ pt.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
             <p>Saftey Net Tab Not implemented</p>
         </div>
+        -->
 
         <!-- Allergies Tab -->
+        <!--
         {{ pt.add_tab_panel("allergies", "Allergies/Health", "allergies", active=False) }}
             <p>Allergies Tab Not implemented</p>
         </div>
+        -->
+
     </div>
 
     <!-- Submit -->

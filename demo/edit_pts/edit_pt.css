@@ -1,12 +1,7 @@
-/*  Debug only  */
-div {
-    /*border: 1px solid red;*/
-}
-
-body {
-    width: 100vw;
-}
-
 .edit-pt-main {
     border-radius: 1rem;
+}
+
+.nav-link.disabled {
+    text-decoration: line-through;
 }
