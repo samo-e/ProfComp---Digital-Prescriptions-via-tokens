@@ -22,11 +22,6 @@ body > .container {
     font-style: u;
 }
 
-.scenario-edit,
-.scenario-delete {
-    font-size: 2px;
-}
-
 .sr-only {
   height: 1px;
   width: 1px;
