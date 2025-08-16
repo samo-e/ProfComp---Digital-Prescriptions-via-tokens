@@ -1,0 +1,28 @@
+/*  Debug only  */
+div {
+    border: 1px solid red;
+}
+
+body > .container {
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+.scenario-check * {
+    margin: auto;
+    display: block;
+}
+.scenario-qty,
+.scenario-percent-complete {
+    text-align: center;
+}
+
+.scenario-name > a,
+.scenario-check:hover > *, 
+.printer:hover {
+    cursor: pointer;
+}
+
+.scenario-name {
+    font-style: u;
+}

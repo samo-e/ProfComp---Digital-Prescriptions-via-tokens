@@ -4,7 +4,7 @@ app = Flask(__name__, template_folder=".")
 
 @app.route("/")
 def index():
-    return render_template("edit_pts/edit_pt.html")
+    return render_template("teacher_dashboard/teacher_dash.html")
 
 if __name__ == "__main__":
     app.run(debug=True)
