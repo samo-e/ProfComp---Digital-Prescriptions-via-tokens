@@ -1,4 +1,4 @@
-{% macro input_field(id, label, type="text", fulllength=False, void=False) %}
+{% macro input_field(id, label, type="text", fulllength=False, void=False, attrs="") %}
 {% if void %}
 <div class="col-6"></div>
 {% else %}
@@ -6,7 +6,12 @@
     <label for="{{ id }}" class="form-label form-label-sm">{{ label }}</label>
 </div>
 <div class="{{ 'col-10' if fulllength else 'col-4' }}">
-    <input type="{{ type }}" class="form-control form-control-sm" id="{{ id }}" required>
+    <input
+        type="{{ type }}"
+        id="{{ id }}"
+        class="form-control form-control-sm"
+        {{ attrs|safe }}
+        required>
 </div>
 {% endif %}
 {% endmacro %}

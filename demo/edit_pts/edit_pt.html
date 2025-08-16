@@ -48,7 +48,7 @@
                     {{ pt.input_field("sex", "Sex") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("dob", "Date of Birth") }} <!-- Calendar -->
+                    {{ pt.input_field("dob", "Date of Birth", type="date") }} <!-- Calendar -->
                     {{ pt.input_field("ptNumber", "Patient No") }} <!-- Disabled -->
                 </div>
 
@@ -64,30 +64,48 @@
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("postcode", "Postcode") }}
-                    {{ pt.input_field("phone", "Phone No.") }}
+                    {{ pt.input_field("phone", "Phone No.", type="tel") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("mobile", "Mobile No.") }}
+                    {{ pt.input_field("mobile", "Mobile No.", type="tel") }}
                     {{ pt.input_field("licence", "Licence No.") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsRepeats", "smsRepeats") }}
+                    {{ pt.input_check("smsRepeats", "SMS Repeat Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsLastRepeats", "smsLastRepeats") }}
+                    {{ pt.input_check("smsLastRepeats", "SMS Last Repeat Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsOwing", "smsOwing") }}
+                    {{ pt.input_check("smsOwing", "SMS Owing Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("email", "Email", fulllength=True) }}
+                    {{ pt.input_field("email", "Email", type="email", fulllength=True) }}
                 </div>
 
                 <!-- Medicare -->
                 <h5 class="mb-3">Medicare</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("medicare", "Medicare No.") }} <!-- input is X-Y (Y is 1 digit) -->
-                    {{ pt.input_field("medicareValidTo", "Valid To") }} <!-- Calendar (MM/YY) -->
+                    <!-- input for medicare number is X-Y (Y is 1 digit) -->
+                    <div class="col-2">
+                        <label for="medicare" class="form-label form-label-sm">Medicare No.</label>
+                    </div>
+                    <div class="col-4">
+                        <div class="input-group input-group-sm w-100">
+                            <input
+                                id="medicare"
+                                maxlength="9"
+                                class="form-control form-control-sm w-75"
+                                >
+                            <span class="input-group-text">-</span>
+                            <input
+                                id="medicare-issue"
+                                maxlength="1"
+                                class="form-control form-control-sm"
+                                >
+                        </div>
+                    </div>
+                    {{ pt.input_field("medicareValidTo", "Valid To", attrs='placeholder="mm / yyyy"') }} <!-- Calendar (MM/YY) -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("medicareSurname", "Surname") }}
@@ -98,7 +116,7 @@
                 <h5 class="mb-3">Concession</h5>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("concessionNumber", "Concession No.") }}
-                    {{ pt.input_field("concessionValidTo", "Valid To") }} <!-- Calendar -->
+                    {{ pt.input_field("concessionValidTo", "Valid To", type="date") }} <!-- Calendar -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("safetyNetNumber", "Safety Net No.") }}
@@ -106,7 +124,7 @@
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("repatriationNumber", "Repatriation No.") }}
-                    {{ pt.input_field("repatriationValidTo", "Valid To") }} <!-- Calendar -->
+                    {{ pt.input_field("repatriationValidTo", "Valid To", type="date") }} <!-- Calendar -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt.input_field("repatriationType", "Repatriation Type") }}
