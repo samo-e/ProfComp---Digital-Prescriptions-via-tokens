@@ -26,3 +26,16 @@ body > .container {
 .scenario-name {
     font-style: u;
 }
+
+.scenario-edit,
+.scenario-delete {
+    font-size: 2px;
+}
+
+.sr-only {
+  height: 1px;
+  width: 1px;
+  clip: rect(1px, 1px, 1px, 1px);
+  overflow: hidden;
+  position: absolute;
+}
