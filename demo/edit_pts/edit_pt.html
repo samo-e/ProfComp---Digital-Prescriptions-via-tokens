@@ -14,7 +14,12 @@
 </head>
 <body class="bg-light d-flex justify-content-center align-items-center py-5">
 <div class="card shadow-lg p-4 w-75">
-    <h3 class="text-center mb-4">Patient Details</h3>
+    <div class="position-relative mb-4">
+        <h3 class="text-center">Patient Details</h3>
+        <button id="generatePtDetails" class="btn btn-secondary position-absolute">
+            Generate Details
+        </button>
+    </div>
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
         {{ pt.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
