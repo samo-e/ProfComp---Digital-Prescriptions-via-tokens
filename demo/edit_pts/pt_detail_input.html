@@ -1,0 +1,48 @@
+{% macro input_field(id, label, type="text", fulllength=False, void=False, attrs="") %}
+{% if void %}
+<div class="col-6"></div>
+{% else %}
+<div class="col-2">
+    <label for="{{ id }}" class="form-label form-label-sm">{{ label }}</label>
+</div>
+<div class="{{ 'col-10' if fulllength else 'col-4' }}">
+    <input
+        type="{{ type }}"
+        id="{{ id }}"
+        class="form-control form-control-sm"
+        {{ attrs|safe }}
+        required>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% macro input_check(id, label, fulllength=False) %}
+<div class="col-2"></div>
+<div class="{{ 'col-10' if fulllength else 'col-4' }} form-check">
+    <input type="checkbox" class="form-check-input" id="{{ id }}" required>
+    <label class="form-check-label" for="smsRepeats">{{ label }}</label>
+</div>
+{% endmacro %}
+
+
+{% macro add_tab(id, label, target="", active=False, disabled=False) %}
+<li class="nav-item" role="presentation">
+    <button 
+        class="nav-link {{ 'active' if active else '' }} {{ 'disabled' if disabled else '' }}" 
+        id="{{ id }}-tab"
+        data-bs-toggle="tab"
+        data-bs-target="#{{ target }}"
+        type="button"
+        role="tab"
+        aria-controls="{{ target }}"
+        {{ 'aria-selected=true' if active else 'aria-selected=false' }}
+        {{ 'aria-disabled=true' if disabled else '' }}
+        >{{ label }}
+    </button>
+</li>
+{% endmacro %}
+
+<!-- This is inside div constructor -->
+{% macro add_tab_panel(id, label, target="#", active=False, disabled=False) %}
+<div class="tab-pane fade {{ 'show active' if active else '' }}" id="{{ target }}" role="tabpanel" aria-labelledby="{{ id }}-tab">
+{% endmacro %}

@@ -1,0 +1,13 @@
+.edit-pt-main {
+    border-radius: 1rem;
+}
+
+.nav-link.disabled {
+    text-decoration: line-through;
+}
+
+#generatePtDetails {
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
