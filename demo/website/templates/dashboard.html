@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>23366527 - Pharmacy</title>
+    
+    <link rel="stylesheet" href="./pharmacist.css">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Bootstrap JS and Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>Active Script List</h2>
+    <div class="row">
+        <div id="customer-details" class="col">
+            <div class="row">
+                <h3>Customer Details (ASL)</h3>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h4>Name</h4>
+                    <p>John Doe</p>
+                </div>
+                <div class="col">
+                    <h4>Date of Birth</h4>
+                    <p>01/Jan/2000</p>
+                </div>
+                <div class="col">
+                    <h4>Address</h4>
+                    <p>1600 Pennsylvania Ave NW, Washington, DC 20500, USA</p>
+                </div>
+            </div>
+            <div class="row">
+                <h4>Preferred Contact</h4>
+                <p>0401 234 567</p>
+            </div>
+        </div>
+        <div id="customer-asl-info" class="col">
+            <div class="row">
+                <h3>ASL Information</h3>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h4>Status</h4>
+                    <p>Registered</p>
+                </div>
+                <div class="col">
+                    <button type="button" class="btn btn-dark">Refresh</button>
+                </div>
+            </div>
+            <div class="row">
+                <h4>Consent Status</h4>
+                <p>Granted (last updated 01/Jan/2000 02:59AM)</p>
+            </div>
+        </div>
+    </div>
+    <br>
+    <input class="form-control mr-sm-2" type="search" placeholder="Search" aria-label="Search">
+    <br>
+    
+    <div class="container">
+        <div class="row">
+            <div class="col-1">
+                <p>/\</p>
+            </div>
+            <div class="col-10">
+                <p>ASL Scripts</p>
+            </div>
+            <div class="col-1">
+                <a><i class="bi bi-printer-fill printer"></i></a>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Select</th>
+                    <th scope="col">Prescribed</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Prescriber</th>
+                    <th scope="col">Rpt</th>
+                    <th scope="col">Paperless</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="asl-paperless">
+                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-1"></td>
+                    <td class="asl-date">10/06/2021</td>
+                    <td class="asl-item">Coversyl 5mg tablet, 30 5 mg 30 Tablets<p>MPK00009002020635</p></td>
+                    <td class="asl-qty">30</td>
+                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
+                    <td class="asl-rpt">6</td>
+                    <td class="asl-cloud-prescription"><img src="cloud-prescription.svg"/></td>
+                    </tr>
+                <tr class="asl-paperless">
+                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-2"></td>
+                    <td class="asl-date">10/06/2021</td>
+                    <td class="asl-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>MPK00009002020646</p></td>
+                    <td class="asl-qty">90</td>
+                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
+                    <td class="asl-rpt">6</td>
+                    <td class="asl-cloud-prescription"><img src="cloud-prescription.svg"/></td>
+                </tr>
+                <tr class="asl-paper">
+                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-3" disabled></td>
+                    <td class="asl-date">10/06/2021</td>
+                    <td class="asl-item">Lipitor 10mg tablet, 30 10 mg 30 Tablets<p>07689Q00018456E</p></td>
+                    <td class="asl-qty">30</td>
+                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
+                    <td class="asl-rpt">5</td>
+                    <td class="asl-cloud-prescription"><img src="cloud-prescription.svg"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-1">
+                <p>/\</p>
+            </div>
+            <div class="col-11">
+                <p>Available Local Repeats (View Only)</p>
+            </div>
+        </div>
+        <table class="table">
+            <thead>
+                <tr>
+                <th scope="col">Dispensed</th>
+                <th scope="col">Item</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Prescribed</th>
+                <th scope="col">Rpt</th>
+                <th scope="col">Paperless</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="alr-paper">
+                    <td class="alr-date">05/07/2021</td>
+                    <td class="alr-item">Levlen ED Tablets, 150mcg-30mcg(28)<p>Take the specified does as directed by the physician</p></td>
+                    <td class="alr-qty">4</td>
+                    <td class="alr-prescriber">Davis, P<br>05/07/2021</td>
+                    <td class="alr-rpt">2</td>
+                    <td class="alr-cloud-prescription"><img src="cloud-prescription.svg"/></td>
+                    </tr>
+                <tr class="alr-paperless">
+                    <td class="alr-date">23/06/2021</td>
+                    <td class="alr-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>Shake well and inhale TWO puffs by mouth TWICE a day as directed by your physician</p></td>
+                    <td class="alr-qty">1</td>
+                    <td class="alr-prescriber">Davis, P<br>10/06/2021</td>
+                    <td class="alr-rpt">3</td>
+                    <td class="alr-cloud-prescription"><img src="cloud-prescription.svg"/></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

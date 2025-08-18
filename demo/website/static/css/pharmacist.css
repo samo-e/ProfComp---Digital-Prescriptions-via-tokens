@@ -1,0 +1,54 @@
+/*  Debug only  */
+div {
+    border: 1px solid red;
+}
+
+body > .container {
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+.asl-check * {
+    margin: auto;
+    display: block;
+}
+.asl-qty,
+.asl-rpt,
+.alr-qty,
+.alr-rpt {
+    text-align: center;
+}
+
+.asl-date,
+.asl-item {
+    font-weight: bold;
+}
+td > p {
+    font-weight: normal;
+    margin-bottom: 0;
+}
+.asl-paper > td {
+    color: #999 !important;
+}
+.asl-paper > td > p {
+    visibility: hidden;
+}
+.alr-paper > td > p {
+    visibility: hidden;
+}
+.alr-paper .alr-cloud-prescription,
+.asl-paper .asl-cloud-prescription {
+    visibility: hidden;
+}
+.asl-cloud-prescription img,
+.alr-cloud-prescription img {
+    width: 20px;
+    height: 20px;
+    margin: auto;
+    display: block;
+}
+
+.asl-check:hover > *, 
+.printer:hover {
+    cursor: pointer;
+}
