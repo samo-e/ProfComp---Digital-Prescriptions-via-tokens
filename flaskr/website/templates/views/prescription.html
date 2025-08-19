@@ -1,0 +1,164 @@
+<style>
+    p {
+        margin: 2px 0;
+    }
+    .container {
+        width:493px;
+        height:598px;
+        border:1px solid black;
+        position:relative;
+        font-size:14px;
+        font-family: Arial, Helvetica, sans-serif;
+        padding: 5px;
+    }
+
+    .box {
+        margin: 1px;
+        border: 1px solid black;
+        width: 23px;
+        height: 23px;
+    }
+    .long-box {
+        width: 100%;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 33.3% 33.3% 33.3%;
+    }
+    .grid-4 {
+        display: grid;
+        grid-template-columns: 8% 42% 8% 42%;
+    }
+
+    .align-children-centre {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+    .hpix {
+        font-size: 12px;
+    }
+    small {
+        font-weight: bold;
+        font-size: 8px;
+    }
+    p:has(> small) {
+        margin: 0;
+    }
+    .pt-detail-sm {
+        font-weight: bold;
+        font-size: 10px;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .rotated-text {
+        font-size: 40px;
+        font-weight: bold;
+        color: #99999929;
+        transform: rotate(-45deg);
+    }
+</style>
+<div class="container">
+    <div class="clinician-name-and-title"><p>Phillip Davis ( MBBS; FRACGP )</p></div>
+    
+    <div class="grid-2">
+        <div class="clinician-address"><p>Level 3  60 Albert Rd</p><p>SOUTH MELBOURNE VIC 3205</p></div>
+        <div style="text-align: right;">
+            <div class="prescriber"><p>MPK00009002011563</p></div>
+            <div class="hpii"><p>Pending</div>
+        </div>
+    </div>
+    <div class="grid-3">
+        <div>
+            <div class="prescriber"><p><b>Prescriber no:  </b>987774</p></div>
+            <div class="hpii"><p><b>HPII:  </b><a class="hpix">8003619900026805</a></p></div>
+        </div>
+        <div>
+            <div class="phone"><p><b>Phone:  </b>0</p></div>
+            <div class="hpio"><p><b>HPIO:  </b><a class="hpix">8003626566692846</a></p></div>
+        </div>
+        <div>
+            <div class="prescriber"><p><b>Fax:  </b>0</p></div>
+        </div>
+    </div>
+    <hr>
+    <div class="prescriber"><p><b>Patient's Medicare no:  </b>49502864011</p></div>
+    <div class="grid-2" style="grid-template-columns: 70px 400px;">
+        <div class="pt-name">
+            <p><small>Pharmaceutical benefit entitlement</small></p>
+            <p><small>no.</small></p>
+        </div>
+        <div>
+            <div class="box long-box"></div>
+            <div class="grid-4">
+                <div class="box"></div>
+                <div class="pt-name">
+                    <p><small>Safety Net entitlement</small></p>
+                    <p><small>cardholder</small></p>
+                </div>
+                <div class="box"></div>
+                <div class="pt-name">
+                    <p><small>Concessional or dependant</small></p>
+                    <p><small>RPBS beneficiary or Safety Net</small></p>
+                    <p><small>concession cardholder</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 80px 200px;">
+        <p class="pt-detail-sm">Patient's name</p>
+        <p>Draga Diaz (26/01/1998 - 23yrs)</p>
+        <p class="pt-detail-sm">Address</p>
+        <div>
+            <p>33 JIT DR</p>
+            <p>CHARAM VIC 3318</p>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 35% 65%;">
+        <div>
+            <div class="grid-2" style="grid-template-columns: 35px 50px;">
+                <div><p class="pt-detail-sm">Date</p></div>
+                <div><p>30/11/2020</p></div>
+            </div>
+            <div class="grid-4">
+                <div><p class="pt-detail-sm">PBS</p></div>
+                <div></div>
+                <div><p class="pt-detail-sm">RPBS</p></div>
+                <div></div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <div class="box" style="margin-right:4px;"></div>
+            <div><p class="pt-detail-sm">Brand Substitution not permitted</p></div>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 20% 80%; height:272px;">
+        <div class="align-children-centre" style="background:#EAEAEA; height:100%;">
+            <div style="writing-mode: sideways-lr; color:#FFF;font-size:22px;"><p><b>Electronic Prescription</b></p></div>
+        </div>
+        <div style="background:#EFFFFE; height:100%;">
+        </div>
+    </div>
+    <div class="align-children-centre" style="font-size:16px">
+        <p><b>This information represents the legal form. <a href="">Privacy Notice</a></b></p>
+    </div>
+
+    <div class="overlay">
+        <div class="rotated-text">ELECTRONIC COPY OF PRESCRIPTION</div>
+    </div>
+</div>
