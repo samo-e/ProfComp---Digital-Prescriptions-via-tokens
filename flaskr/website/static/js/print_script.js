@@ -22,43 +22,59 @@ function print_scripts() {
 function printIdToPDF(rowIds) {
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF();
-  let title = 'Active Script Lists for <pt_id> on <todays date>';
+  let title = 'Active Script Lists for <pt_id> on <todays date>'; // TODO
 
   // Set metadata
   pdf.setProperties({
-    title: title, // TODO
+    title: title,
     subject: 'List of selected rows',
-    //author: '',
-    //creator: 'My Company' // maybe make this as the student's id?
+    // author: '',
+    // creator: 'My Company'
   });
 
-  // Format PDF
-  // Add title
-  pdf.setFontSize(16);
-  pdf.text(title, 10, 10);
+  // Create a container for all rows
+  const tempDiv = document.createElement("div");
 
-  // Add each asl row
-  pdf.setFontSize(12);
-  rowIds.forEach((id, index) => {
-    pdf.text(id, 10, 20 + index * 10);
+  rowIds.forEach(id => {
+    const element = $(`#${id}`)[0];
+    if (element) {
+      const wrapper = document.createElement("div");
+      wrapper.style.marginBottom = "4px";       // spacing
+      wrapper.style.maxWidth = "180mm";         // limit width
+      wrapper.style.fontSize = "10px";          // smaller font
+      wrapper.style.lineHeight = "1.2";         // tighter lines
+      wrapper.style.overflowWrap = "break-word";
+      wrapper.style.display = "inline-block";
+      wrapper.innerHTML = element.innerHTML;
+
+      tempDiv.appendChild(wrapper);
+    }
   });
+  tempDiv.style.color = "red";
+  console.log(tempDiv);
 
-  // Open a new tab
-  const newTab = window.open('', '_blank');
-  if (!newTab) return;
+  // Render all content to PDF and open in new tab
+  pdf.html(tempDiv, {
+    x: 10,
+    y: 10,
+    autoPaging: true,
+    callback: function(doc) {
+      const newTab = window.open('', '_blank');
+      if (!newTab) return;
 
-  // Add content to new tab
-  const iframe = newTab.document.createElement('iframe');
-  iframe.src = pdf.output('datauristring');
-  Object.assign(iframe.style, {
-    position: 'absolute',
-    top: '0',
-    left: '0',
-    width: '100%',
-    height: '100%',
-    border: 'none'
+      const iframe = newTab.document.createElement('iframe');
+      iframe.src = doc.output('datauristring');
+      Object.assign(iframe.style, { // Set display options for the opened PDF tab
+        position: 'absolute',
+        top: '0',
+        left: '0',
+        width: '100%',
+        height: '100%',
+        border: 'none'
+      });
+
+      newTab.document.body.innerHTML = '';
+      newTab.document.body.appendChild(iframe);
+    }
   });
-
-  newTab.document.body.innerHTML = '';
-  newTab.document.body.appendChild(iframe);
 }
