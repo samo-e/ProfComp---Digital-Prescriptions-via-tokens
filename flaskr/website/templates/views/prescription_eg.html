@@ -11,6 +11,10 @@
         font-family: Arial, Helvetica, sans-serif;
         padding: 5px;
     }
+    
+    .u-case {
+        text-transform: uppercase;
+    }
 
     .box {
         margin: 1px;
@@ -71,6 +75,12 @@
         color: #99999929;
         transform: rotate(-45deg);
     }
+
+    .drug {
+        padding-bottom: 2px;
+        margin: 2px;
+        border-bottom: 1px solid black;
+    }
 </style>
 <!-- 
 id="clinician-name-and-title" | eg "Phillip Davis ( MBBS; FRACGP )"
@@ -95,13 +105,23 @@ id="script-date" | eg "30/11/2020"
 id="pbs" | eg UNK
 id="rpbs" | eg UNK
 id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
+
+id="drug-X" | X: int
+    class="drug-name" | eg "Atacand 32 mg tablet, 30 Tablets 32mg (Candesartan cilexetil)"
+    class="drug-code" | eg "8889W" | https://www.pbs.gov.au/medicine/ - then search the drug name
+    class="dose-freq" | eg "ONCE A DAY" or "TAKE 1 Q6H ONCE A DAY"
+    class="dose-qty" | eg 30
+    class="dose-rpt" | eg 5
 -->
 
 <div class="container">
     <div><p id="clinician-name-and-title">Phillip Davis ( MBBS; FRACGP )</p></div>
     
     <div class="grid-2">
-        <div><p id="clinician-address-1">Level 3  60 Albert Rd</p><p id="clinician-address-2">SOUTH MELBOURNE VIC 3205</p></div>
+        <div>
+            <p id="clinician-address-1">Level 3  60 Albert Rd</p>
+            <p id="clinician-address-2" class="u-case">SOUTH MELBOURNE VIC 3205</p>
+        </div>
         <div style="text-align: right;">
             <div><p id="DSPID">MPK00009002011563</p></div>
             <div><p id="status">Pending</div>
@@ -128,14 +148,14 @@ id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
             <p><small>no.</small></p>
         </div>
         <div>
-            <div class="box long-box"><a id="pharmaceut-ben-entitlement-no">NA318402K(W)</a></div>
+            <div class="box long-box"><a id="pharmaceut-ben-entitlement-no" class="u-case">NA318402K(W)</a></div>
             <div class="grid-4">
                 <div class="box"><a id="sfty-net-entitlement-cardholder"></a></div>
                 <div class="pt-name">
                     <p><small>Safety Net entitlement</small></p>
                     <p><small>cardholder</small></p>
                 </div>
-                <div class="box"><a id="rpbs-ben-entitlement-cardholder"></a></div>
+                <div class="box"><a id="rpbs-ben-entitlement-cardholder">x</a></div>
                 <div class="pt-name">
                     <p><small>Concessional or dependant</small></p>
                     <p><small>RPBS beneficiary or Safety Net</small></p>
@@ -149,8 +169,8 @@ id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
         <p id="pt-name">Draga Diaz (26/01/1998 - 23yrs)</p>
         <p class="pt-detail-sm">Address</p>
         <div>
-            <p id="pt-address-1">33 JIT DR</p>
-            <p id="pt-address-2">CHARAM VIC 3318</p>
+            <p id="pt-address-1" class="u-case">33 JIT DR</p>
+            <p id="pt-address-2" class="u-case">CHARAM VIC 3318</p>
         </div>
     </div>
     <div class="grid-2" style="grid-template-columns: 35% 65%;">
@@ -171,15 +191,21 @@ id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
             <div><p class="pt-detail-sm">Brand Substitution not permitted</p></div>
         </div>
     </div>
-    <div class="grid-2" style="grid-template-columns: 20% 80%; height:272px;">
+    <div class="grid-2" style="grid-template-columns: 20% 80%; height:290px;">
         <div class="align-children-centre" style="background:#EAEAEA; height:100%;">
             <div style="writing-mode: sideways-lr; color:#FFF;font-size:22px;"><p><b>Electronic Prescription</b></p></div>
         </div>
         <div style="background:#EFFFFE; height:100%;">
-            <ul>
-                <li></li>
-                <li></li>
-            </ul>
+            <div id="drug-1" class="drug">
+                <p><b class="drug-name">Atacand 32 mg tablet, 30 Tablets 32mg (Candesartan cilexetil)</b><a> - </a><a class="drug-code">8889W</a></p>
+                <p><i class="dose-freq u-case">ONCE A DAY</i></p>
+                <div class="grid-4">
+                    <b>Qty</b>
+                    <a class="dose-qty">30</a>
+                    <a class="dose-rpt">5</a>
+                    <b>Repeat(s)</b>
+                </div>
+            </div>
         </div>
     </div>
     <div class="align-children-centre" style="font-size:16px">
