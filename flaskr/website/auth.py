@@ -8,11 +8,13 @@ def home():
 
 @auth.route('/login')
 def login():
-    return render_template("auth/login.html")
+    valid_password = True
+    return render_template("auth/login.html", valid_password=valid_password)
 
 @auth.route('/signup')
 def signup():
-    return render_template("auth/signup.html")
+    valid_password = True
+    return render_template("auth/signup.html", valid_password=valid_password)
 
 @auth.route('/logout')
 def logout():

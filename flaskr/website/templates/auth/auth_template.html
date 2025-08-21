@@ -23,16 +23,18 @@
             {% endblock %}
 
             {% block password %}
-            <div>
+            <div class="{{ 'mb-3' if valid_password else '' }}">
                 <label for="password" class="form-label">Password</label>
                 <input type="password" class="form-control" id="password" placeholder="Enter password" required>
             </div>
             {% endblock %}
 
             {% block invalid_password %}
+            {% if not valid_password %}
             <div class="mb-3 text-center text-danger">
                 <small>Invalid password</small>
             </div>
+            {% endif %}
             {% endblock %}
 
             {% block i_am_a_selection %}
