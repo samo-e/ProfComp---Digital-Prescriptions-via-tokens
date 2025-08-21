@@ -83,7 +83,7 @@ function printIdToPDF(rowIds) {
 async function create_prescription() {
   try {
     // fetch the HTML from the server
-    const response = await fetch("/views/prescription/prescription.html");
+    const response = await fetch("/prescription");
     if (!response.ok) throw new Error("Network response was not ok");
 
     const html = await response.text();
