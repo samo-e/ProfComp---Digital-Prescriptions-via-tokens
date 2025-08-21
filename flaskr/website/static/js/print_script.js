@@ -16,7 +16,8 @@ function print_scripts() {
     }
   });
 
-  printIdToPDF(asls_to_print);
+  create_prescription();
+  //printIdToPDF(asls_to_print);
 }
 
 function printIdToPDF(rowIds) {
@@ -77,4 +78,23 @@ function printIdToPDF(rowIds) {
       newTab.document.body.appendChild(iframe);
     }
   });
+}
+
+async function create_prescription() {
+  try {
+    // fetch the HTML from the server
+    const response = await fetch("/views/prescription/prescription.html");
+    if (!response.ok) throw new Error("Network response was not ok");
+
+    const html = await response.text();
+
+    // create a container for the new content
+    const container = document.createElement("div");
+    container.innerHTML = html;
+
+    // append to body
+    document.body.appendChild(container);
+  } catch (error) {
+    console.error("Error fetching content:", error);
+  }
 }
