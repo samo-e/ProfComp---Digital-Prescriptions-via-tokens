@@ -1,6 +1,9 @@
 {% extends 'auth/auth_template.html' %}
-{% block i_am_a_selection %}
-{% endblock %}
+
+{% block submission_endpoint %}{{ url_for('auth.login') }}{% endblock %}
+
+{% block i_am_a_selection %}{% endblock %}
+
 {% block submit_text %}
 Login
 {% endblock %}
