@@ -24,10 +24,18 @@ def login():
         submitted_data=submitted_data
     )
 
-@auth.route('/signup')
+@auth.route('/signup', methods=["GET", "POST"])
 def signup():
     valid_password = True
-    return render_template("auth/signup.html", valid_password=valid_password)
+    submitted_data = None
+    
+    # Need to do something similar to above
+
+    return render_template(
+        "auth/signup.html",
+        valid_password=valid_password,
+        submitted_data=submitted_data
+    )
 
 @auth.route('/logout')
 def logout():
