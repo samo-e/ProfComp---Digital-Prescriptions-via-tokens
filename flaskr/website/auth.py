@@ -20,6 +20,7 @@ def login():
 
     return render_template(
         "auth/login.html",
+        title="Login",
         valid_password=valid_password,
         submitted_data=submitted_data
     )
@@ -33,6 +34,7 @@ def signup():
 
     return render_template(
         "auth/signup.html",
+        title="Signup",
         valid_password=valid_password,
         submitted_data=submitted_data
     )
