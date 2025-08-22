@@ -31,8 +31,19 @@ id="drug-X" | X: int
 -->
 <div class="prescription-container">
 <style>
+    .overlay {
+        display: none !important;
+    }
     .prescription-container p {
         margin: 2px 0;
+        line-height: 1.1em;
+    }
+    .prescription-container a {
+        color: black;
+        text-decoration: none;
+    }
+    hr {
+        margin: 7px;
     }
     .prescription-container {
         width:493px;
@@ -43,11 +54,9 @@ id="drug-X" | X: int
         font-family: Arial, Helvetica, sans-serif;
         padding: 5px;
     }
-    
     .u-case {
         text-transform: uppercase;
     }
-
     .box {
         margin: 1px;
         border: 1px solid black;
@@ -83,7 +92,8 @@ id="drug-X" | X: int
     small {
         font-weight: bold;
         font-size: 8px;
-        line-height: 8px;
+        line-height: 1 !important;
+        display: inline-block;
     }
     p:has(> small) {
         margin: 0;
@@ -108,11 +118,15 @@ id="drug-X" | X: int
         color: #99999929;
         transform: rotate(-45deg);
     }
-
     .drug {
         padding-bottom: 2px;
         margin: 2px;
         border-bottom: 1px solid black;
+    }
+
+    a[href] {
+        color: blue;
+        text-decoration: underline;
     }
 </style>
     <div><p id="clinician-name-and-title"></p></div>
@@ -144,22 +158,20 @@ id="drug-X" | X: int
     <div><p><b>Patient's Medicare no:  </b><a id="medicare"></a></p></div>
     <div class="grid-2" style="grid-template-columns: 70px 400px;">
         <div class="pt-name">
-            <p><small>Pharmaceutical benefit entitlement</small></p>
-            <p><small>no.</small></p>
+            <p><small>Pharmaceutical benefit entitlement no.</small></p>
         </div>
         <div>
             <div class="box long-box"><a id="pharmaceut-ben-entitlement-no" class="u-case"></a></div>
             <div class="grid-4">
                 <div class="box"><a id="sfty-net-entitlement-cardholder"></a></div>
                 <div class="pt-name">
-                    <p><small>Safety Net entitlement</small></p>
-                    <p><small>cardholder</small></p>
+                    <p><small>Safety Net entitlement cardholder</small></p>
                 </div>
                 <div class="box"><a id="rpbs-ben-entitlement-cardholder"></a></div>
                 <div class="pt-name">
-                    <p><small>Concessional or dependant</small></p>
-                    <p><small>RPBS beneficiary or Safety Net</small></p>
-                    <p><small>concession cardholder</small></p>
+                    <p><small>
+                    Concessional or dependant RPBS beneficiary or Safety Net concession cardholder
+                    </small></p>
                 </div>
             </div>
         </div>
