@@ -3,11 +3,21 @@ $(document).ready(function() {
 });
 
 const options = {
-  filename: 'my-document.pdf',
+  filename: 'prescriptions.pdf',
   margin: 10,
-  image: { type: 'jpeg', quality: 0.98 },
-  html2canvas: { scale: 2 },
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  image: { 
+    type: 'jpeg',
+    quality: 0.98
+  },
+  html2canvas: { 
+    scale: 2,
+    logging: false // disable consol output
+  }, 
+  jsPDF: { 
+    unit: 'mm',
+    format: 'a4',
+    orientation: 'portrait'
+  },
 };
 
 async function print_scripts() {
