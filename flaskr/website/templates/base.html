@@ -20,5 +20,28 @@
 </head>
 <body>
 {% block body %}{% endblock %}
+{% block options_menu %}
+<!-- Options Menu -->
+<div class="position-fixed top-0 end-0 p-3">
+    <a type="button" data-bs-toggle="modal" data-bs-target="#options-menu">
+        <i class="bi bi-gear-fill h1"></i>
+    </a>
+</div>
+<div class="modal fade" id="options-menu" tabindex="-1" aria-labelledby="options-menu-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="options-menu-label">Settings</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
 </body>
 </html>
