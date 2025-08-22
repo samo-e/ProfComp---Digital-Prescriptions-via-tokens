@@ -29,11 +29,12 @@ id="drug-X" | X: int
     class="dose-qty" | eg 30
     class="dose-rpt" | eg 5
 -->
+<div class="prescription-container">
 <style>
-    p {
+    .prescription-container p {
         margin: 2px 0;
     }
-    .container {
+    .prescription-container {
         width:493px;
         height:598px;
         border:1px solid black;
@@ -82,6 +83,7 @@ id="drug-X" | X: int
     small {
         font-weight: bold;
         font-size: 8px;
+        line-height: 8px;
     }
     p:has(> small) {
         margin: 0;
@@ -113,7 +115,6 @@ id="drug-X" | X: int
         border-bottom: 1px solid black;
     }
 </style>
-<div class="container">
     <div><p id="clinician-name-and-title">Phillip Davis ( MBBS; FRACGP )</p></div>
     
     <div class="grid-2">
