@@ -21,3 +21,12 @@ def asl(pt: int):
 @views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html")
+
+@views.route('/show-users')
+def show_users():
+    from .models import User
+    users = User.query.all()
+    return '<br>'.join([
+        f'ID: {u.id} | Username: {u.username} | Email: {u.email} | Password: {u.password} | Role: {u.role}'
+        for u in users
+    ])
