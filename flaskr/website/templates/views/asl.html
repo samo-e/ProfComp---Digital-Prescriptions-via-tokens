@@ -22,7 +22,7 @@
         <div id="customer-details" class="col">
             <div class="card card-body customer-card">
                 <div style="position:absolute; top:10px;right:10px;">
-                    <button class="btn btn-sm btn-dark">Update</button>
+                    <a class="btn btn-sm btn-dark" href="{{ url_for('views.edit_pt', pt=pt) }}">Update</a>
                 </div>
                 <div class="row">
                     <h3>Customer Details (ASL)</h3>

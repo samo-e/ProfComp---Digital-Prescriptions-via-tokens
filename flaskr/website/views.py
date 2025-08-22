@@ -16,8 +16,8 @@ def scenario_edit(id: int):
 
 @views.route('/asl/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def asl(pt: int):
-    return render_template("views/asl.html")
+    return render_template("views/asl.html", pt=pt)
 
 @views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
-    return render_template("views/edit_pt.html")
+    return render_template("views/edit_pt.html", pt=pt)
