@@ -20,6 +20,7 @@
     {% block styles %}{% endblock %}
     {% block scripts %}{% endblock %}
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
+    <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
 </head>
 <body>
 {% block body %}{% endblock %}
@@ -34,28 +35,23 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="options-menu-label">Settings</h1>
+                <h1 class="modal-title fs-5 fw-bold" id="options-menu-label">Settings</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <h2 class="fs-5 mb-3">Need help?</h2>
                 <p>You can find the documentation <a href="#">here</a>.</p>
                 <p>Need to report an issue? Head over <a href="#">here</a>.</p>
-                <hr>
-                <h2 class="fs-5 mb-3">Options</h2>
+                <h2 class="fs-5 mb-3 mt-5">Options</h2>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switch-darkmode">
                     <label class="form-check-label" for="switch-darkmode">Darkmode</label>
                 </div>
-                <hr>
-                <div>
-                    <a class="btn btn-warning" href="{{ url_for('auth.logout') }}">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </div>
-
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer justify-content-between">
+                <a class="btn btn-warning" href="{{ url_for('auth.logout') }}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
