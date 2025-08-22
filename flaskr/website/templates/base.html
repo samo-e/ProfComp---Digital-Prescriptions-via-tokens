@@ -47,6 +47,13 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="switch-darkmode">
                     <label class="form-check-label" for="switch-darkmode">Darkmode</label>
                 </div>
+                <hr>
+                <div>
+                    <a class="btn btn-warning" href="{{ url_for('auth.logout') }}">
+                        <i class="bi bi-box-arrow-right"></i> Logout
+                    </a>
+                </div>
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
