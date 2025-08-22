@@ -27,9 +27,14 @@ function print_scripts() {
 
 async function appendPrescription() {
   let element = await create_prescription();
-  //html2pdf().set(options).from(element).save();
-  // Below is debug only (disables auto-download)
-  html2pdf().set(options).from(element).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
+  if (true) {
+    // Below is debug only (disables auto-download)
+    $("body").append(element); // jQuery appends the DOM element
+    element = document.querySelector(".prescription-container");
+    //html2pdf().set(options).from(element).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
+  } else {
+    html2pdf().set(options).from(element).save();
+  }
 }
 
 async function create_prescription() {
