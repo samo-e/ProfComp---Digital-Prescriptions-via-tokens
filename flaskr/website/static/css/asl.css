@@ -14,6 +14,8 @@ body > .container {
     text-align: center;
 }
 
+.alr-date,
+.alr-item,
 .asl-date,
 .asl-item {
     font-weight: bold;
