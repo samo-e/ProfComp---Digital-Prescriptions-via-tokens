@@ -11,22 +11,21 @@ const options = {
 };
 
 function print_scripts() {
-  let asls_to_print = [];
-
   let select_all = ($("#asl-table .asl-paperless .asl-check input:checked").length == 0);
   
   $("#asl-table .asl-paperless").each(function() {
     if ((select_all) || ($(this).find(".asl-check input").is(":checked"))) {
       let this_id = $(this).attr("id")
-      asls_to_print.push(this_id);
+      appendPrescription(this_id);
     }
   });
 
   appendPrescription();
 }
 
-async function appendPrescription() {
+async function appendPrescription(asl_id) {
   let element = await create_prescription();
+  element = insert_prescription_details(element, asl_id);
   if (true) {
     // Below is debug only (disables auto-download)
     $("body").append(element); // jQuery appends the DOM element
@@ -53,4 +52,11 @@ async function create_prescription() {
   } catch (error) {
     console.error("Error fetching content:", error);
   }
+}
+
+
+function insert_prescription_details(el, asl_id) {
+  // Add details of the prescription to the element
+  // See comment in prescription.html
+  return el;
 }
