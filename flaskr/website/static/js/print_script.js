@@ -27,14 +27,9 @@ function print_scripts() {
 
 async function appendPrescription() {
   let element = await create_prescription();
-  $("body").append(element); // jQuery appends the DOM element
-  const el = document.querySelector(".prescription-container");
-  html2pdf().set(options).from(el).outputPdf()  // add this to replace implicite .save() method, which triggers file download
-  .get('pdf')
-  .then(function (pdfObj) {
-    pdfObj.autoPrint();
-    window.open(pdfObj.output("bloburl"), "F")
-  });;
+  //html2pdf().set(options).from(element).save();
+  // Below is debug only (disables auto-download)
+  html2pdf().set(options).from(element).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
 }
 
 async function create_prescription() {
