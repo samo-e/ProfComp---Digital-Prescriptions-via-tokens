@@ -51,3 +51,7 @@ td > p {
 html {
     overflow-y: scroll;
 }
+
+.customer-card {    
+    min-height: 100%;
+}
