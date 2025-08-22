@@ -47,3 +47,7 @@ td > p {
 .printer:hover {
     cursor: pointer;
 }
+
+html {
+    overflow-y: scroll;
+}
