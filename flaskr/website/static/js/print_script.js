@@ -4,35 +4,40 @@ $(document).ready(function() {
 
 const options = {
   filename: 'my-document.pdf',
-  margin: 1,
+  margin: 10,
   image: { type: 'jpeg', quality: 0.98 },
   html2canvas: { scale: 2 },
-  jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
 };
 
-function print_scripts() {
+async function print_scripts() {
   let select_all = ($("#asl-table .asl-paperless .asl-check input:checked").length == 0);
   
-  $("#asl-table .asl-paperless").each(function() {
-    if ((select_all) || ($(this).find(".asl-check input").is(":checked"))) {
-      let this_id = $(this).attr("id")
-      appendPrescription(this_id);
+  // Temp parent container to store the prescriptions
+  let container = document.createElement("div");
+  
+  // Loop through prescriptions and append them into container
+  for (let elem of $("#asl-table .asl-paperless")) {
+    if (select_all || $(elem).find(".asl-check input").is(":checked")) {
+      let this_id = $(elem).attr("id");
+      let presc = await create_prescription();
+      presc = insert_prescription_details(presc, this_id);
+
+      // Add a page break between prescriptions
+      let wrapper = document.createElement("div");
+      wrapper.appendChild(presc);
+      wrapper.style.breakAfter = "page";  
+
+      container.appendChild(wrapper);
     }
-  });
+  }
 
-  appendPrescription();
-}
-
-async function appendPrescription(asl_id) {
-  let element = await create_prescription();
-  element = insert_prescription_details(element, asl_id);
   if (true) {
     // Below is debug only (disables auto-download)
-    $("body").append(element); // jQuery appends the DOM element
-    element = document.querySelector(".prescription-container");
-    //html2pdf().set(options).from(element).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
+    $("body").append(container); // jQuery appends the DOM element
+    html2pdf().set(options).from(container).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
   } else {
-    html2pdf().set(options).from(element).save();
+    html2pdf().set(options).from(container).save();
   }
 }
 
