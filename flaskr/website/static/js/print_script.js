@@ -155,5 +155,19 @@ function insert_prescription_details(el, drug_id) {
       $el.text(data_point);
     }
   });
+
+  // Set pt age
+  const $el = $(el).find(`#age`);
+  $el.text(years_old(pt_data['dob']));
   return el;
+}
+
+/* Expected dob in DD/MM/YYYY form */
+function years_old(dob) {
+  let pt_dob = dob.split("/");
+  let newDate = new Date( pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
+  let timeDifference = Date.now() - newDate;
+  let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
+  console.log(pt_age);
+  return pt_age;
 }
