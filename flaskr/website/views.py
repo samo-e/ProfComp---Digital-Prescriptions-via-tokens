@@ -38,6 +38,8 @@ def asl(pt: int):
         "pbs" : None,
         "rpbs" : None,
         "brand-sub-not-prmt" : False,
+        "asl_data" : [{}],
+        "alr_data" : [{}],
     }
     return render_template("views/asl.html", pt=pt, pt_data=pt_data)
 
