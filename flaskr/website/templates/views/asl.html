@@ -103,33 +103,17 @@
                 </tr>
             </thead>
             <tbody>
-                <tr id="asl-insert-asl-id-here-1" class="asl-paperless">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-1"></td>
-                    <td class="asl-date">10/06/2021</td>
-                    <td class="asl-item">Coversyl 5mg tablet, 30 5 mg 30 Tablets<p>MPK00009002020635</p></td>
-                    <td class="asl-qty">30</td>
-                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                    <td class="asl-rpt">6</td>
-                    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                    </tr>
-                <tr id="asl-insert-asl-id-here-2" class="asl-paperless">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-2"></td>
-                    <td class="asl-date">10/06/2021</td>
-                    <td class="asl-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>MPK00009002020646</p></td>
-                    <td class="asl-qty">90</td>
-                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                    <td class="asl-rpt">6</td>
-                    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                </tr>
-                <tr id="asl-insert-asl-id-here-3" class="asl-paper">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-3" disabled></td>
-                    <td class="asl-date">10/06/2021</td>
-                    <td class="asl-item">Lipitor 10mg tablet, 30 10 mg 30 Tablets<p>07689Q00018456E</p></td>
-                    <td class="asl-qty">30</td>
-                    <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                    <td class="asl-rpt">5</td>
-                    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                </tr>
+{% for asl in pt_data['asl_data'] %}
+<tr id="asl-{{ loop.index }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
+    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
+    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
+    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
+    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
+    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
+    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
             </tbody>
         </table>
     </div>
