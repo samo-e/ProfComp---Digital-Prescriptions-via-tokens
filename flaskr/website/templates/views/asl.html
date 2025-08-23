@@ -139,22 +139,16 @@
                 </tr>
             </thead>
             <tbody>
-                <tr class="alr-paper">
-                    <td class="alr-date">05/07/2021</td>
-                    <td class="alr-item">Levlen ED Tablets, 150mcg-30mcg(28)<p>Take the specified does as directed by the physician</p></td>
-                    <td class="alr-qty">4</td>
-                    <td class="alr-prescriber">Davis, P<br>05/07/2021</td>
-                    <td class="alr-rpt">2</td>
-                    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                    </tr>
-                <tr class="alr-paperless">
-                    <td class="alr-date">23/06/2021</td>
-                    <td class="alr-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>Shake well and inhale TWO puffs by mouth TWICE a day as directed by your physician</p></td>
-                    <td class="alr-qty">1</td>
-                    <td class="alr-prescriber">Davis, P<br>10/06/2021</td>
-                    <td class="alr-rpt">3</td>
-                    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                </tr>
+{% for alr in pt_data['alr_data'] %}
+<tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
+    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
+    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
+    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
+    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
+    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
+    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
             </tbody>
         </table>
     </div>
