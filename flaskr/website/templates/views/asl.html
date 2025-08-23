@@ -20,6 +20,7 @@
     <script>
         const pt_id = {{ pt }};
         const pt_data = {{ pt_data|tojson }};
+        const flatted_pt_data = flatten_dict(pt_data);
     </script>
 </head>
 <body>
@@ -104,7 +105,7 @@
             </thead>
             <tbody>
 {% for asl in pt_data['asl_data'] %}
-<tr id="asl-{{ loop.index }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
+<tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
     <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
     <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>

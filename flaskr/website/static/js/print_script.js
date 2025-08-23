@@ -43,7 +43,7 @@ async function print_scripts() {
   let select_all = ($("#asl-table .asl-paperless .asl-check input:checked").length == 0);
   
   // Temp parent container to store the prescriptions
-  let $container = $('<div></div>')
+  let $container = $('<div></div>');
   const prescription_container = await get_blank_prescription();
   // Loop through prescriptions and append them into container
   for (let elem of $("#asl-table .asl-paperless")) {
@@ -70,34 +70,40 @@ async function print_scripts() {
 }
 
 const id_list = [
-  "clinician-name-and-title",
-  "clinician-address-1",
-  "clinician-address-2",  
-  "DSPID",
-  "status",
-  "clinician-id",
-  "hpii",
-  "hpio",
-  "clinician-phone",
-  "clinician-fax",
   "medicare",
   "pharmaceut-ben-entitlement-no",
   "sfty-net-entitlement-cardholder",
   "rpbs-ben-entitlement-cardholder",
   "pt-name",
+  "pt-dob",
+  "pt-preferred-contact",
   "pt-address-1",
   "pt-address-2",
   "script-date",
   "pbs",
-  "rpbs",
-  "brand-sub-not-prmt"
+  "rpbs"
 ]
-const drug_class_list = [
-  "drug-name",
-  "drug-code",
-  "dose-freq",
-  "dose-qty",
-  "dose-rpt"
+const drug_info_ids = [ // prepend `asl_data-X-`
+  "prescriber-fname",
+  "prescriber-lname",
+  "prescriber-title",
+  "prescriber-address-1",
+  "prescriber-address-2",
+  "prescriber-id",
+  "prescriber-hpii",
+  "prescriber-hpio",
+  "prescriber-phone",
+  "prescriber-fax",
+  "DSPID",
+  "status",
+  "brand-sub-not-prmt",
+  "drug-name" ,
+  "drug-code" ,
+  "dose-instr",
+  "dose-qty"  ,
+  "dose-rpt"  ,
+  "prescribed-date",
+  "paperless"
 ]
 
 function flatten_dict(dict) {
@@ -124,7 +130,7 @@ function insert_prescription_details(el, drug_id) {
   // Append data
   id_list.forEach(id => {
     const $el = $(el).find(`#${id}`);
-    if ($el.length && pt_data[id] !== undefined) {
+    if (pt_data[id] !== undefined) {
       let data_point = pt_data[id];
       if (data_point === true) {
         data_point = 'x';
@@ -135,6 +141,19 @@ function insert_prescription_details(el, drug_id) {
     }
   });
 
-  // Append drug data
+  // Append ASL specific data
+  drug_info_ids.forEach(id => {
+    const $el = $(el).find(`#${id}`);
+    const new_key = `asl_data-${drug_id.slice(-1)}-${id}`;
+    if (flatted_pt_data[new_key] !== undefined) {
+      let data_point = flatted_pt_data[new_key];
+      if (data_point === true) {
+        data_point = 'x';
+      } else if (data_point === false){
+        return; //continue
+      }
+      $el.text(data_point);
+    }
+  });
   return el;
 }
