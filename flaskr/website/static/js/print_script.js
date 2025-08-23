@@ -43,13 +43,13 @@ async function print_scripts() {
   let select_all = ($("#asl-table .asl-paperless .asl-check input:checked").length == 0);
   
   // Temp parent container to store the prescriptions
-  
   let $container = $('<div></div>')
+  const prescription_container = await get_blank_prescription();
   // Loop through prescriptions and append them into container
   for (let elem of $("#asl-table .asl-paperless")) {
     if (select_all || $(elem).find(".asl-check input").is(":checked")) {
+      let presc = prescription_container.cloneNode(true);
       let this_id = $(elem).attr("id");
-      let presc = await create_prescription();
       presc = insert_prescription_details(presc, this_id);
 
       // Add a page break between prescriptions
