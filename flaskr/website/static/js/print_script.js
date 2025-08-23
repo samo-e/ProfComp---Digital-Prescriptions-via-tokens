@@ -60,7 +60,7 @@ async function print_scripts() {
     }
   }
 
-  if (true) {
+  if (false) {
     // Below is debug only (disables auto-download)
     $("body").append($container);
     html2pdf().set(options).from($container[0]).outputPdf().get('pdf').then(function (pdfObj) {window.open(pdfObj.output("bloburl"), "F")});
@@ -168,6 +168,5 @@ function years_old(dob) {
   let newDate = new Date( pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
   let timeDifference = Date.now() - newDate;
   let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
-  console.log(pt_age);
   return pt_age;
 }
