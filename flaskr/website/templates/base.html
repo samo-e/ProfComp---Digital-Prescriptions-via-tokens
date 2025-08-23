@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <title>{% block title %}{% endblock %}</title>
     
@@ -49,10 +49,10 @@
                 </div>
             </div>
             <div class="modal-footer justify-content-between">
-                <a class="btn btn-warning" href="{{ url_for('auth.logout') }}">
+                <a class="btn btn-outline-warning fw-bold" href="{{ url_for('auth.logout') }}">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
