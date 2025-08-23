@@ -1,33 +1,3 @@
-<!-- 
-id="prescriber-name-and-title" | eg "Phillip Davis ( MBBS; FRACGP )"
-id="prescriber-address-1" | eg "Level 3  60 Albert Rd"
-id="prescriber-address-2" | eg "SOUTH MELBOURNE VIC 3205"
-id="DSPID" | "MPK00009002011563" | i think this stands for dispense id
-id="status" | "Pending","Available" | idk :shrug:
-id="prescriber-id" | eg "987774"
-id="hpii" | eg "8003619900026805"
-id="hpio" | eg "8003626566692846"
-id="prescriber-phone" | eg "03 9284 3300"
-id="prescriber-fax"   | eg "03 9284 3300"
-id="medicare" | eg "49502864011"
-id="pharmaceut-ben-entitlement-no" | eg "NA318402K(W)" | Pharmaceutical benefit entitlement Number
-id="sfty-net-entitlement-cardholder" | eg "x" | True/False
-id="rpbs-ben-entitlement-cardholder" | eg "x" | True/False | Concessional or dependant RPBS beneficiary or Safety Net concession cardholder
-id="pt-name" | eg "Draga Diaz (26/01/1998 - 23yrs)"
-id="pt-address-1" | eg "33 JIT DR"
-id="pt-address-2" | eg "CHARAM VIC 3318"
-id="script-date" | eg "30/11/2020"
-id="pbs" | eg UNK
-id="rpbs" | eg UNK
-id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
-
-id="drug-X" | X: int
-    class="drug-name" | eg "Atacand 32 mg tablet, 30 Tablets 32mg (Candesartan cilexetil)" | access via eg #drug-1 .drug-name
-    class="drug-code" | eg "8889W" | https://www.pbs.gov.au/medicine/ - then search the drug name
-    class="dose-freq" | eg "ONCE A DAY" or "TAKE 1 Q6H ONCE A DAY"
-    class="dose-qty" | eg 30
-    class="dose-rpt" | eg 5
--->
 <div class="prescription-container">
 <style>
     .prescription-container p {
@@ -125,7 +95,11 @@ id="drug-X" | X: int
         text-decoration: underline;
     }
 </style>
-    <div><p id="prescriber-name-and-title"></p></div>
+    <div><p>
+        <a id="prescriber-fname"></a>
+        <a id="prescriber-lname"></a>
+        <a id="prescriber-title"></a>
+    </p></div>
     
     <div class="grid-2">
         <div>
@@ -205,8 +179,8 @@ id="drug-X" | X: int
         </div>
         <div style="background:#EFFFFE; height:100%;">
             <div id="drug-1" class="drug">
-                <p><b id="drug-name"></b><a> - </a><a class="drug-code"></a></p>
-                <p><i id="dose-instr" class="u-case"></i></p>
+                <p><b id="drug-name"></b><a> - </a><a id="drug-code"></a></p>
+                <p style="margin-left: 10px"><i id="dose-instr" class="u-case"></i></p>
                 <div class="grid-4">
                     <b>Qty</b>
                     <a id="dose-qty"></a>
