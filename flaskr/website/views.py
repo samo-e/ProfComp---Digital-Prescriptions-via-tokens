@@ -16,7 +16,7 @@ def scenario_edit(id: int):
 
 @views.route('/asl/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def asl(pt: int):
-    asl_data = {
+    pt_data = {
         "clinician-name-and-title" : "Phillip Davis ( MBBS; FRACGP )",
         "clinician-address-1" : "Level 3  60 Albert Rd",
         "clinician-address-2" : "SOUTH MELBOURNE VIC 3205",  
@@ -39,7 +39,7 @@ def asl(pt: int):
         "rpbs" : None,
         "brand-sub-not-prmt" : False,
     }
-    return render_template("views/asl.html", pt=pt, asl_data=asl_data)
+    return render_template("views/asl.html", pt=pt, pt_data=pt_data)
 
 @views.route('/prescription') # I imagine each ASL would be accessed by the patient's IHI
 def prescription():

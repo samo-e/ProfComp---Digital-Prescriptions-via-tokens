@@ -63,7 +63,7 @@ async function print_scripts() {
   if (true) {
     // Below is debug only (disables auto-download)
     $("body").append($container);
-    html2pdf().set(options).from($container[0]).outputPdf().get('pdf').then(function (pdfObj) {pdfObj.autoPrint();window.open(pdfObj.output("bloburl"), "F")});;
+    html2pdf().set(options).from($container[0]).outputPdf().get('pdf').then(function (pdfObj) {window.open(pdfObj.output("bloburl"), "F")});
   } else {
     html2pdf().set(options).from($container[0]).save();
   }
@@ -102,13 +102,13 @@ const drug_class_list = [
 
 // Add details of the prescription to the element
 // See comment in prescription.html
-// data input accessed via `asl_data`: json
+// data input accessed via `pt_data`: json
 function insert_prescription_details(el, drug_id) {
   // Append data
   id_list.forEach(id => {
-    const $el = $(el).find("#" + id);   // scoped inside el
-    if ($el.length && asl_data[id] !== undefined) {
-      let data_point = asl_data[id];
+    const $el = $(el).find(`#${id}`);
+    if ($el.length && pt_data[id] !== undefined) {
+      let data_point = pt_data[id];
       if (data_point === true) {
         data_point = 'x';
       } else if (data_point === false){
