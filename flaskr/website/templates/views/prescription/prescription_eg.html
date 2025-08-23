@@ -1,14 +1,14 @@
 <!-- 
-id="clinician-name-and-title" | eg "Phillip Davis ( MBBS; FRACGP )"
-id="clinician-address-1" | eg "Level 3  60 Albert Rd"
-id="clinician-address-2" | eg "SOUTH MELBOURNE VIC 3205"
+id="prescriber-name-and-title" | eg "Phillip Davis ( MBBS; FRACGP )"
+id="prescriber-address-1" | eg "Level 3  60 Albert Rd"
+id="prescriber-address-2" | eg "SOUTH MELBOURNE VIC 3205"
 id="DSPID" | "MPK00009002011563" | i think this stands for dispense id
 id="status" | "Pending","Available" | idk :shrug:
-id="clinician-id" | eg "987774"
+id="prescriber-id" | eg "987774"
 id="hpii" | eg "8003619900026805"
 id="hpio" | eg "8003626566692846"
-id="clinician-phone" | eg "03 9284 3300"
-id="clinician-fax"   | eg "03 9284 3300"
+id="prescriber-phone" | eg "03 9284 3300"
+id="prescriber-fax"   | eg "03 9284 3300"
 id="medicare" | eg "49502864011"
 id="pharmaceut-ben-entitlement-no" | eg "NA318402K(W)" | Pharmaceutical benefit entitlement Number
 id="sfty-net-entitlement-cardholder" | eg "x" | True/False
@@ -24,7 +24,7 @@ id="brand-sub-not-prmt" | eg "x" | True/False | Brand substitution not permitted
 id="drug-X" | X: int
     class="drug-name" | eg "Atacand 32 mg tablet, 30 Tablets 32mg (Candesartan cilexetil)" | access via eg #drug-1 .drug-name
     class="drug-code" | eg "8889W" | https://www.pbs.gov.au/medicine/ - then search the drug name
-    class="dose-freq" | eg "ONCE A DAY" or "TAKE 1 Q6H ONCE A DAY"
+    class="dose-instr" | eg "ONCE A DAY" or "TAKE 1 Q6H ONCE A DAY"
     class="dose-qty" | eg 30
     class="dose-rpt" | eg 5
 -->
@@ -125,12 +125,12 @@ id="drug-X" | X: int
         text-decoration: underline;
     }
 </style>
-    <div><p id="clinician-name-and-title">Phillip Davis ( MBBS; FRACGP )</p></div>
+    <div><p id="prescriber-name-and-title">Phillip Davis ( MBBS; FRACGP )</p></div>
     
     <div class="grid-2">
         <div>
-            <p id="clinician-address-1">Level 3  60 Albert Rd</p>
-            <p id="clinician-address-2" class="u-case">SOUTH MELBOURNE VIC 3205</p>
+            <p id="prescriber-address-1">Level 3  60 Albert Rd</p>
+            <p id="prescriber-address-2" class="u-case">SOUTH MELBOURNE VIC 3205</p>
         </div>
         <div style="text-align: right;">
             <div><p id="DSPID">MPK00009002011563</p></div>
@@ -139,15 +139,15 @@ id="drug-X" | X: int
     </div>
     <div class="grid-3">
         <div>
-            <div><p><b>Prescriber no:  </b><a id="clinician-id">987774</a></p></div>
+            <div><p><b>Prescriber no:  </b><a id="prescriber-id">987774</a></p></div>
             <div><p><b>HPII:  </b><a id="hpii" class="hpix">8003619900026805</a></p></div>
         </div>
         <div>
-            <div><p><b>Phone:  </b><a id="clinician-phone">03 9284 3300</a></p></div>
+            <div><p><b>Phone:  </b><a id="prescriber-phone">03 9284 3300</a></p></div>
             <div><p><b>HPIO:  </b><a id="hpio" class="hpix">8003626566692846</a></p></div>
         </div>
         <div>
-            <div><p><b>Fax:  </b><a id="clinician-fax"></a></p></div>
+            <div><p><b>Fax:  </b><a id="prescriber-fax"></a></p></div>
         </div>
     </div>
     <hr>
@@ -206,7 +206,7 @@ id="drug-X" | X: int
         <div style="background:#EFFFFE; height:100%;">
             <div id="drug-1" class="drug">
                 <p><b class="drug-name">Atacand 32 mg tablet, 30 Tablets 32mg (Candesartan cilexetil)</b><a> - </a><a class="drug-code">8889W</a></p>
-                <p><i class="dose-freq u-case">ONCE A DAY</i></p>
+                <p><i class="dose-instr u-case">ONCE A DAY</i></p>
                 <div class="grid-4">
                     <b>Qty</b>
                     <a class="dose-qty">30</a>

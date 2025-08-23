@@ -11,7 +11,7 @@ const options = {
   },
   html2canvas: { 
     scale: 2,
-    logging: false // disable consol output
+    logging: false // disable console output
   }, 
   jsPDF: { 
     unit: 'mm',
@@ -99,6 +99,23 @@ const drug_class_list = [
   "dose-qty",
   "dose-rpt"
 ]
+
+function flatten_dict(dict) {
+  let new_dict = {};
+  
+  for (var key in dict) {
+    if (typeof dict[key] === "object") {
+      let f = flatten_dict(dict[key]);
+      for (var i in f) {
+        new_dict[`${key}-${i}`] = f[i];
+      }
+    } else {
+      new_dict[key] = dict[key];
+    }
+  }
+
+  return new_dict;
+}
 
 // Add details of the prescription to the element
 // See comment in prescription.html
