@@ -33,20 +33,20 @@
             <div class="row">
                 <div class="col">
                     <h4>Name</h4>
-                    <p>John Doe</p>
+                    <p>{{ pt_data['pt-name'] }}</p>
                 </div>
                 <div class="col">
                     <h4>Date of Birth</h4>
-                    <p>01/Jan/2000</p>
+                    <p>{{ pt_data['pt-dob'] }}</p>
                 </div>
                 <div class="col">
                     <h4>Address</h4>
-                    <p>1600 Pennsylvania Ave NW, Washington, DC 20500, USA</p>
+                    <p>{{ pt_data['pt-address-1'] }} {{ pt_data['pt-address-2'] }}</p>
                 </div>
             </div>
             <div class="row">
                 <h4>Preferred Contact</h4>
-                <p>0401 234 567</p>
+                <p>{{ pt_data['pt-preferred-contact'] }}</p>
             </div>
         </div>
         <div id="customer-asl-info" class="col">
