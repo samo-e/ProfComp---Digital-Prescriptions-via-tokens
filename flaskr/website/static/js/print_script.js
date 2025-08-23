@@ -54,9 +54,9 @@ async function print_scripts() {
 
       // Add a page break between prescriptions
       let $wrapper = $('<div></div>').append(presc);
-      $wrapper.css({'break-after': 'page',});
+      $wrapper.css({'break-after': 'page','margin-top': '10px'});
 
-      $container.append(presc);
+      $container.append($wrapper[0]);
     }
   }
 
