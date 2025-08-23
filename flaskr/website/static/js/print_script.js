@@ -69,9 +69,48 @@ async function create_prescription() {
   }
 }
 
+const id_list = [
+  "clinician-name-and-title",
+  "clinician-address-1",
+  "clinician-address-2",  
+  "DSPID",
+  "status",
+  "clinician-id",
+  "hpii",
+  "hpio",
+  "clinician-phone",
+  "clinician-fax",
+  "medicare",
+  "pharmaceut-ben-entitlement-no",
+  "sfty-net-entitlement-cardholder",
+  "rpbs-ben-entitlement-cardholder",
+  "pt-name",
+  "pt-address-1",
+  "pt-address-2",
+  "script-date",
+  "pbs",
+  "rpbs",
+  "brand-sub-not-prmt"
+]
+const drug_class_list = [
+  "drug-name",
+  "drug-code",
+  "dose-freq",
+  "dose-qty",
+  "dose-rpt"
+]
 
-function insert_prescription_details(el, asl_id) {
-  // Add details of the prescription to the element
-  // See comment in prescription.html
-  return el;
+// Add details of the prescription to the element
+// See comment in prescription.html
+// data input accessed via `asl_data`: json
+function insert_prescription_details(el) {
+  // Append data
+  id_list.forEach(id => {
+    const $el = $(el).find("#" + id);   // scoped inside el
+    if ($el.length && asl_data[id] !== undefined) {
+      $el.text(asl_data[id]);
+    }
+  });
+
+  // Append drug data
 }
