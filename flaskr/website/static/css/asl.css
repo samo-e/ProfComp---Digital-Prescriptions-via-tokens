@@ -59,17 +59,20 @@ html {
 }
 
 #consent-status {
+    color: black;
     text-decoration: none;
-    font-weight: bold;
 }
 #consent-status.granted {
     color: green;
+    font-weight: bold;
 }
 #consent-status.rejected {
     color: red;
+    font-weight: bold;
 }
 #consent-status.pending {
     color: orange;
+    font-weight: bold;
 }
 #consent-last-updated {
     font-style: italic;
@@ -79,10 +82,11 @@ html {
     font-weight: bold;
 }
 
+#delete-consent-btn.no-consent,
 #request-access-btn.granted {
     visibility: hidden;
 }
-#request-access-btn.no-consent,
+#request-access-btn.rejected,
 #request-access-btn.pending {
     color: #363a3e;
 }
