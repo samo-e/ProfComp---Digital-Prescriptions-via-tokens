@@ -31,7 +31,7 @@ def asl(pt: int):
         "rpbs" : None,
         "consent-status" : {
             "is-registered" : True,
-            "status" : "No-Consent",
+            "status" : "Rejected", #No-Consent,Pending,Granted,Rejected
             "last-updated" : "10/06/2021 08:27 PM",
         },
         "asl_data" : [

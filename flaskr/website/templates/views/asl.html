@@ -82,7 +82,13 @@
                             <a id="consent-last-updated">(last updated {{ pt_data['consent-status']['last-updated'].lower() }})</a>
                             {% endif %}
                         </span>
-                        <button id="delete-consent-btn" type="button" class="btn btn-dark btn-sm {{ pt_data['consent-status']['status'].lower() }}">Delete Consent</button>
+                        <button 
+                            id="delete-consent-btn"
+                            type="button"
+                            data-bs-toggle="modal" data-bs-target="#delete-consent-menu"
+                            class="btn btn-dark btn-sm {{ pt_data['consent-status']['status'].lower() }}">
+                            Delete Consent
+                        </button>
                     </p>
                 </div>
             </div>
@@ -175,6 +181,32 @@
 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Delete consent menu -->
+<div class="modal fade" id="delete-consent-menu" tabindex="-1" aria-labelledby="delete-consent-menu-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 fw-bold" id="delete-consent-menu-label">Edit Consent</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row d-table">
+                    <div class="col-2 d-table-cell pe-0">
+                        <button type="button" class="btn btn-secondary">Delete Consent</button>
+                    </div>
+                    <div class="col-10 d-table-cell align-middle">
+                        <p class="mb-0">This will delete the existing consent. You will need to request consent again if you wish to access the patient's ASL</p>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer justify-content-right">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
