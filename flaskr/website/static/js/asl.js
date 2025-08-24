@@ -6,3 +6,13 @@ $(document).ready(function() {
     $icon.toggleClass('bi-chevron-up bi-chevron-down');
   });
 });
+
+function delete_consent() {
+  //#conf-del-consent
+  let res = confirm("Are you sure you wish to delete this consent request? Once the consent has been deleted, you will need to request access from the customer again.");
+  console.log(res);
+  if (res) {
+    $('#delete-consent-menu').modal('hide');
+    location.reload();
+  }
+}

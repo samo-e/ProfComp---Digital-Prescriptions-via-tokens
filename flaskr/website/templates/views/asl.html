@@ -12,6 +12,7 @@
     <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
+    <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
 
     <script>
@@ -195,7 +196,7 @@
             <div class="modal-body">
                 <div class="row d-table">
                     <div class="col-2 d-table-cell pe-0">
-                        <button type="button" class="btn btn-secondary">Delete Consent</button>
+                        <button onclick="delete_consent()" type="button" class="btn btn-secondary">Delete Consent</button>
                     </div>
                     <div class="col-10 d-table-cell align-middle">
                         <p class="mb-0">This will delete the existing consent. You will need to request consent again if you wish to access the patient's ASL</p>
