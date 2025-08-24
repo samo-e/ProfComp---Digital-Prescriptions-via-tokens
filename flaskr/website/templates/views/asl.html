@@ -49,21 +49,32 @@
             </div>
         </div>
         <div id="customer-asl-info" class="col">
-            <div class="row">
-                <h3>ASL Information</h3>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <h4>Status</h4>
-                    <p>Registered</p>
+            <div class="card card-body customer-card">
+                <div class="row">
+                    <h3>ASL Information</h3>
                 </div>
-                <div class="col">
-                    <button type="button" class="btn btn-dark">Refresh</button>
+                <div class="row">
+                    <div class="col">
+                        <h4>Status</h4>
+                        <p>Registered</p>
+                    </div>
+                    <div class="col">
+                        <div class="d-flex flex-row justify-content-end gap-2">
+                            <button type="button" class="btn btn-info">Request Access</button>
+                            <button type="button" class="btn btn-dark">Refresh</button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="row">
-                <h4>Consent Status</h4>
-                <p>Granted (last updated 01/Jan/2000 02:59AM)</p>
+                <div class="row">
+                    <h4 class="col-12">Consent Status</h4>
+                    <p class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <a id="consent-status" class="granted">Granted</a>
+                            <a id="consent-last-updated">(last updated 01/Jan/2000 02:59AM)</a>
+                        </span>
+                        <button type="button" class="btn btn-secondary btn-sm">Delete Consent</button>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
@@ -78,7 +89,9 @@
     <div class="container">
         <div class="row">
             <div class="col-1">
-                <p>/\</p>
+                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#asl-table" aria-controls="asl-table">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="col-10">
                 <p>ASL Scripts</p>
@@ -120,7 +133,9 @@
     <div class="container">
         <div class="row">
             <div class="col-1">
-                <p>/\</p>
+                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
             </div>
             <div class="col-11">
                 <p>Available Local Repeats (View Only)</p>
