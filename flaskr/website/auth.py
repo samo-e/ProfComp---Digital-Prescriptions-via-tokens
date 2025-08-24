@@ -10,8 +10,29 @@ auth = Blueprint('auth', __name__)
 def home():
     return "home"
 
-@auth.route('/login')
+@auth.route('/login',methods = ['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+        role = request.form.get('role')
+
+        user = User.query.filter_by(email=email).first()
+        if user and check_password_hash(user.password, password):
+            from .models import Role as UserRole
+            print(user.role.value)
+            print(role)
+            if user.role.value == role.lower():
+
+                flash('Login successful!', category='success')
+                return redirect(url_for('views.home'))
+            else:
+                flash('Invalid role.', category='error')
+
+        else:
+            flash('Login failed. Check your email and password.', category='error')
+            return render_template("auth/login.html")
+
     return render_template("auth/login.html")
 
 @auth.route('/signup', methods=['GET', 'POST'])
