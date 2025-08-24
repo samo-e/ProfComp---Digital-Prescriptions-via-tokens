@@ -10,7 +10,7 @@ def home():
 def teacher_dashboard():
     return render_template("views/teacher_dash.html")
 
-@views.route('/scenario/<id>')
+@views.route('/scenario/<int:id>')
 def scenario_edit(id: int):
     print("not implemented")
 
@@ -34,7 +34,7 @@ def asl(pt: int):
             "status" : "Rejected", #No-Consent,Pending,Granted,Rejected
             "last-updated" : "10/06/2021 08:27 PM",
         },
-        "asl_data" : [
+        "asl-data" : [
             {
                 "prescriber" : {
                     "fname" : "Phillip",
@@ -108,7 +108,7 @@ def asl(pt: int):
                 "paperless" : False,
             },
         ],
-        "alr_data" : [
+        "alr-data" : [
             {
                 "prescriber" : {
                     "fname" : "Phillip",

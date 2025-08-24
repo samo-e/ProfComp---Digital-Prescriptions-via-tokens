@@ -70,7 +70,7 @@
                                 {{ 'aria-disabled=true disabled' if not enable_req_acc_btn }}>
                                 Request Access
                             </button>
-                            <button id="request-status-btn" type="button" class="btn btn-dark">Refresh</button>
+                            <button id="request-status-btn" type="button" class="btn btn-dark" onclick="refresh_consent()">Refresh</button>
                         </div>
                     </div>
                 </div>
@@ -78,9 +78,12 @@
                     <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            <a id="consent-status" class="{{ pt_data['consent-status']['status'].lower() }}">{{ pt_data['consent-status']['status'] }}</a>
+                            <span id="consent-status" class="{{ pt_data['consent-status']['status'].lower() }}">{{ pt_data['consent-status']['status'] }}</span>
                             {% if pt_data['consent-status']['status'] != 'No-Consent' %}
-                            <a id="consent-last-updated">(last updated {{ pt_data['consent-status']['last-updated'].lower() }})</a>
+                            <span>(</span>
+                            <span class="fst-italic">last updated </span>
+                            <span id="consent-last-updated" class="fst-italic">{{ pt_data['consent-status']['last-updated'].lower() }}</span>
+                            <span>)</span>
                             {% endif %}
                         </span>
                         <button 
@@ -132,7 +135,7 @@
                 </tr>
             </thead>
             <tbody>
-{% for asl in pt_data['asl_data'] %}
+{% for asl in pt_data['asl-data'] %}
 <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
     <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
@@ -170,7 +173,7 @@
                 </tr>
             </thead>
             <tbody>
-{% for alr in pt_data['alr_data'] %}
+{% for alr in pt_data['alr-data'] %}
 <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
     <td class="alr-date">{{ alr['dispensed-date'] }}</td>
     <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>

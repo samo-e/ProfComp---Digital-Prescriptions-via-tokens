@@ -83,7 +83,7 @@ const id_list = [
   "pbs",
   "rpbs"
 ]
-const drug_info_ids = [ // prepend `asl_data-X-`
+const drug_info_ids = [ // prepend `asl-data-X-`
   "prescriber-fname",
   "prescriber-lname",
   "prescriber-title",
@@ -144,7 +144,7 @@ function insert_prescription_details(el, drug_id) {
   // Append ASL specific data
   drug_info_ids.forEach(id => {
     const $el = $(el).find(`#${id}`);
-    const new_key = `asl_data-${drug_id.slice(-1)}-${id}`;
+    const new_key = `asl-data-${drug_id.slice(-1)}-${id}`;
     if (flatted_pt_data[new_key] !== undefined) {
       let data_point = flatted_pt_data[new_key];
       if (data_point === true) {
@@ -170,3 +170,24 @@ function years_old(dob) {
   let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
   return pt_age;
 }
+
+// UNTESTED DUE TO LACK OF END POINT - TODO
+function refresh_consent() {
+  $.ajax({
+      url: `/refresh-consent/${pt}/`,
+      data: { timestamp: pt_data['consent-status']['last-updated'] },
+      success: function(data, textStatus, xhr) {
+          if (xhr.status === 200) {
+              $('#consent-last-updated').text(JSON.stringify(data, null, 2));
+              pt_data['consent-status']['last-updated'] = xhr.getResponseHeader('Last-Modified');
+          }
+      },
+      statusCode: {
+          304: function() {} // No changes
+      },
+      error: function(err) {
+          console.error('Error refreshing data:', err);
+      }
+  });
+}
+
