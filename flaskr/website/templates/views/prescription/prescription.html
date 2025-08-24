@@ -1,0 +1,204 @@
+<div class="prescription-container">
+<style>
+    .prescription-container p {
+        margin: 2px 0;
+        line-height: 1.1em;
+    }
+    .prescription-container a {
+        color: black;
+        text-decoration: none;
+    }
+    hr {
+        margin: 7px;
+    }
+    .prescription-container {
+        width:493px;
+        height:598px;
+        border:1px solid black;
+        position:relative;
+        font-size:14px;
+        font-family: Arial, Helvetica, sans-serif;
+        padding: 5px;
+    }
+    .u-case {
+        text-transform: uppercase;
+    }
+    .box {
+        margin: 1px;
+        border: 1px solid black;
+        width: 23px;
+        height: 23px;
+    }
+    .long-box {
+        width: 100%;
+    }
+
+    .grid-2 {
+        display: grid;
+        grid-template-columns: 50% 50%;
+    }
+    .grid-3 {
+        display: grid;
+        grid-template-columns: 33.3% 33.3% 33.3%;
+    }
+    .grid-4 {
+        display: grid;
+        grid-template-columns: 8% 42% 8% 42%;
+    }
+
+    .box,
+    .align-children-centre {
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+    .hpix {
+        font-size: 12px;
+    }
+    small {
+        font-weight: bold;
+        font-size: 8px;
+        line-height: 1 !important;
+        display: inline-block;
+    }
+    p:has(> small) {
+        margin: 0;
+    }
+    .pt-detail-sm {
+        font-weight: bold;
+        font-size: 10px;
+    }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 40px;
+        font-weight: bold;
+        color: #99999929;
+        transform: rotate(-45deg);
+    }
+    .drug {
+        padding-bottom: 2px;
+        margin: 2px;
+        border-bottom: 1px solid black;
+    }
+
+    a[href] {
+        color: blue;
+        text-decoration: underline;
+    }
+</style>
+    <div><p>
+        <a id="prescriber-fname"></a>
+        <a id="prescriber-lname"></a>
+        <a id="prescriber-title"></a>
+    </p></div>
+    
+    <div class="grid-2">
+        <div>
+            <p id="prescriber-address-1"></p>
+            <p id="prescriber-address-2" class="u-case"></p>
+        </div>
+        <div style="text-align: right;">
+            <div><p id="DSPID"></p></div>
+            <div><p id="status"></div>
+        </div>
+    </div>
+    <div class="grid-3">
+        <div>
+            <div><p><b>Prescriber no:  </b><a id="prescriber-id"></a></p></div>
+            <div><p><b>HPII:  </b><a id="prescriber-hpii" class="hpix"></a></p></div>
+        </div>
+        <div>
+            <div><p><b>Phone:  </b><a id="prescriber-phone"></a></p></div>
+            <div><p><b>HPIO:  </b><a id="prescriber-hpio" class="hpix"></a></p></div>
+        </div>
+        <div>
+            <div><p><b>Fax:  </b><a id="prescriber-fax"></a></p></div>
+        </div>
+    </div>
+    <hr>
+    <div><p><b>Patient's Medicare no:  </b><a id="medicare"></a></p></div>
+    <div class="grid-2" style="grid-template-columns: 70px 400px;">
+        <div class="pt-name">
+            <p><small>Pharmaceutical benefit entitlement no.</small></p>
+        </div>
+        <div>
+            <div class="box long-box"><a id="pharmaceut-ben-entitlement-no" class="u-case"></a></div>
+            <div class="grid-4">
+                <div class="box"><a id="sfty-net-entitlement-cardholder"></a></div>
+                <div class="pt-name">
+                    <p><small>Safety Net entitlement cardholder</small></p>
+                </div>
+                <div class="box"><a id="rpbs-ben-entitlement-cardholder"></a></div>
+                <div class="pt-name">
+                    <p><small>
+                    Concessional or dependant RPBS beneficiary or Safety Net concession cardholder
+                    </small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 80px 400px;">
+        <p class="pt-detail-sm">Patient's name</p>
+        <p>
+            <a id="name"></a> (
+            <a id="dob"></a> - 
+            <a id="age"></a>yrs)
+        </p>
+        <p class="pt-detail-sm">Address</p>
+        <div>
+            <p id="address-1" class="u-case"></p>
+            <p id="address-2" class="u-case"></p>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 35% 65%;">
+        <div>
+            <div class="grid-2" style="grid-template-columns: 35px 50px;">
+                <div><p class="pt-detail-sm">Date</p></div>
+                <div><p id="script-date"></p></div>
+            </div>
+            <div class="grid-4">
+                <div><p class="pt-detail-sm">PBS</p></div>
+                <div></div>
+                <div><p class="pt-detail-sm">RPBS</p></div>
+                <div><a id="rpbs"></a></div>
+            </div>
+        </div>
+        <div style="display:flex; align-items:center;">
+            <div class="box" style="margin-right:4px;"><a id="brand-sub-not-prmt"></a></div>
+            <div><p class="pt-detail-sm">Brand Substitution not permitted</p></div>
+        </div>
+    </div>
+    <div class="grid-2" style="grid-template-columns: 20% 80%; height:290px;">
+        <div class="align-children-centre" style="background:#EAEAEA; height:100%;">
+            <div style="transform: rotate(-90deg); text-wrap: nowrap; color:#FFF;font-size:22px;"><p><b>Electronic Prescription</b></p></div>
+        </div>
+        <div style="background:#EFFFFE; height:100%;">
+            <div id="drug-1" class="drug">
+                <p><b id="drug-name"></b><a> - </a><a id="drug-code"></a></p>
+                <p style="margin-left: 10px"><i id="dose-instr" class="u-case"></i></p>
+                <div class="grid-4">
+                    <b>Qty</b>
+                    <a id="dose-qty"></a>
+                    <a id="dose-rpt"></a>
+                    <b>Repeat(s)</b>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="align-children-centre" style="font-size:16px">
+        <p><b>This information represents the legal form. <a href="">Privacy Notice</a></b></p>
+    </div>
+
+    <div class="overlay rotated-text">
+        ELECTRONIC COPY OF PRESCRIPTION
+    </div>
+</div>
