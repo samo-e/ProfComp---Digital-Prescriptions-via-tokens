@@ -14,9 +14,9 @@ def teacher_dashboard():
 def scenario_edit(id: int):
     print("not implemented")
 
-@views.route('/asl/<pt>') # I imagine each ASL would be accessed by the patient's IHI
+@views.route('/asl/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI?
 def asl(pt: int):
-    pt_data = { 
+    pt_data = {
         "medicare" : 49502864011,
         "pharmaceut-ben-entitlement-no" : "NA318402K(W)",
         "sfty-net-entitlement-cardholder" : True,
@@ -29,6 +29,11 @@ def asl(pt: int):
         "script-date" : "30/11/2020",
         "pbs" : None,
         "rpbs" : None,
+        "consent-status" : {
+            "is-registered" : True,
+            "status" : "Pending",
+            "last-updated" : "10/06/2021 08:27 PM",
+        },
         "asl_data" : [
             {
                 "prescriber" : {
@@ -154,10 +159,6 @@ def asl(pt: int):
     }
     return render_template("views/asl.html", pt=pt, pt_data=pt_data)
 
-@views.route('/prescription') # I imagine each ASL would be accessed by the patient's IHI
-def prescription():
-    return render_template("views/prescription/prescription.html")
-
-@views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
+@views.route('/edit-pt/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI?
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html", pt=pt)
