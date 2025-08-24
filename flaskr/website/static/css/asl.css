@@ -33,8 +33,8 @@ td > p {
 .alr-paper > td > p {
     visibility: hidden;
 }
-.alr-paper .alr-cloud-prescription,
-.asl-paper .asl-cloud-prescription {
+.alr-paper .alr-cloud-prescription img,
+.asl-paper .asl-cloud-prescription img {
     visibility: hidden;
 }
 .asl-cloud-prescription img,
@@ -86,4 +86,9 @@ html {
 #request-access-btn.rejected,
 #request-access-btn.pending {
     color: #363a3e;
+}
+
+#asl-table.table-hover tbody tr.asl-paper:hover td {
+    background-color: var(--bs-table-bg) !important; /* keeps the normal table row bg */
+    box-shadow: none !important;
 }
