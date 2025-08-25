@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for, flash
+from flask_login import login_required, current_user
 
 views = Blueprint('views', __name__)
 
@@ -6,8 +7,20 @@ views = Blueprint('views', __name__)
 def home():
     return "index"
 
-@views.route('/dashboard')
+@views.route('/student_dashboard')
+@login_required 
+def student_dashboard():
+    if not current_user.role.value == "student":
+        flash("Access denied: Students only.", "error")
+        return redirect(url_for('views.teacher_dashboard'))
+    return render_template("views/student_dashboard.html")
+
+@views.route('/teacher_dashboard')
+@login_required 
 def teacher_dashboard():
+    if not current_user.role.value == "teacher":
+        flash("Access denied: Teachers only.", "error")
+        return redirect(url_for('views.student_dashboard'))
     return render_template("views/teacher_dash.html")
 
 @views.route('/scenario/<id>')

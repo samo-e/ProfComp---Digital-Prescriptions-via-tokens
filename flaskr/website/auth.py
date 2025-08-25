@@ -10,8 +10,12 @@ auth = Blueprint('auth', __name__)
 def home():
     return "home"
 
-@auth.route('/login',methods = ['GET', 'POST'])
+@auth.route('/login', methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        # Redirect to dashboard or home if already logged in
+        return redirect(url_for('views.teacher_dashboard'))  # or student_dashboard, or a general dashboard
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -20,12 +24,13 @@ def login():
         user = User.query.filter_by(email=email).first()
         if user and check_password_hash(user.password, password):
             from .models import Role as UserRole
-            print(user.role.value)
-            print(role)
+            #print(user.role.value)
+            #print(role)
             if user.role.value == role.lower():
 
                 flash('Login successful!', category='success')
-                return redirect(url_for('views.home'))
+                login_user(user, remember=True)
+                return redirect(url_for('views.teacher_dashboard'))
             else:
                 flash('Invalid role.', category='error')
 
@@ -37,6 +42,10 @@ def login():
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
+    if current_user.is_authenticated:
+        # Redirect to dashboard or home if already logged in
+        return redirect(url_for('views.teacher_dashboard'))  # or student_dashboard, or a general dashboard
+
     if request.method == 'POST':
         first_name = request.form.get('firstName')
         last_name = request.form.get('lastName')
@@ -100,6 +109,9 @@ def signup():
     return render_template('auth/signup.html')
 
 @auth.route('/logout')
+@login_required
 def logout():
-    return "logout"
+    logout_user()  # This logs out the user
+    flash('You have been logged out.', category='success')
+    return redirect(url_for('auth.login'))
 
