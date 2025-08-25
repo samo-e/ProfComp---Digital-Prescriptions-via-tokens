@@ -206,3 +206,14 @@ def attempt_scenario(scenario: int): # POST and GET
     # Check person has access to scenario
     scenario_data = {}
     return render_template("views/attempt_scenario.html", scenario_data=scenario_data)
+
+@views.route('/export-scenario/<int:scenario>')
+def export_scenario(scenario: int): # GET
+    # Check person has access to scenario
+    scenario_data = f"scenario-{scenario}.csv"
+    return scenario_data
+
+@views.route('/delete-scenario/<int:scenario>')
+def delete_scenario(scenario: int): # POST
+    # Check person has access to scenario
+    return 200

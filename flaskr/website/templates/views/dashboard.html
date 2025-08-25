@@ -51,26 +51,26 @@
     <td class="scenario-percent-complete">{{ scenario['user-attempts-count'] }}</td>
     {% endif %}
     <td class="scenario-attempt">
-        <a class="btn btn-success w-75" title="Attempt scenario">
+        <a class="btn btn-success w-75" title="Attempt scenario" href="{{ url_for('views.attempt_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-play-fill"></i>
             <span class="sr-only">Attempt scenario</span>
         </a>
     </td>
     {% if user_type == "Teacher" %}
     <td class="scenario-edit">
-        <a class="btn btn-info w-75" title="Edit scenario">
+        <a class="btn btn-info w-75" title="Edit scenario" href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-pencil-square"></i>
             <span class="sr-only">Edit scenario</span>
         </a>
     </td>
     <td class="scenario-export">
-        <a class="btn btn-secondary w-75" title="Export scenario">
+        <a class="btn btn-secondary w-75" title="Export scenario" href="{{ url_for('views.export_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-download"></i>
             <span class="sr-only">Export data</span>
         </a>
     </td>
     <td class="scenario-delete">
-        <a class="btn btn-danger w-75" title="Delete scenario">
+        <a class="btn btn-danger w-75" title="Delete scenario" href="{{ url_for('views.delete_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-trash3-fill"></i>
             <span class="sr-only">Delete scenario</span>
         </a>
