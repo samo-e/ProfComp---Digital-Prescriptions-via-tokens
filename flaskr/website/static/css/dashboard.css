@@ -1,12 +1,5 @@
 
-.scenario-qty,
-.scenario-percent-complete {
-    text-align: center;
-}
-
-.scenario-name > a,
-.scenario-check:hover > *, 
-.printer:hover {
+.scenario-check:hover > * {
     cursor: pointer;
 }
 

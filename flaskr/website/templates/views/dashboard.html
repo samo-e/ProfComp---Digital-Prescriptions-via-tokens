@@ -24,18 +24,21 @@
         <th scope="col"></th>
         {% endif %}
         <th scope="col">Scenario</th>
+        <th scope="col" class="text-center">Created</th>
+        <th scope="col" class="text-center">Due Date</th>
         {% if user_type == "Teacher" %}
         <th scope="col" class="text-center">Students</th>
         <th scope="col" class="text-center">Percent Complete</th>
         {% else %}
         <th scope="col" class="text-center">No. Attempts</th>
         {% endif %}
-        <th scope="col" class="text-center">Make Attempt</th>
+        <th scope="col" class="text-center">Attempt</th>
         {% if user_type == "Teacher" %}
         <th scope="col" class="text-center">Edit</th>
         <th scope="col" class="text-center">Download</th>
         <th scope="col" class="text-center">Delete</th>
         {% endif %}
+        <!-- btn col widths are not equal: needs to fixed based on student/teach dash --->
     </tr>
 </thead>
 {% for scenario in scenarios %}
@@ -49,32 +52,37 @@
         <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a>
     </td>
     {% if user_type == "Teacher" %}
-    <td class="scenario-qty align-middle">{{ scenario['num-students'] }}</td>
-    <td class="scenario-percent-complete align-middle">{{ scenario['num-students-completed'] // scenario['num-students'] }}%</td>
+    <td class="scenario-qty align-middle text-center">{{ scenario['num-students'] }}</td>
+    <td class="scenario-percent-complete align-middle text-center">
+        <div class="row">
+            <div class="col text-end"><a>{{ scenario['num-students-completed'] }}</a></div>
+            <div class="col text-end"><a>({{ 100 * scenario['num-students-completed'] // scenario['num-students'] }}%)</a></div>
+        </div>
+    </td>
     {% else %}
     <td class="scenario-percent-complete align-middle">{{ scenario['user-attempts-count'] }}</td>
     {% endif %}
-    <td class="scenario-attempt">
-        <a class="btn btn-success w-100" title="Attempt scenario" href="{{ url_for('views.attempt_scenario', scenario=scenario['id']) }}">
+    <td class="scenario-attempt text-center">
+        <a class="btn btn-success" title="Attempt scenario" href="{{ url_for('views.attempt_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-play-fill"></i>
             <span class="sr-only">Attempt scenario</span>
         </a>
     </td>
     {% if user_type == "Teacher" %}
-    <td class="scenario-edit">
-        <a class="btn btn-info w-100" title="Edit scenario" href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">
+    <td class="scenario-edit text-center">
+        <a class="btn btn-info" title="Edit scenario" href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-pencil-square"></i>
             <span class="sr-only">Edit scenario</span>
         </a>
     </td>
-    <td class="scenario-export">
-        <a class="btn btn-secondary w-100" title="Export scenario" href="{{ url_for('views.export_scenario', scenario=scenario['id']) }}">
+    <td class="scenario-export text-center">
+        <a class="btn btn-secondary" title="Export scenario" href="{{ url_for('views.export_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-download"></i>
             <span class="sr-only">Export data</span>
         </a>
     </td>
-    <td class="scenario-delete">
-        <a class="btn btn-danger w-100" title="Delete scenario" href="{{ url_for('views.delete_scenario', scenario=scenario['id']) }}">
+    <td class="scenario-delete text-center">
+        <a class="btn btn-danger" title="Delete scenario" href="{{ url_for('views.delete_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-trash3-fill"></i>
             <span class="sr-only">Delete scenario</span>
         </a>
