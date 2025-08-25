@@ -197,13 +197,17 @@ def prescription():
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html", pt=pt)
 
+@views.route('/edit-scenario/new/', defaults={'scenario': None})
 @views.route('/edit-scenario/<int:scenario>')
 def edit_scenario(scenario: int): # POST and GET
-    # Check person has access to scenario
-    scenario_data = {}
-    #if not scenario.exists(): # New scenario
-    #    scenario_data = None
+    # IF GET:
+    if scenario is None:
+        scenario_data = None
+    else:
+        scenario_data = {}
     return render_template("views/edit_scenario.html", scenario_data=scenario_data)
+    # ELSE IF POST:
+    # UPDATE DB AND RETURN 204
 
 @views.route('/attempt-scenario/<int:scenario>')
 def attempt_scenario(scenario: int): # POST and GET

@@ -17,7 +17,7 @@
 
 
 <div class=" rounded-2 border border-3">
-<table class="table table-striped">
+<table class="table table-striped mb-0">
 <thead>
     <tr>
         {% if user_type == "Teacher" %}
@@ -28,7 +28,7 @@
         <th scope="col" class="text-center">Due Date</th>
         {% if user_type == "Teacher" %}
         <th scope="col" class="text-center">Students</th>
-        <th scope="col" class="text-center">Percent Complete</th>
+        <th scope="col" class="text-center">Number Complete</th>
         {% else %}
         <th scope="col" class="text-center">No. Attempts</th>
         {% endif %}
