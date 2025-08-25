@@ -16,6 +16,8 @@ def dashboard():
             "user-attempts-count" : 3,
             "num-students" : 250,
             "num-students-completed" : 100,
+            "creation-date" : "11/10/2020",
+            "due-date" : "18/10/2020",
         },
         {
             "id" : 495050,
@@ -23,6 +25,8 @@ def dashboard():
             "user-attempts-count" : 7,
             "num-students" : 345,
             "num-students-completed" : 143,
+            "creation-date" : "11/10/2020",
+            "due-date" : "18/10/2020",
         },
         {
             "id" : 495051,
@@ -30,6 +34,8 @@ def dashboard():
             "user-attempts-count" : 1,
             "num-students" : 600,
             "num-students-completed" : 600,
+            "creation-date" : "11/10/2020",
+            "due-date" : "18/10/2020",
         },
         {
             "id" : 634524,
@@ -37,6 +43,8 @@ def dashboard():
             "user-attempts-count" : 0,
             "num-students" : 78,
             "num-students-completed" : 9,
+            "creation-date" : "11/10/2020",
+            "due-date" : "18/10/2020",
         },
     ]
     return render_template("views/dashboard.html", user_type=user_type, scenarios=scenarios)
