@@ -8,8 +8,38 @@ def home():
 
 @views.route('/dashboard')
 def dashboard():
-    user_type = "Student" # /"Teacher"
-    return render_template("views/dashboard.html", user_type=user_type)
+    user_type = "Student" # "Student"/"Teacher"
+    scenarios = [
+        {
+            "id" : 286401,
+            "name" : "Scenario Imaginative Name 1",
+            "user-attempts-count" : 3,
+            "num-students" : 250,
+            "num-students-completed" : 100,
+        },
+        {
+            "id" : 495050,
+            "name" : "Scenario Great Name",
+            "user-attempts-count" : 7,
+            "num-students" : 345,
+            "num-students-completed" : 143,
+        },
+        {
+            "id" : 495051,
+            "name" : "Scenario Hello World",
+            "user-attempts-count" : 1,
+            "num-students" : 600,
+            "num-students-completed" : 600,
+        },
+        {
+            "id" : 634524,
+            "name" : "Finale",
+            "user-attempts-count" : 0,
+            "num-students" : 78,
+            "num-students-completed" : 9,
+        },
+    ]
+    return render_template("views/dashboard.html", user_type=user_type, scenarios=scenarios)
 
 @views.route('/scenario/<id>')
 def scenario_edit(id: int):
@@ -162,3 +192,17 @@ def prescription():
 @views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html", pt=pt)
+
+@views.route('/edit-scenario/<int:scenario>')
+def edit_scenario(scenario: int): # POST and GET
+    # Check person has access to scenario
+    scenario_data = {}
+    if not scenario.exists(): # New scenario
+        scenario_data = None
+    return render_template("views/edit_scenario.html", scenario_data=scenario_data)
+
+@views.route('/attempt-scenario/<int:scenario>')
+def attempt_scenario(scenario: int): # POST and GET
+    # Check person has access to scenario
+    scenario_data = {}
+    return render_template("views/attempt_scenario.html", scenario_data=scenario_data)

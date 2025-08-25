@@ -8,9 +8,9 @@
 
 {% block body %}
 
-<div class="container">
+<div class="container mt-4">
 
-<h2>Teacher Dashboard</h2>
+<h2>{{ user_type }} Dashboard</h2>
 <div class="row m-3">
     <h4>Scenarios</h4>
 </div>
@@ -18,115 +18,71 @@
 
 <div class=" rounded-2 border border-3">
 <table class="table table-striped">
-<tbody>
-    <thead>
-        <tr>
-            <th scope="col"></th>
-            <th scope="col">Scenario</th>
-            <th scope="col">Students</th>
-            <th scope="col">Percent Complete</th>
-        </tr>
-    </thead>
+<thead>
     <tr>
-        <td class="scenario-check"><input class="form-check-input" type="checkbox" value="" id="scenario-check-1"></td>
-        <td class="scenario-name"><a href="#Scenario-1">Scenario 1</a></td>
-        <td class="scenario-qty">250</td>
-        <td class="scenario-percent-complete">50%</td>
-        <td class="scenario-edit">
-            <button class="btn btn-info w-75" title="Edit scenario">
-                <i class="bi bi-pencil-square"></i>
-                <span class="sr-only">Edit scenario</span>
-            </button>
-        </td>
-        <td class="scenario-export">
-            <button class="btn btn-secondary w-75" title="Export scenario">
-                <i class="bi bi-download"></i>
-                <span class="sr-only">Export data</span>
-            </button>
-        </td>
-        <td class="scenario-delete">
-            <button class="btn btn-danger w-75" title="Delete scenario">
-                <i class="bi bi-trash3-fill"></i>
-                <span class="sr-only">Delete scenario</span>
-            </button>
-        </td>
+        {% if user_type == "Teacher" %}
+        <th scope="col"></th>
+        {% endif %}
+        <th scope="col">Scenario</th>
+        {% if user_type == "Teacher" %}
+        <th scope="col">Students</th>
+        <th scope="col">Percent Complete</th>
+        {% else %}
+        <th scope="col">No. Attempts</th>
+        {% endif %}
+        <th scope="col">Make Attempt</th>
+        {% if user_type == "Teacher" %}
+        <th scope="col">Edit</th>
+        <th scope="col">Download</th>
+        <th scope="col">Delete</th>
+        {% endif %}
     </tr>
-    <tr>
-        <td class="scenario-check"><input class="form-check-input" type="checkbox" value="" id="scenario-check-1"></td>
-        <td class="scenario-name"><a href="#Scenario-2">Scenario 2</a></td>
-        <td class="scenario-qty">64</td>
-        <td class="scenario-percent-complete">93%</td>
-        <td class="scenario-edit">
-            <button class="btn btn-info w-75" title="Edit scenario">
-                <i class="bi bi-pencil-square"></i>
-                <span class="sr-only">Edit scenario</span>
-            </button>
-        </td>
-        <td class="scenario-export">
-            <button class="btn btn-secondary w-75" title="Export scenario">
-                <i class="bi bi-download"></i>
-                <span class="sr-only">Export data</span>
-            </button>
-        </td>
-        <td class="scenario-delete">
-            <button class="btn btn-danger w-75" title="Delete scenario">
-                <i class="bi bi-trash3-fill"></i>
-                <span class="sr-only">Delete scenario</span>
-            </button>
-        </td>
-    </tr>
-    <tr>
-        <td class="scenario-check"><input class="form-check-input" type="checkbox" value="" id="scenario-check-1"></td>
-        <td class="scenario-name"><a href="#Scenario-3">Scenario 3</a></td>
-        <td class="scenario-qty">185</td>
-        <td class="scenario-percent-complete">12%</td>
-        <td class="scenario-edit">
-            <button class="btn btn-info w-75" title="Edit scenario">
-                <i class="bi bi-pencil-square"></i>
-                <span class="sr-only">Edit scenario</span>
-            </button>
-        </td>
-        <td class="scenario-export">
-            <button class="btn btn-secondary w-75" title="Export scenario">
-                <i class="bi bi-download"></i>
-                <span class="sr-only">Export data</span>
-            </button>
-        </td>
-        <td class="scenario-delete">
-            <button class="btn btn-danger w-75" title="Delete scenario">
-                <i class="bi bi-trash3-fill"></i>
-                <span class="sr-only">Delete scenario</span>
-            </button>
-        </td>
-    </tr>
-    <tr>
-        <td class="scenario-check"><input class="form-check-input" type="checkbox" value="" id="scenario-check-1"></td>
-        <td class="scenario-name"><a href="#Scenario-4">Scenario 4</a></td>
-        <td class="scenario-qty">456</td>
-        <td class="scenario-percent-complete">25%</td>
-        <td class="scenario-edit">
-            <button class="btn btn-info w-75" title="Edit scenario">
-                <i class="bi bi-pencil-square"></i>
-                <span class="sr-only">Edit scenario</span>
-            </button>
-        </td>
-        <td class="scenario-export">
-            <button class="btn btn-secondary w-75" title="Export scenario">
-                <i class="bi bi-download"></i>
-                <span class="sr-only">Export data</span>
-            </button>
-        </td>
-        <td class="scenario-delete">
-            <button class="btn btn-danger w-75" title="Delete scenario">
-                <i class="bi bi-trash3-fill"></i>
-                <span class="sr-only">Delete scenario</span>
-            </button>
-        </td>
-    </tr>
+</thead>
+{% for scenario in scenarios %}
+<tr>
+    {% if user_type == "Teacher" %}
+    <td class="scenario-check"><input class="form-check-input" type="checkbox" value="" id="scenario-check-{{loop.index}}"></td>
+    {% endif %}
+    <td class="scenario-name"><a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a></td>
+    {% if user_type == "Teacher" %}
+    <td class="scenario-qty">{{ scenario['num-students'] }}</td>
+    <td class="scenario-percent-complete">{{ scenario['num-students-completed'] // scenario['num-students'] }}%</td>
+    {% else %}
+    <td class="scenario-percent-complete">{{ scenario['user-attempts-count'] }}</td>
+    {% endif %}
+    <td class="scenario-attempt">
+        <a class="btn btn-success w-75" title="Attempt scenario">
+            <i class="bi bi-play-fill"></i>
+            <span class="sr-only">Attempt scenario</span>
+        </a>
+    </td>
+    {% if user_type == "Teacher" %}
+    <td class="scenario-edit">
+        <a class="btn btn-info w-75" title="Edit scenario">
+            <i class="bi bi-pencil-square"></i>
+            <span class="sr-only">Edit scenario</span>
+        </a>
+    </td>
+    <td class="scenario-export">
+        <a class="btn btn-secondary w-75" title="Export scenario">
+            <i class="bi bi-download"></i>
+            <span class="sr-only">Export data</span>
+        </a>
+    </td>
+    <td class="scenario-delete">
+        <a class="btn btn-danger w-75" title="Delete scenario">
+            <i class="bi bi-trash3-fill"></i>
+            <span class="sr-only">Delete scenario</span>
+        </a>
+    </td>
+    {% endif %}
+</tr>
+{% endfor %}
 </tbody>
 </table>
 </div>
 
+{% if user_type == "Teacher" %}
 <div class="row m-3">
     <div class="col-10"></div>
     <div class="col-2 d-flex justify-content-end">
@@ -136,6 +92,7 @@
         </button>
     </div>
 </div>
+{% endif %}
 
 </div>
 {% endblock %}
