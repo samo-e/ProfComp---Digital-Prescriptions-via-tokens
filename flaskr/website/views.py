@@ -7,8 +7,9 @@ def home():
     return "index"
 
 @views.route('/dashboard')
-def teacher_dashboard():
-    return render_template("views/teacher_dash.html")
+def dashboard():
+    user_type = "Student" # /"Teacher"
+    return render_template("views/dashboard.html", user_type=user_type)
 
 @views.route('/scenario/<id>')
 def scenario_edit(id: int):
