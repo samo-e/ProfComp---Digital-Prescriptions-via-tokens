@@ -218,7 +218,7 @@ def attempt_scenario(scenario: int): # POST and GET
 @views.route('/export-scenario/<int:scenario>')
 def export_scenario(scenario: int): # GET
     # Check person has access to scenario
-    scenario_data = f"scenario-{scenario}.csv"
+    scenario_data = {}
     return scenario_data
 
 @views.route('/delete-scenario/<int:scenario>')
