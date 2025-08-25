@@ -8,7 +8,7 @@ def home():
 
 @views.route('/dashboard')
 def dashboard():
-    user_type = "Student" # "Student"/"Teacher"
+    user_type = "Teacher" # "Student"/"Teacher"
     scenarios = [
         {
             "id" : 286401,
@@ -40,10 +40,6 @@ def dashboard():
         },
     ]
     return render_template("views/dashboard.html", user_type=user_type, scenarios=scenarios)
-
-@views.route('/scenario/<id>')
-def scenario_edit(id: int):
-    print("not implemented")
 
 @views.route('/asl/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def asl(pt: int):
@@ -197,8 +193,8 @@ def edit_pt(pt: int):
 def edit_scenario(scenario: int): # POST and GET
     # Check person has access to scenario
     scenario_data = {}
-    if not scenario.exists(): # New scenario
-        scenario_data = None
+    #if not scenario.exists(): # New scenario
+    #    scenario_data = None
     return render_template("views/edit_scenario.html", scenario_data=scenario_data)
 
 @views.route('/attempt-scenario/<int:scenario>')
@@ -216,4 +212,4 @@ def export_scenario(scenario: int): # GET
 @views.route('/delete-scenario/<int:scenario>')
 def delete_scenario(scenario: int): # POST
     # Check person has access to scenario
-    return 200
+    return 204

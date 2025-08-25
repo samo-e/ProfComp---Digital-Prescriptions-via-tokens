@@ -1,7 +1,4 @@
-.scenario-check * {
-    margin: auto;
-    display: block;
-}
+
 .scenario-qty,
 .scenario-percent-complete {
     text-align: center;
