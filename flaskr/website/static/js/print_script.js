@@ -42,9 +42,13 @@ async function get_blank_prescription() {
 async function print_scripts() {
   console.log("Print function called");
   const checkedBoxes = $("#asl-table .asl-check input:checked");
-  let select_all = checkedBoxes.length === 0;
-  console.log(`Selected ${checkedBoxes.length} prescriptions, select_all: ${select_all}`);
-  
+
+  // remind users if there's no selection
+  if (checkedBoxes.length === 0) {
+    alert("Please select at least one prescription to print!");
+    return;
+  }
+
   
   // Temp parent container to store the prescriptions
   let $container = $('<div></div>');
@@ -59,7 +63,7 @@ async function print_scripts() {
     const $checkbox = $row.find(".asl-check input");
     
     
-    if (select_all || $checkbox.is(":checked")) {
+    if ($checkbox.is(":checked")) {
       console.log(`Processing prescription ${index}`);
       
       
@@ -80,12 +84,13 @@ async function print_scripts() {
   });
   
   console.log(`Total prescriptions to print: ${prescriptionCount}`);
-  
-  if (prescriptionCount === 0) {
-    alert("No prescriptions to print!");
-    return;
-  }
 
+  console.log(`Total prescriptions to print: ${prescriptionCount}`);
+
+  if (prescriptionCount === 0) {
+      alert("No valid prescriptions found to print!");
+      return;
+  }
   // print the pdf
   html2pdf().set(options).from($container[0]).save();
 }
