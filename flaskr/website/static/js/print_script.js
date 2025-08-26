@@ -40,34 +40,56 @@ async function get_blank_prescription() {
 }
 
 async function print_scripts() {
-  let select_all = ($("#asl-table .asl-paperless .asl-check input:checked").length == 0);
+  console.log("Print function called");
+  const checkedBoxes = $("#asl-table .asl-check input:checked");
+  let select_all = checkedBoxes.length === 0;
+  console.log(`Selected ${checkedBoxes.length} prescriptions, select_all: ${select_all}`);
+  
   
   // Temp parent container to store the prescriptions
   let $container = $('<div></div>');
   const prescription_container = await get_blank_prescription();
-  // Loop through prescriptions and append them into container
-  for (let elem of $("#asl-table .asl-paperless")) {
-    if (select_all || $(elem).find(".asl-check input").is(":checked")) {
-      let presc = prescription_container.cloneNode(true);
-      let this_id = $(elem).attr("id");
-      presc = insert_prescription_details(presc, this_id);
 
-      // Add a page break between prescriptions
+  let prescriptionCount = 0;
+
+
+  // Loop through prescriptions and append them into container
+  $("#asl-table tbody tr").each(function(index) {
+    const $row = $(this);
+    const $checkbox = $row.find(".asl-check input");
+    
+    
+    if (select_all || $checkbox.is(":checked")) {
+      console.log(`Processing prescription ${index}`);
+      
+      
+      let presc = prescription_container.cloneNode(true);
+      
+      
+      const rowId = $row.attr("id"); // "asl-0", "asl-1"
+      
+      presc = insert_prescription_details(presc, rowId);
+
+      
       let $wrapper = $('<div></div>').append(presc);
       $wrapper.css({'break-after': 'page','margin-top': '10px'});
 
       $container.append($wrapper[0]);
+      prescriptionCount++;
     }
+  });
+  
+  console.log(`Total prescriptions to print: ${prescriptionCount}`);
+  
+  if (prescriptionCount === 0) {
+    alert("No prescriptions to print!");
+    return;
   }
 
-  if (false) {
-    // Below is debug only (disables auto-download)
-    $("body").append($container);
-    html2pdf().set(options).from($container[0]).outputPdf().get('pdf').then(function (pdfObj) {window.open(pdfObj.output("bloburl"), "F")});
-  } else {
-    html2pdf().set(options).from($container[0]).save();
-  }
+  // print the pdf
+  html2pdf().set(options).from($container[0]).save();
 }
+
 
 const id_list = [
   "medicare",
@@ -110,16 +132,30 @@ function flatten_dict(dict) {
   let new_dict = {};
   
   for (var key in dict) {
-    if (typeof dict[key] === "object") {
-      let f = flatten_dict(dict[key]);
-      for (var i in f) {
-        new_dict[`${key}-${i}`] = f[i];
+    const value = dict[key];
+    
+    if (Array.isArray(value)) {
+      // create index for each element
+      value.forEach((item, index) => {
+        if (typeof item === "object" && item !== null) {
+          const flattened = flatten_dict(item);
+          for (var subkey in flattened) {
+            new_dict[`${key}-${index}-${subkey}`] = flattened[subkey];
+          }
+        } else {
+          new_dict[`${key}-${index}`] = item;
+        }
+      });
+    } else if (typeof value === "object" && value !== null) {
+      const flattened = flatten_dict(value);
+      for (var subkey in flattened) {
+        new_dict[`${key}-${subkey}`] = flattened[subkey];
       }
     } else {
-      new_dict[key] = dict[key];
+      new_dict[key] = value;
     }
   }
-
+  
   return new_dict;
 }
 
@@ -127,6 +163,7 @@ function flatten_dict(dict) {
 // See comment in prescription.html
 // data input accessed via `pt_data`: json
 function insert_prescription_details(el, drug_id) {
+  console.log(`Inserting details for drug_id: ${drug_id}`);
   // Append data
   id_list.forEach(id => {
     const $el = $(el).find(`#${id}`);
@@ -143,6 +180,7 @@ function insert_prescription_details(el, drug_id) {
 
   // Append ASL specific data
   drug_info_ids.forEach(id => {
+    
     const $el = $(el).find(`#${id}`);
     const new_key = `asl_data-${drug_id.slice(-1)}-${id}`;
     if (flatted_pt_data[new_key] !== undefined) {
