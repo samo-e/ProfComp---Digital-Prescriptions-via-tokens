@@ -30,12 +30,14 @@ let currentScenarioId = null;
 
 // When modal is opened, capture the ID
 window.onload = function() {
-    const exampleModal = document.getElementById('delete-scenario-menu');
-    exampleModal.addEventListener('show.bs.modal', event => {
-        const button = $(event.relatedTarget); // Button that triggered the modal
-        currentScenarioId = button.data('scenario-id');
-        $("#modal-scenario-name").text(button.data('scenario-name'));
-    });
+    const deleteScenarioModal = document.getElementById('delete-scenario-menu');
+    if (deleteScenarioModal) {
+        deleteScenarioModal.addEventListener('show.bs.modal', event => {
+            const button = $(event.relatedTarget); // Button that triggered the modal
+            currentScenarioId = button.data('scenario-id');
+            $("#modal-scenario-name").text(button.data('scenario-name'));
+        });
+    }
 }
 
 function deleteScenario() {

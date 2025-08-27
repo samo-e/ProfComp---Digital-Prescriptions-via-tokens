@@ -43,7 +43,7 @@
 {% for scenario in scenarios %}
 <tr>
     <td class="align-middle scenario-name">
-        <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a>
+        <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}" title="{{ scenario['name'] }}">{{ scenario['name'] }}</a>
     </td>
     <td class="text-center align-middle">
         <a>{{ scenario['creation-date'] }}</a>
