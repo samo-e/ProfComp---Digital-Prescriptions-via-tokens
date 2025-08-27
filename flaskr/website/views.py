@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, jsonify
 
 views = Blueprint('views', __name__)
 
@@ -218,7 +218,20 @@ def attempt_scenario(scenario: int): # POST and GET
 @views.route('/export-scenario/<int:scenario>')
 def export_scenario(scenario: int): # GET
     # Check person has access to scenario
-    scenario_data = {}
+    scenario_data = [
+        {
+            'hello':'world',
+            'world':'asdasdasd',
+        },
+        {
+            'hello':'world3',
+            'world':'345sdfa',
+        },
+        {
+            'hello':'world2',
+            'world':'t4 5ygh6r h',
+        },
+    ]
     return scenario_data
 
 @views.route('/delete-scenario/<int:scenario>')
