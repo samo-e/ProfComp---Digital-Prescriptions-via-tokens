@@ -18,8 +18,8 @@
 </div>
 
 
-<div class=" rounded-2 border border-3">
-<table class="table table-striped mb-0">
+<div class=" rounded-2 border border-3 " style="overflow-x:auto;">
+<table class="table table-striped mb-0" style="table-layout: auto; width: 100%;">
 <thead>
     <tr>
         <th scope="col">Scenario</th>
@@ -37,19 +37,19 @@
         <th scope="col" class="text-center">Download</th>
         <th scope="col" class="text-center">Delete</th>
         {% endif %}
-        <!-- btn col widths are not equal: needs to fixed based on student/teach dash --->
+        <!-- btn col widths are not equal: needs to fixed based on student/teach dash -->
     </tr>
 </thead>
 {% for scenario in scenarios %}
 <tr>
-    <td class="scenario-name align-middle">
+    <td class="align-middle scenario-name">
         <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a>
     </td>
-    <td class="scenario-name text-center">
-        {{ scenario['creation-date'] }}
+    <td class="text-center align-middle">
+        <a>{{ scenario['creation-date'] }}</a>
     </td>
-    <td class="scenario-name text-center">
-        {{ scenario['due-date'] }}
+    <td class="text-center align-middle">
+        <a>{{ scenario['due-date'] }}</a>
     </td>
     {% if user_type == "Teacher" %}
     <td class="scenario-qty align-middle text-center">{{ scenario['num-students'] }}</td>
@@ -60,28 +60,28 @@
         </div>
     </td>
     {% else %}
-    <td class="scenario-percent-complete text-center">{{ scenario['user-attempts-count'] }}</td>
+    <td class="scenario-percent-complete text-center align-middle">{{ scenario['user-attempts-count'] }}</td>
     {% endif %}
-    <td class="scenario-attempt text-center">
+    <td class="scenario-attempt text-center align-middle">
         <a class="btn btn-success" title="Attempt scenario" href="{{ url_for('views.attempt_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-play-fill"></i>
             <span class="sr-only">Attempt scenario</span>
         </a>
     </td>
     {% if user_type == "Teacher" %}
-    <td class="scenario-edit text-center">
+    <td class="scenario-edit text-center align-middle">
         <a class="btn btn-info" title="Edit scenario" href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">
             <i class="bi bi-pencil-square"></i>
             <span class="sr-only">Edit scenario</span>
         </a>
     </td>
-    <td class="scenario-export text-center">
-        <a class="btn btn-secondary" title="Export scenario" onclick="downloadScenario({{ scenario['id'] }}, '{{ scenario['name'] }}')">
+    <td class="scenario-export text-center align-middle">
+        <a class="btn btn-secondary" title="Export scenario" onclick="downloadScenario({{ scenario['id'] }}, '{{ scenario['name'] }}')" tabindex="0">
             <i class="bi bi-download"></i>
             <span class="sr-only">Export data</span>
         </a>
     </td>
-    <td class="scenario-delete text-center">
+    <td class="scenario-delete text-center align-middle">
         <button class="btn btn-danger" title="Delete scenario"
                 data-bs-toggle="modal" data-bs-target="#delete-scenario-menu"
                 type="button"
@@ -123,7 +123,12 @@
             <div class="modal-body">
                 <div class="row d-table">
                     <div class="col-2 d-table-cell pe-0">
-                        <button id="delete-scenario-btn" type="button" class="btn btn-danger fw-bold">Confirm Delete</button>
+                        <button id="delete-scenario-btn"
+                                type="button"
+                                class="btn btn-danger fw-bold"
+                                onclick="deleteScenario()">
+                            Confirm Delete
+                        </button>
                     </div>
                     <div class="col-10 d-table-cell align-middle">
                         <p class="mb-0">This will delete the scenario. You will not be able to recover it.</p>
