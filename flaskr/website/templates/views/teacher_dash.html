@@ -1,25 +1,17 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>1232366 - Teacher Dashboard</title>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_dash.css') }}">
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard - ASL Pharmacy Tool{% endblock %}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Bootstrap JS and Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_dash.css') }}">
+{% endblock %}
+
+{% block body %}
 <div class="container">
 
 <h2>Teacher Dashboard</h2>
 <div class="row m-3">
     <h4>Scenarios</h4>
 </div>
-
 
 <div class=" rounded-2 border border-3">
 <table class="table table-striped">
@@ -143,4 +135,4 @@
 </div>
 
 </div>
-</body>
+{% endblock %}

@@ -9,7 +9,7 @@ class User(UserMixin):
         self.password_hash = password_hash
         self.role = role
         self.name = name
-        self.is_active = True
+        self.active = True  # Changed from is_active to active
         self.created_at = datetime.utcnow()
     
     def check_password(self, password):
@@ -24,6 +24,19 @@ class User(UserMixin):
     
     def is_student(self):
         return self.role == 'student'
+    
+    # Flask-Login required methods
+    def is_active(self):
+        return self.active
+    
+    def is_anonymous(self):
+        return False
+    
+    def is_authenticated(self):
+        return True
+    
+    def get_id(self):
+        return str(self.id)
 
 # In-memory user storage (replace with database later)
 users_db = {}

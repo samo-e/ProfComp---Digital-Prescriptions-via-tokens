@@ -13,9 +13,16 @@ def home():
 @views.route('/dashboard')
 @login_required
 def dashboard():
+    print(f"Dashboard route hit by user: {current_user.name}")  # Debug
+    print(f"User role: {current_user.role}")  # Debug
+    print(f"Is teacher: {current_user.is_teacher()}")  # Debug
+    print(f"Is student: {current_user.is_student()}")  # Debug
+    
     if current_user.is_teacher():
+        print("Redirecting to teacher dashboard")  # Debug
         return redirect(url_for('views.teacher_dashboard'))
     else:
+        print("Redirecting to student dashboard")  # Debug
         return redirect(url_for('views.student_dashboard'))
 
 @views.route('/teacher-dashboard')
