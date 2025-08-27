@@ -110,10 +110,10 @@
 <div class="row m-3">
     <div class="col-10"></div>
     <div class="col-2 d-flex justify-content-end">
-        <button class="btn btn-primary w-100" title="Add scenario">
+        <a class="btn btn-primary w-100" title="Add scenario" href="{{ url_for('views.edit_scenario', scenario=None) }}">
             <i class="bi bi-plus-square-fill"></i>
             <span class="sr-only">Add scenario</span>
-        </button>
+        </a>
     </div>
 </div>
 
