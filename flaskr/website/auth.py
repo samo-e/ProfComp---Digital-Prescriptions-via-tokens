@@ -1,185 +1,61 @@
-from flask import Blueprint, render_template, redirect, url_for
-from flask_login import login_required, current_user
-from .decorators import teacher_required, student_required
+from flask import Blueprint, render_template, request, flash, redirect, url_for
+from flask_login import login_user, logout_user, login_required, current_user
+from .forms import LoginForm, SignUpForm
+from .models import get_user_by_email, create_user
 
-views = Blueprint('views', __name__)
+auth = Blueprint('auth', __name__)
 
-@views.route('/')
-def home():
+@auth.route('/login', methods=['GET', 'POST'])
+def login():
     if current_user.is_authenticated:
         return redirect(url_for('views.dashboard'))
+    
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = get_user_by_email(form.email.data)
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash(f'Welcome back, {user.name}!', 'success')
+            
+            if user.is_teacher():
+                return redirect(url_for('views.teacher_dashboard'))
+            else:
+                return redirect(url_for('views.student_dashboard'))
+        else:
+            flash('Invalid email or password.', 'error')
+    
+    return render_template('auth/login.html', form=form)
+
+@auth.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+    
+    form = SignUpForm()
+    if form.validate_on_submit():
+        existing_user = get_user_by_email(form.email.data)
+        if existing_user:
+            flash('Email already registered. Please use a different email.', 'error')
+        else:
+            user = create_user(
+                email=form.email.data,
+                password=form.password.data,
+                role=form.role.data,
+                name=form.name.data
+            )
+            login_user(user)
+            flash(f'Account created successfully! Welcome, {user.name}!', 'success')
+            
+            if user.is_teacher():
+                return redirect(url_for('views.teacher_dashboard'))
+            else:
+                return redirect(url_for('views.student_dashboard'))
+    
+    return render_template('auth/signup.html', form=form)
+
+@auth.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
-
-@views.route('/dashboard')
-@login_required
-def dashboard():
-    if current_user.is_teacher():
-        return redirect(url_for('views.teacher_dashboard'))
-    else:
-        return redirect(url_for('views.student_dashboard'))
-
-@views.route('/teacher-dashboard')
-@teacher_required
-def teacher_dashboard():
-    return render_template("views/teacher_dash.html", user=current_user)
-
-@views.route('/student-dashboard')
-@student_required
-def student_dashboard():
-    return render_template("views/student_dash.html", user=current_user)
-
-@views.route('/scenario/<int:id>')
-@teacher_required
-def scenario_edit(id):
-    return f"Editing scenario {id} - to be implemented"
-
-@views.route('/asl/<int:pt>')
-@login_required
-def asl(pt):
-    pt_data = { 
-        "medicare" : 49502864011,
-        "pharmaceut-ben-entitlement-no" : "NA318402K(W)",
-        "sfty-net-entitlement-cardholder" : True,
-        "rpbs-ben-entitlement-cardholder" : False,
-        "name" : "Draga Diaz",
-        "dob" : "26/01/1998",
-        "preferred-contact" : "0401 234 567",
-        "address-1" : "33 JIT DR",
-        "address-2" : "CHARAM VIC 3318",
-        "script-date" : "30/11/2020",
-        "pbs" : None,
-        "rpbs" : None,
-        "asl_data" : [
-            {
-                "prescriber" : {
-                    "fname" : "Phillip",
-                    "lname" : "Davis",
-                    "title" : "( MBBS; FRACGP )",
-                    "address-1" : "Level 3  60 Albert Rd",
-                    "address-2" : "SOUTH MELBOURNE VIC 3205", 
-                    "id" : 987774,
-                    "hpii" : 8003619900026805,
-                    "hpio" : 8003626566692846,
-                    "phone" : "03 9284 3300",
-                    "fax" : None,
-                },
-                "DSPID" : "MPK00009002011563",
-                "status" : "Available",
-                "brand-sub-not-prmt" : False,
-                "drug-name"  : "Coversyl 5mg tablet, 30 5 mg 30 Tablets",
-                "drug-code"  : "9007C",
-                "dose-instr" : "ONCE A DAY",
-                "dose-qty"   : 30,
-                "dose-rpt"   : 6,
-                "prescribed-date" : "10/06/2021",
-                "paperless" : True,
-            },
-            {
-                "prescriber" : {
-                    "fname" : "Phillip",
-                    "lname" : "Davis",
-                    "title" : "( MBBS; FRACGP )",
-                    "address-1" : "Level 3  60 Albert Rd",
-                    "address-2" : "SOUTH MELBOURNE VIC 3205", 
-                    "id" : 987774,
-                    "hpii" : 8003619900026805,
-                    "hpio" : 8003626566692846,
-                    "phone" : "03 9284 3300",
-                    "fax" : None,
-                },
-                "DSPID" : "MPK00009002020646",
-                "status" : "Available",
-                "brand-sub-not-prmt" : False,
-                "drug-name"  : "Diabex 1 g tablet, 90 1000 mg 90 Tablets",
-                "drug-code"  : "8607B",
-                "dose-instr" : "ONCE A DAY",
-                "dose-qty"   : 90,
-                "dose-rpt"   : 6,
-                "prescribed-date" : "10/06/2021",
-                "paperless" : True,
-            },
-            {
-                "prescriber" : {
-                    "fname" : "Phillip",
-                    "lname" : "Davis",
-                    "title" : "( MBBS; FRACGP )",
-                    "address-1" : "Level 3  60 Albert Rd",
-                    "address-2" : "SOUTH MELBOURNE VIC 3205", 
-                    "id" : 987774,
-                    "hpii" : 8003619900026805,
-                    "hpio" : 8003626566692846,
-                    "phone" : "03 9284 3300",
-                    "fax" : None,
-                },
-                "DSPID" : None,
-                "status" : "Available",
-                "brand-sub-not-prmt" : False,
-                "drug-name"  : "Lipitor 10mg tablet, 30 10 mg 30 Tablets",
-                "drug-code"  : "8213G",
-                "dose-instr" : "ONCE A DAY",
-                "dose-qty"   : 30,
-                "dose-rpt"   : 5,
-                "prescribed-date" : "10/06/2021",
-                "paperless" : False,
-            },
-        ],
-        "alr_data" : [
-            {
-                "prescriber" : {
-                    "fname" : "Phillip",
-                    "lname" : "Davis",
-                    "title" : "( MBBS; FRACGP )",
-                    "address-1" : "Level 3  60 Albert Rd",
-                    "address-2" : "SOUTH MELBOURNE VIC 3205", 
-                    "id" : 987774,
-                    "hpii" : 8003619900026805,
-                    "hpio" : 8003626566692846,
-                    "phone" : "03 9284 3300",
-                    "fax" : None,
-                },
-                "DSPID" : None,
-                "drug-name"  : "Levlen ED Tablets, 150mcg-30mcg(28)",
-                "drug-code"  : "1394J",
-                "dose-instr" : "",
-                "dose-qty"   : 4,
-                "dose-rpt"   : 2,
-                "prescribed-date" : "05/07/2021",
-                "dispensed-date" : "05/07/2021",
-                "paperless" : False,
-            },
-            {
-                "prescriber" : {
-                    "fname" : "Phillip",
-                    "lname" : "Davis",
-                    "title" : "( MBBS; FRACGP )",
-                    "address-1" : "Level 3  60 Albert Rd",
-                    "address-2" : "SOUTH MELBOURNE VIC 3205", 
-                    "id" : 987774,
-                    "hpii" : 8003619900026805,
-                    "hpio" : 8003626566692846,
-                    "phone" : "03 9284 3300",
-                    "fax" : None,
-                },
-                "DSPID" : None,
-                "drug-name"  : "Diabex 1 g tablet, 90 1000 mg 90 Tablets",
-                "drug-code"  : "8607B",
-                "dose-instr" : "Shake well and inhale TWO puffs by mouth TWICE a day as directed by your physician",
-                "dose-qty"   : 1,
-                "dose-rpt"   : 3,
-                "prescribed-date" : "10/06/2021",
-                "dispensed-date" : "23/06/2021",
-                "paperless" : True,
-            },
-        ],
-    }
-    return render_template("views/asl.html", pt=pt, pt_data=pt_data, user=current_user)
-
-@views.route('/prescription')
-@login_required
-def prescription():
-    return render_template("views/prescription/prescription.html", user=current_user)
-
-@views.route('/edit-pt/<int:pt>')
-@login_required
-def edit_pt(pt):
-    return render_template("views/edit_pt.html", pt=pt, user=current_user)

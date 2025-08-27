@@ -9,7 +9,7 @@ class User(UserMixin):
         self.password_hash = password_hash
         self.role = role
         self.name = name
-        self.active = True  # Changed from is_active to active
+        self.active = True
         self.created_at = datetime.utcnow()
     
     def check_password(self, password):
@@ -25,7 +25,6 @@ class User(UserMixin):
     def is_student(self):
         return self.role == 'student'
     
-    # Flask-Login required methods
     def is_active(self):
         return self.active
     
@@ -60,12 +59,9 @@ def get_user_by_email(email):
 def get_user_by_id(user_id):
     return users_db.get(user_id)
 
-# Create some default users for testing
 def init_default_users():
-    # Create a teacher account
     if not get_user_by_email('teacher@example.com'):
         create_user('teacher@example.com', 'teacher123', 'teacher', 'Dr. Smith')
     
-    # Create a student account
     if not get_user_by_email('student@example.com'):
         create_user('student@example.com', 'student123', 'student', 'John Doe')
