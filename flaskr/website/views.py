@@ -1,21 +1,41 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
+from flask_login import login_required, current_user
+from .decorators import teacher_required, student_required
 
 views = Blueprint('views', __name__)
 
 @views.route('/')
 def home():
-    return "index"
+    if current_user.is_authenticated:
+        return redirect(url_for('views.dashboard'))
+    return redirect(url_for('auth.login'))
 
 @views.route('/dashboard')
+@login_required
+def dashboard():
+    if current_user.is_teacher():
+        return redirect(url_for('views.teacher_dashboard'))
+    else:
+        return redirect(url_for('views.student_dashboard'))
+
+@views.route('/teacher-dashboard')
+@teacher_required
 def teacher_dashboard():
-    return render_template("views/teacher_dash.html")
+    return render_template("views/teacher_dash.html", user=current_user)
 
-@views.route('/scenario/<id>')
-def scenario_edit(id: int):
-    print("not implemented")
+@views.route('/student-dashboard')
+@student_required
+def student_dashboard():
+    return render_template("views/student_dash.html", user=current_user)
 
-@views.route('/asl/<pt>') # I imagine each ASL would be accessed by the patient's IHI
-def asl(pt: int):
+@views.route('/scenario/<int:id>')
+@teacher_required
+def scenario_edit(id):
+    return f"Editing scenario {id} - to be implemented"
+
+@views.route('/asl/<int:pt>')
+@login_required
+def asl(pt):
     pt_data = { 
         "medicare" : 49502864011,
         "pharmaceut-ben-entitlement-no" : "NA318402K(W)",
@@ -152,12 +172,14 @@ def asl(pt: int):
             },
         ],
     }
-    return render_template("views/asl.html", pt=pt, pt_data=pt_data)
+    return render_template("views/asl.html", pt=pt, pt_data=pt_data, user=current_user)
 
-@views.route('/prescription') # I imagine each ASL would be accessed by the patient's IHI
+@views.route('/prescription')
+@login_required
 def prescription():
-    return render_template("views/prescription/prescription.html")
+    return render_template("views/prescription/prescription.html", user=current_user)
 
-@views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
-def edit_pt(pt: int):
-    return render_template("views/edit_pt.html", pt=pt)
+@views.route('/edit-pt/<int:pt>')
+@login_required
+def edit_pt(pt):
+    return render_template("views/edit_pt.html", pt=pt, user=current_user)
