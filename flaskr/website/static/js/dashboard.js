@@ -1,4 +1,4 @@
-function downloadScenario(id) {
+function downloadScenario(id, name) {
   fetch(`/export-scenario/${id}`)
     .then(res => res.json())
     .then(data => {
@@ -18,7 +18,7 @@ function downloadScenario(id) {
       // download CSV
       const a = document.createElement('a');
       a.href = url;
-      a.download = `scenario-${data.id}.csv`;
+      a.download = `${name} Results.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
