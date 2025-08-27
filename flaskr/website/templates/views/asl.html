@@ -14,6 +14,9 @@
     
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
 
+    <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
+
+
     <script>
         const pt_id = {{ pt }};
         const pt_data = {{ pt_data|tojson }};
@@ -56,12 +59,12 @@
                 <div class="row">
                     <div class="col">
                         <h4>Status</h4>
-                        <p>Registered</p>
+                        <p id="asl-status">{{ pt_data.get('asl_status', 'Registered') }}</p>
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            <button type="button" class="btn btn-info">Request Access</button>
-                            <button type="button" class="btn btn-dark">Refresh</button>
+                            <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
+                            <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
                         </div>
                     </div>
                 </div>
@@ -69,11 +72,13 @@
                     <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            <a id="consent-status" class="granted">Granted</a>
-                            <a id="consent-last-updated">(last updated 01/Jan/2000 02:59AM)</a>
+                            <a id="consent-status" class="{{ 'granted' if pt_data.get('consent_status') == 'Granted' else 'revoked' }}">
+                                {{ pt_data.get('consent_status', 'Granted') }}
+                            </a>
+                            <a id="consent-last-updated">(last updated {{ pt_data.get('consent_last_updated', '01/Jan/2000 02:59AM') }})</a>
                         </span>
-                        <button type="button" class="btn btn-secondary btn-sm">Delete Consent</button>
-                    </p>
+                        <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
+                     </p>
                 </div>
             </div>
         </div>
@@ -82,7 +87,7 @@
     
     <div class="input-group">
         <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
+        <input type="search" id="search-input" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
     </div>
     <br>
     
