@@ -34,21 +34,20 @@ $(document).ready(function() {
     exampleModal.addEventListener('show.bs.modal', event => {
         const button = $(event.relatedTarget); // Button that triggered the modal
         currentScenarioId = button.data('scenario-id');
+        $("#modal-scenario-name").text(button.data('scenario-name'));
     });
 
     // When delete button inside modal is clicked
     $('#delete-scenario-btn').on('click', function () {
-        if (currentScenarioId) {
-            deleteScenario(currentScenarioId);
-        }
+        deleteScenario();
     });
 });
 
-function deleteScenario(id) {
+function deleteScenario() {
     let res = confirm("Are you sure you wish to delete this scenario? Once a scenario has been deleted, it cannot be recovered.");
     if (res) {
         $.ajax({
-            url: `/delete-scenario/${id}`,
+            url: `/delete-scenario/${currentScenarioId}`,
             type: 'DELETE',
             success: function () {
                 // Reload page. TODO: remove row instead
@@ -58,5 +57,5 @@ function deleteScenario(id) {
                 alert("Failed to delete scenario");
             }
         });
-}
+    }
 }

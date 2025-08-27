@@ -93,7 +93,8 @@
         <button class="btn btn-danger" title="Delete scenario"
                 data-bs-toggle="modal" data-bs-target="#delete-scenario-menu"
                 type="button"
-                data-scenario-id="{{ scenario['id'] }}">
+                data-scenario-id="{{ scenario['id'] }}"
+                data-scenario-name="{{ scenario['name'] }}">
             <i class="bi bi-trash3-fill"></i>
             <span class="sr-only">Delete scenario</span>
         </a>
@@ -121,7 +122,10 @@
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5 fw-bold" id="delete-scenario-menu-label">Delete Scenario</h1>
+                <h1 class="modal-title fs-5 fw-bold" id="delete-scenario-menu-label">
+                    Delete Scenario
+                    '<span id="modal-scenario-name" class="fst-italic"></span>'?
+                </h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
