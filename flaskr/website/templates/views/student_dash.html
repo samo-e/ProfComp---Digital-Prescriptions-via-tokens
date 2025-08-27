@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard - ASL Pharmacy Tool{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_dash.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Student Dashboard</h2>
+            <p class="lead">Welcome, {{ current_user.name }}! Here are your available learning scenarios.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-badge"></i> Your Progress</h5>
+                    <p class="card-text">
+                        <strong>Scenarios Completed:</strong> 0 / 4<br>
+                        <strong>Overall Progress:</strong> 0%
+                    </p>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-12">
+            <h4><i class="bi bi-clipboard-check"></i> Available Scenarios</h4>
+            <p class="text-muted">Click on any scenario to start practicing with the Active Script List system.</p>
+        </div>
+    </div>
+
+    <div class="rounded-2 border border-3">
+        <table class="table table-striped mb-0">
+            <thead>
+                <tr>
+                    <th scope="col"><i class="bi bi-hash"></i></th>
+                    <th scope="col">Scenario Name</th>
+                    <th scope="col">Patient</th>
+                    <th scope="col">Complexity</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="scenario-number">1</td>
+                    <td class="scenario-name">
+                        <strong>Basic ASL Lookup</strong>
+                        <small class="d-block text-muted">Learn to navigate the ASL interface and locate patient prescriptions</small>
+                    </td>
+                    <td class="scenario-patient">John Smith</td>
+                    <td class="scenario-complexity">
+                        <span class="badge bg-success">Beginner</span>
+                    </td>
+                    <td class="scenario-status">
+                        <span class="badge bg-secondary">Not Started</span>
+                    </td>
+                    <td class="scenario-action">
+                        <a href="{{ url_for('views.asl', pt=1) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-play-fill"></i> Start
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="scenario-number">2</td>
+                    <td class="scenario-name">
+                        <strong>Multi-Prescription Management</strong>
+                        <small class="d-block text-muted">Handle patients with multiple active prescriptions and repeats</small>
+                    </td>
+                    <td class="scenario-patient">Mary Johnson</td>
+                    <td class="scenario-complexity">
+                        <span class="badge bg-warning">Intermediate</span>
+                    </td>
+                    <td class="scenario-status">
+                        <span class="badge bg-secondary">Not Started</span>
+                    </td>
+                    <td class="scenario-action">
+                        <a href="{{ url_for('views.asl', pt=2) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-play-fill"></i> Start
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="scenario-number">3</td>
+                    <td class="scenario-name">
+                        <strong>Error Handling & Verification</strong>
+                        <small class="d-block text-muted">Practice identifying and resolving prescription discrepancies</small>
+                    </td>
+                    <td class="scenario-patient">Robert Davis</td>
+                    <td class="scenario-complexity">
+                        <span class="badge bg-warning">Intermediate</span>
+                    </td>
+                    <td class="scenario-status">
+                        <span class="badge bg-secondary">Not Started</span>
+                    </td>
+                    <td class="scenario-action">
+                        <a href="{{ url_for('views.asl', pt=3) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-play-fill"></i> Start
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="scenario-number">4</td>
+                    <td class="scenario-name">
+                        <strong>Complex Clinical Case</strong>
+                        <small class="d-block text-muted">Advanced scenario with multiple medications, interactions, and consent issues</small>
+                    </td>
+                    <td class="scenario-patient">Sarah Wilson</td>
+                    <td class="scenario-complexity">
+                        <span class="badge bg-danger">Advanced</span>
+                    </td>
+                    <td class="scenario-status">
+                        <span class="badge bg-secondary">Locked</span>
+                    </td>
+                    <td class="scenario-action">
+                        <button class="btn btn-outline-secondary btn-sm" disabled>
+                            <i class="bi bi-lock-fill"></i> Locked
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-lightbulb"></i> Learning Tips</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Always verify patient details before proceeding</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Check prescription dates and expiry</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Pay attention to repeat counts</li>
+                        <li class="mb-2"><i class="bi bi-check-circle text-success"></i> Note paperless vs. paper prescriptions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title mb-0"><i class="bi bi-question-circle"></i> Need Help?</h5>
+                </div>
+                <div class="card-body">
+                    <p>If you're stuck or need guidance:</p>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="bi bi-book"></i> <a href="#">View ASL Guide</a></li>
+                        <li class="mb-2"><i class="bi bi-play-circle"></i> <a href="#">Watch Tutorial Videos</a></li>
+                        <li class="mb-2"><i class="bi bi-chat-dots"></i> <a href="#">Ask Your Instructor</a></li>
+                        <li class="mb-2"><i class="bi bi-file-text"></i> <a href="#">Download Reference Sheet</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

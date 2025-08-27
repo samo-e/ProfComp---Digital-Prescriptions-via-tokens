@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
 <head>
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}ASL Pharmacy Simulation Tool{% endblock %}</title>
     
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,10 +23,75 @@
     <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
 </head>
 <body>
+
+<!-- Navigation Bar (only show when user is logged in) -->
+{% if current_user.is_authenticated %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('views.dashboard') }}">
+            <i class="bi bi-hospital"></i> ASL Pharmacy Tool
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('views.dashboard') }}">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                </li>
+                {% if current_user.is_teacher() %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('views.teacher_dashboard') }}">
+                        <i class="bi bi-person-workspace"></i> Scenarios
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+            
+            <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-person-circle"></i> 
+                        {{ current_user.name }}
+                        <span class="badge bg-light text-dark ms-1">{{ current_user.role.title() }}</span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> Profile</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+{% endif %}
+
+<!-- Flash Messages -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Main Content -->
 {% block body %}{% endblock %}
+
+<!-- Options Menu (only show when user is logged in) -->
+{% if current_user.is_authenticated %}
 {% block options_menu %}
-<!-- Options Menu -->
-<div class="position-fixed top-0 end-0 p-3">
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
     <a type="button" data-bs-toggle="modal" data-bs-target="#options-menu">
         <i class="bi bi-gear-fill h1"></i>
     </a>
@@ -39,10 +104,16 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <h2 class="fs-5 mb-3">Need help?</h2>
+                <h2 class="fs-5 mb-3">User Information</h2>
+                <p><strong>Name:</strong> {{ current_user.name }}</p>
+                <p><strong>Email:</strong> {{ current_user.email }}</p>
+                <p><strong>Role:</strong> {{ current_user.role.title() }}</p>
+                
+                <h2 class="fs-5 mb-3 mt-4">Need help?</h2>
                 <p>You can find the documentation <a href="#">here</a>.</p>
                 <p>Need to report an issue? Head over <a href="#">here</a>.</p>
-                <h2 class="fs-5 mb-3 mt-5">Options</h2>
+                
+                <h2 class="fs-5 mb-3 mt-4">Options</h2>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switch-darkmode">
                     <label class="form-check-label" for="switch-darkmode">Darkmode</label>
@@ -58,5 +129,7 @@
     </div>
 </div>
 {% endblock %}
+{% endif %}
+
 </body>
 </html>
