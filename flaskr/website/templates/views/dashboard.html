@@ -45,22 +45,22 @@
     <td class="scenario-name align-middle">
         <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a>
     </td>
-    <td class="scenario-name align-middle">
+    <td class="scenario-name text-center">
         {{ scenario['creation-date'] }}
     </td>
-    <td class="scenario-name align-middle">
+    <td class="scenario-name text-center">
         {{ scenario['due-date'] }}
     </td>
     {% if user_type == "Teacher" %}
     <td class="scenario-qty align-middle text-center">{{ scenario['num-students'] }}</td>
-    <td class="scenario-percent-complete align-middle text-center">
+    <td class="scenario-percent-complete align-middle">
         <div class="row">
-            <div class="col text-end"><a>{{ scenario['num-students-completed'] }}</a></div>
-            <div class="col text-end"><a>({{ 100 * scenario['num-students-completed'] // scenario['num-students'] }}%)</a></div>
+            <div class="col text-end">{{ scenario['num-students-completed'] }}</div>
+            <div class="col text-end">({{ 100 * scenario['num-students-completed'] // scenario['num-students'] }}%)</div>
         </div>
     </td>
     {% else %}
-    <td class="scenario-percent-complete align-middle">{{ scenario['user-attempts-count'] }}</td>
+    <td class="scenario-percent-complete text-center">{{ scenario['user-attempts-count'] }}</td>
     {% endif %}
     <td class="scenario-attempt text-center">
         <a class="btn btn-success" title="Attempt scenario" href="{{ url_for('views.attempt_scenario', scenario=scenario['id']) }}">
