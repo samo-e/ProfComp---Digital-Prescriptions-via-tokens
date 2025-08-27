@@ -42,12 +42,7 @@ async function get_blank_prescription() {
 async function print_scripts() {
   console.log("Print function called");
   const checkedBoxes = $("#asl-table .asl-check input:checked");
-
-  // remind users if there's no selection
-  if (checkedBoxes.length === 0) {
-    alert("Please select at least one prescription to print!");
-    return;
-  }
+  let select_all = checkedBoxes.length === 0;
 
   
   // Temp parent container to store the prescriptions
@@ -63,18 +58,14 @@ async function print_scripts() {
     const $checkbox = $row.find(".asl-check input");
     
     
-    if ($checkbox.is(":checked")) {
+    if (select_all || $checkbox.is(":checked")) {
       console.log(`Processing prescription ${index}`);
       
-      
       let presc = prescription_container.cloneNode(true);
-      
-      
       const rowId = $row.attr("id"); // "asl-0", "asl-1"
       
       presc = insert_prescription_details(presc, rowId);
 
-      
       let $wrapper = $('<div></div>').append(presc);
       $wrapper.css({'break-after': 'page','margin-top': '10px'});
 
