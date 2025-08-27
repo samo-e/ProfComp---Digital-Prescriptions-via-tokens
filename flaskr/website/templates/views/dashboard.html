@@ -90,7 +90,10 @@
         </a>
     </td>
     <td class="scenario-delete text-center">
-        <button class="btn btn-danger" title="Delete scenario" href="{{ url_for('views.delete_scenario', scenario=scenario['id']) }}">
+        <button class="btn btn-danger" title="Delete scenario"
+                data-bs-toggle="modal" data-bs-target="#delete-scenario-menu"
+                type="button"
+                data-scenario-id="{{ scenario['id'] }}">
             <i class="bi bi-trash3-fill"></i>
             <span class="sr-only">Delete scenario</span>
         </a>
@@ -110,6 +113,32 @@
             <i class="bi bi-plus-square-fill"></i>
             <span class="sr-only">Add scenario</span>
         </button>
+    </div>
+</div>
+
+<!-- Delete scenario menu   -->
+<div class="modal fade" id="delete-scenario-menu" tabindex="-1" aria-labelledby="delete-scenario-menu-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 fw-bold" id="delete-scenario-menu-label">Delete Scenario</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row d-table">
+                    <div class="col-2 d-table-cell pe-0">
+                        <button id="delete-scenario-btn" type="button" class="btn btn-danger fw-bold">Confirm Delete</button>
+                    </div>
+                    <div class="col-10 d-table-cell align-middle">
+                        <p class="mb-0">This will delete the scenario. You will not be able to recover it.</p>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer justify-content-right">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
     </div>
 </div>
 {% endif %}

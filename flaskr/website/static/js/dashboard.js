@@ -25,3 +25,38 @@ function downloadScenario(id, name) {
       URL.revokeObjectURL(url);
     });
 }
+
+let currentScenarioId = null;
+
+// When modal is opened, capture the ID
+$(document).ready(function() {
+    const exampleModal = document.getElementById('delete-scenario-menu');
+    exampleModal.addEventListener('show.bs.modal', event => {
+        const button = $(event.relatedTarget); // Button that triggered the modal
+        currentScenarioId = button.data('scenario-id');
+    });
+
+    // When delete button inside modal is clicked
+    $('#delete-scenario-btn').on('click', function () {
+        if (currentScenarioId) {
+            deleteScenario(currentScenarioId);
+        }
+    });
+});
+
+function deleteScenario(id) {
+    let res = confirm("Are you sure you wish to delete this scenario? Once a scenario has been deleted, it cannot be recovered.");
+    if (res) {
+        $.ajax({
+            url: `/delete-scenario/${id}`,
+            type: 'DELETE',
+            success: function () {
+                // Reload page. TODO: remove row instead
+                location.reload();
+            },
+            error: function () {
+                alert("Failed to delete scenario");
+            }
+        });
+}
+}
