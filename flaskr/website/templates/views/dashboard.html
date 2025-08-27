@@ -22,9 +22,6 @@
 <table class="table table-striped mb-0">
 <thead>
     <tr>
-        {% if user_type == "Teacher" %}
-        <th scope="col"></th>
-        {% endif %}
         <th scope="col">Scenario</th>
         <th scope="col" class="text-center">Created</th>
         <th scope="col" class="text-center">Due Date</th>
@@ -45,11 +42,6 @@
 </thead>
 {% for scenario in scenarios %}
 <tr>
-    {% if user_type == "Teacher" %}
-    <td class="scenario-check align-middle text-center">
-        <input class="form-check-input" type="checkbox" value="" id="scenario-check-{{loop.index}}">
-    </td>
-    {% endif %}
     <td class="scenario-name align-middle">
         <a href="{{ url_for('views.edit_scenario', scenario=scenario['id']) }}">{{ scenario['name'] }}</a>
     </td>
