@@ -24,6 +24,20 @@
 </div>
 {% endmacro %}
 
+{% macro input_select(id, label, di={}, fulllength=False) %}
+<div class="col-2">
+    <label for="{{ id }}" class="form-label form-label-sm">{{ label }}</label>
+</div>
+<div class="{{ 'col-10' if fulllength else 'col-4' }}">
+    <select class="form-select" aria-label="State">
+        <option selected>Choose...</option>
+        {% for k in di %}
+        <option value="{{k}}">{{di[k]}}</option>
+        {% endfor %}
+    </select>
+</div>
+{% endmacro %}
+
 
 {% macro add_tab(id, label, target="", active=False, disabled=False) %}
 <li class="nav-item">
