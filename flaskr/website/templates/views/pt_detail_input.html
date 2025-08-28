@@ -1,4 +1,4 @@
-{% macro input_field(id, label, type="text", fulllength=False, void=False, attrs="") %}
+{% macro input_field(id, label, type="text", fulllength=False, void=False, attrs="", ur_char=None) %}
 {% if void %}
 <div class="col-6"></div>
 {% else %}
@@ -11,6 +11,7 @@
         id="{{ id }}"
         class="form-control form-control-sm"
         {{ attrs|safe }}
+        {% if ur_char %}oninput="this.value = this.value.replace(/[^{{ur_char}}]/g, '');"{% endif %}
         required>
 </div>
 {% endif %}

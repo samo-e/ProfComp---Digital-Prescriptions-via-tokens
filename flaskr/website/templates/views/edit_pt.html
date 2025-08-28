@@ -109,11 +109,11 @@
                     }) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("postcode", "Postcode") }}
-                    {{ pt_macros.input_field("phone", "Phone No.", type="tel") }}
+                    {{ pt_macros.input_field("postcode", "Postcode", ur_char="0-9") }}
+                    {{ pt_macros.input_field("phone", "Phone No.", type="tel", ur_char="0-9-\+") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("mobile", "Mobile No.", type="tel") }}
+                    {{ pt_macros.input_field("mobile", "Mobile No.", type="tel", ur_char="0-9-\+") }}
                     {{ pt_macros.input_field("licence", "Licence No.") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
@@ -161,11 +161,11 @@
                 <!-- Concession -->
                 <h5 class="mb-3">Concession</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("concessionNumber", "Concession No.") }}
+                    {{ pt_macros.input_field("concessionNumber", "Concession No.", ur_char="0-9") }}
                     {{ pt_macros.input_field("concessionValidTo", "Valid To", type="date") }} <!-- Calendar -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("safetyNetNumber", "Safety Net No.") }}
+                    {{ pt_macros.input_field("safetyNetNumber", "Safety Net No.", ur_char="0-9") }}
                     {{ pt_macros.input_field("", "", void=True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
@@ -180,7 +180,7 @@
                 <!-- My HR -->
                 <h5 class="mb-3">My HR</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("ihiNumber", "IHI No.") }}
+                    {{ pt_macros.input_field("ihiNumber", "IHI No.", ur_char="0-9") }}
                     {{ pt_macros.input_field("ihiStatus", "IHI Status") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
