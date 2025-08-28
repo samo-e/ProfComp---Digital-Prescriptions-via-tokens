@@ -8,23 +8,24 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_pt.css') }}">
 {% endblock %}
 {% block scripts %}
-<script>console.log({{pt}});console.log(typeof {{pt}});</script>
+    <script src="{{ url_for('static', filename='js/edit_pt.js') }}"></script>
 {% endblock %}
 
 {% block body %}
 <div class="container">
 <div class="row">
-<div class="card shadow-lg p-4 w-75 mx-auto">
+<div class="card shadow-lg p-4 col-12 col-lg-9 mx-auto">
     <div class="position-relative mb-4">
         <h3 class="text-center">Patient Details</h3>
         <button id="generatePtDetails" class="btn btn-secondary position-absolute">
             Generate Details
         </button>
     </div>
+
     <!-- Navigation tabs -->
-    <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
+    <ul class="nav nav-tabs mb-3  d-none d-md-flex" id="formTabs" role="tablist">
         {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
-        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
+        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=False) }}
         {{ pt_macros.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
         {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
         {{ pt_macros.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
@@ -33,6 +34,24 @@
         {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
         {{ pt_macros.add_tab("other",                   "Other",                    "others",      disabled=True) }}
     </ul>
+    <!-- Dropdown (visible only on small screens) -->
+    <div class="nav-item dropdown d-lg-none">
+        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownMenuLink">
+            Basic Details
+        </a>
+        <ul class="dropdown-menu" id="dropdownMenu">
+            {{ pt_macros.add_ddown("basic-details",           "Basic Details",            "basic",       active=True) }}
+            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net",  disabled=False) }}
+            {{ pt_macros.add_ddown("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
+            {{ pt_macros.add_ddown("accounts",                "Accounts",                 "accounts",    disabled=True) }}
+            {{ pt_macros.add_ddown("notes",                   "Notes",                    "notes",       disabled=True) }}
+            {{ pt_macros.add_ddown("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
+            {{ pt_macros.add_ddown("sms",                     "SMS",                      "sms",         disabled=True) }}
+            {{ pt_macros.add_ddown("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
+            {{ pt_macros.add_ddown("other",                   "Other",                    "others",      disabled=True) }}
+        </ul>
+    </div>
+
     <!-- Tab panes -->
     <div class="tab-content">
         <!-- Personal Tab -->
@@ -151,26 +170,23 @@
         </div>
 
         <!-- Saftey Net Tab -->
-        <!--
         {{ pt_macros.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
             <p>Saftey Net Tab Not implemented</p>
         </div>
-        -->
 
         <!-- Allergies Tab -->
-        <!--
         {{ pt_macros.add_tab_panel("allergies", "Allergies/Health", "allergies", active=False) }}
             <p>Allergies Tab Not implemented</p>
         </div>
-        -->
+    </div>
 
+    <!-- Submit -->
+    <div class="d-flex flex-row-reverse">
+        <button type="cancel" class="col-2 btn btn-warning ms-1">Cancel</button>
+        <button type="submit" class="col-2 btn btn-success ms-1">Save</button>
+    </div>
 </div>
 
-<!-- Submit -->
-<div class="d-flex flex-row-reverse">
-    <button type="cancel" class="col-2 btn btn-warning ms-1">Cancel</button>
-    <button type="submit" class="col-2 btn btn-success ms-1">Save</button>
-</div>
 </div>
 </div>
 {% endblock %}

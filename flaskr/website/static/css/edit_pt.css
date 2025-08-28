@@ -2,8 +2,13 @@
     border-radius: 1rem;
 }
 
-.nav-link.disabled {
+.nav-link.disabled,
+.dropdown-item.disabled {
     text-decoration: line-through;
+}
+
+.nav-link {
+    color: black;
 }
 
 #generatePtDetails {
