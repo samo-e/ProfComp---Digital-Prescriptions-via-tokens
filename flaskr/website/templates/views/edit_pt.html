@@ -17,15 +17,15 @@
 <div class="card shadow-lg p-4 col-12 col-lg-9 mx-auto">
     <div class="position-relative mb-4">
         <h3 class="text-center">Patient Details</h3>
-        <button id="generatePtDetails" class="btn btn-secondary position-absolute">
+        <button id="generatePtDetails" class="btn btn-secondary position-absolute d-none d-md-flex">
             Generate Details
         </button>
     </div>
 
     <!-- Navigation tabs -->
-    <ul class="nav nav-tabs mb-3  d-none d-md-flex" id="formTabs" role="tablist">
+    <ul class="nav nav-tabs mb-3 d-none d-md-flex" id="formTabs" role="tablist">
         {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
-        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=False) }}
+        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
         {{ pt_macros.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
         {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
         {{ pt_macros.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
@@ -35,13 +35,20 @@
         {{ pt_macros.add_tab("other",                   "Other",                    "others",      disabled=True) }}
     </ul>
     <!-- Dropdown (visible only on small screens) -->
-    <div class="nav-item dropdown d-lg-none">
-        <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownMenuLink">
-            Basic Details
-        </a>
+    <div class="dropdown d-lg-none">
+        <div class="nav nav-tabs" data-bs-toggle="dropdown">
+        <div class="nav-item">
+            <a class="nav-link active dropdown-toggle" href="#" id="dropdownMenuLink">
+                Basic Details
+            </a>
+        </div>
+        <button id="generatePtDetails" class="btn btn-secondary position-absolute">
+            Generate Details
+        </button>
+        </div>
         <ul class="dropdown-menu" id="dropdownMenu">
             {{ pt_macros.add_ddown("basic-details",           "Basic Details",            "basic",       active=True) }}
-            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net",  disabled=False) }}
+            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
             {{ pt_macros.add_ddown("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
             {{ pt_macros.add_ddown("accounts",                "Accounts",                 "accounts",    disabled=True) }}
             {{ pt_macros.add_ddown("notes",                   "Notes",                    "notes",       disabled=True) }}
