@@ -1,17 +1,20 @@
 {% extends "base.html" %}
+{% import "views/pt_detail_input.html" as pt_macros %}
 {% block title %}Edit Patient Details{% endblock %}
 
-{% block head %}
-    {% import "views/pt_detail_input.html" as pt %}
-{% endblock %}
+{% block head %}{% endblock %}
 
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_pt.css') }}">
 {% endblock %}
-{% block scripts %}{% endblock %}
+{% block scripts %}
+<script>console.log({{pt}});console.log(typeof {{pt}});</script>
+{% endblock %}
 
 {% block body %}
-<div class="card shadow-lg p-4 w-75">
+<div class="container">
+<div class="row">
+<div class="card shadow-lg p-4 w-75 mx-auto">
     <div class="position-relative mb-4">
         <h3 class="text-center">Patient Details</h3>
         <button id="generatePtDetails" class="btn btn-secondary position-absolute">
@@ -20,65 +23,65 @@
     </div>
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-3" id="formTabs" role="tablist">
-        {{ pt.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
-        {{ pt.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
-        {{ pt.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
-        {{ pt.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
-        {{ pt.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
-        {{ pt.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
-        {{ pt.add_tab("sms",                     "SMS",                      "sms",         disabled=True) }}
-        {{ pt.add_tab("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
-        {{ pt.add_tab("other",                   "Other",                    "others",      disabled=True) }}
+        {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
+        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
+        {{ pt_macros.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
+        {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
+        {{ pt_macros.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
+        {{ pt_macros.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
+        {{ pt_macros.add_tab("sms",                     "SMS",                      "sms",         disabled=True) }}
+        {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
+        {{ pt_macros.add_tab("other",                   "Other",                    "others",      disabled=True) }}
     </ul>
     <!-- Tab panes -->
     <div class="tab-content">
         <!-- Personal Tab -->
-        {{ pt.add_tab_panel("basic-details", "Basic Details", "basic", active=True) }}
+        {{ pt_macros.add_tab_panel("basic-details", "Basic Details", "basic", active=True) }}
             <form>
                 <!-- Personal Info -->
                 <h5 class="mb-3">Personal</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("lastName", "Surname") }}
-                    {{ pt.input_field("givenName", "Given name") }}
+                    {{ pt_macros.input_field("lastName", "Surname") }}
+                    {{ pt_macros.input_field("givenName", "Given name") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("title", "Title") }}
-                    {{ pt.input_field("sex", "Sex") }}
+                    {{ pt_macros.input_field("title", "Title") }}
+                    {{ pt_macros.input_field("sex", "Sex") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("dob", "Date of Birth", type="date") }} <!-- Calendar -->
-                    {{ pt.input_field("ptNumber", "Patient No") }} <!-- Disabled -->
+                    {{ pt_macros.input_field("dob", "Date of Birth", type="date") }} <!-- Calendar -->
+                    {{ pt_macros.input_field("ptNumber", "Patient No") }} <!-- Disabled -->
                 </div>
 
                 
                 <!-- Contact Info -->
                 <h5 class="mb-3">Contact</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("address", "Address", fulllength=True) }}
+                    {{ pt_macros.input_field("address", "Address", fulllength=True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("suburb", "Suburb") }}
-                    {{ pt.input_field("state", "State") }} <!-- Dropdown -->
+                    {{ pt_macros.input_field("suburb", "Suburb") }}
+                    {{ pt_macros.input_field("state", "State") }} <!-- Dropdown -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("postcode", "Postcode") }}
-                    {{ pt.input_field("phone", "Phone No.", type="tel") }}
+                    {{ pt_macros.input_field("postcode", "Postcode") }}
+                    {{ pt_macros.input_field("phone", "Phone No.", type="tel") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("mobile", "Mobile No.", type="tel") }}
-                    {{ pt.input_field("licence", "Licence No.") }}
+                    {{ pt_macros.input_field("mobile", "Mobile No.", type="tel") }}
+                    {{ pt_macros.input_field("licence", "Licence No.") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsRepeats", "SMS Repeat Reminders") }}
+                    {{ pt_macros.input_check("smsRepeats", "SMS Repeat Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsLastRepeats", "SMS Last Repeat Reminders") }}
+                    {{ pt_macros.input_check("smsLastRepeats", "SMS Last Repeat Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_check("smsOwing", "SMS Owing Reminders") }}
+                    {{ pt_macros.input_check("smsOwing", "SMS Owing Reminders") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("email", "Email", type="email", fulllength=True) }}
+                    {{ pt_macros.input_field("email", "Email", type="email", fulllength=True) }}
                 </div>
 
                 <!-- Medicare -->
@@ -103,70 +106,71 @@
                                 >
                         </div>
                     </div>
-                    {{ pt.input_field("medicareValidTo", "Valid To", attrs='placeholder="mm / yyyy"') }} <!-- Calendar (MM/YY) -->
+                    {{ pt_macros.input_field("medicareValidTo", "Valid To", attrs='placeholder="mm / yyyy"') }} <!-- Calendar (MM/YY) -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("medicareSurname", "Surname") }}
-                    {{ pt.input_field("medicareGivenName", "Given name") }}
+                    {{ pt_macros.input_field("medicareSurname", "Surname") }}
+                    {{ pt_macros.input_field("medicareGivenName", "Given name") }}
                 </div>
 
                 <!-- Concession -->
                 <h5 class="mb-3">Concession</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("concessionNumber", "Concession No.") }}
-                    {{ pt.input_field("concessionValidTo", "Valid To", type="date") }} <!-- Calendar -->
+                    {{ pt_macros.input_field("concessionNumber", "Concession No.") }}
+                    {{ pt_macros.input_field("concessionValidTo", "Valid To", type="date") }} <!-- Calendar -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("safetyNetNumber", "Safety Net No.") }}
-                    {{ pt.input_field("", "", void=True) }}
+                    {{ pt_macros.input_field("safetyNetNumber", "Safety Net No.") }}
+                    {{ pt_macros.input_field("", "", void=True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("repatriationNumber", "Repatriation No.") }}
-                    {{ pt.input_field("repatriationValidTo", "Valid To", type="date") }} <!-- Calendar -->
+                    {{ pt_macros.input_field("repatriationNumber", "Repatriation No.") }}
+                    {{ pt_macros.input_field("repatriationValidTo", "Valid To", type="date") }} <!-- Calendar -->
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("repatriationType", "Repatriation Type") }}
-                    {{ pt.input_field("ndssNumber", "NDSS No.") }}
+                    {{ pt_macros.input_field("repatriationType", "Repatriation Type") }}
+                    {{ pt_macros.input_field("ndssNumber", "NDSS No.") }}
                 </div>
 
                 <!-- My HR -->
                 <h5 class="mb-3">My HR</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("ihiNumber", "IHI No.") }}
-                    {{ pt.input_field("ihiStatus", "IHI Status") }}
+                    {{ pt_macros.input_field("ihiNumber", "IHI No.") }}
+                    {{ pt_macros.input_field("ihiStatus", "IHI Status") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("ihiRecordStatus", "Record Status") }}
+                    {{ pt_macros.input_field("ihiRecordStatus", "Record Status") }}
                 </div>
 
                 <!-- Doctor -->
                 <h5 class="mb-3">Doctor</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt.input_field("doctor", "Default Doctor") }}
+                    {{ pt_macros.input_field("doctor", "Default Doctor") }}
                 </div>
             </form>
         </div>
 
         <!-- Saftey Net Tab -->
         <!--
-        {{ pt.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
+        {{ pt_macros.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
             <p>Saftey Net Tab Not implemented</p>
         </div>
         -->
 
         <!-- Allergies Tab -->
         <!--
-        {{ pt.add_tab_panel("allergies", "Allergies/Health", "allergies", active=False) }}
+        {{ pt_macros.add_tab_panel("allergies", "Allergies/Health", "allergies", active=False) }}
             <p>Allergies Tab Not implemented</p>
         </div>
         -->
 
-    </div>
+</div>
 
-    <!-- Submit -->
-    <div class="d-flex flex-row-reverse">
-        <button type="cancel" class="col-2 btn btn-warning ms-1">Cancel</button>
-        <button type="submit" class="col-2 btn btn-success ms-1">Save</button>
-    </div>
+<!-- Submit -->
+<div class="d-flex flex-row-reverse">
+    <button type="cancel" class="col-2 btn btn-warning ms-1">Cancel</button>
+    <button type="submit" class="col-2 btn btn-success ms-1">Save</button>
+</div>
+</div>
 </div>
 {% endblock %}
