@@ -1,47 +1,51 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>23366527 - Pharmacy</title>
-    
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/asl.css') }}">
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- Bootstrap JS and Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% extends "base.html" %}
+{% block title %}[Student No] Pharmacy{% endblock %}
 
-    <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
-</head>
-<body>
+{% block head %}
+    {% import "views/pt_detail_input.html" as pt %}
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/asl.css') }}">
+{% endblock %}
+{% block scripts %}
+    <!-- html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
+    <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
+
+    <script>
+        const pt_id = {{ pt }};
+        const pt_data = {{ pt_data|tojson }};
+        const flatted_pt_data = flatten_dict(pt_data);
+    </script>
+{% endblock %}
+
+{% block body %}
 <div class="container">
     <h2>Active Script List</h2>
     <div class="row">
         <div id="customer-details" class="col">
-            <div class="card card-body customer-card">
-                <div class="row">
-                    <h3>Customer Details (ASL)</h3>
+            <div class="row">
+                <h3>Customer Details (ASL)</h3>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <h4>Name</h4>
+                    <p>{{ pt_data['name'] }}</p>
                 </div>
-                <div class="row">
-                    <div class="col">
-                        <h4>Name</h4>
-                        <p>John Doe</p>
-                    </div>
-                    <div class="col">
-                        <h4>Date of Birth</h4>
-                        <p>01/Jan/2000</p>
-                    </div>
-                    <div class="col">
-                        <h4>Address</h4>
-                        <p>1600 Pennsylvania Ave NW, Washington, DC 20500, USA</p>
-                    </div>
+                <div class="col">
+                    <h4>Date of Birth</h4>
+                    <p>{{ pt_data['dob'] }}</p>
                 </div>
-                <div class="row">
-                    <h4>Preferred Contact</h4>
-                    <p>0401 234 567</p>
+                <div class="col">
+                    <h4>Address</h4>
+                    <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
                 </div>
+            </div>
+            <div class="row">
+                <h4>Preferred Contact</h4>
+                <p>{{ pt_data['preferred-contact'] }}</p>
             </div>
         </div>
         <div id="customer-asl-info" class="col">
@@ -55,12 +59,21 @@
                         <p>Registered</p>
                     </div>
                     <div class="col">
-                        <button type="button" class="btn btn-dark">Refresh</button>
+                        <div class="d-flex flex-row justify-content-end gap-2">
+                            <button type="button" class="btn btn-info">Request Access</button>
+                            <button type="button" class="btn btn-dark">Refresh</button>
+                        </div>
                     </div>
                 </div>
                 <div class="row">
-                    <h4>Consent Status</h4>
-                    <p>Granted (last updated 01/Jan/2000 02:59AM)</p>
+                    <h4 class="col-12">Consent Status</h4>
+                    <p class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <a id="consent-status" class="granted">Granted</a>
+                            <a id="consent-last-updated">(last updated 01/Jan/2000 02:59AM)</a>
+                        </span>
+                        <button type="button" class="btn btn-secondary btn-sm">Delete Consent</button>
+                    </p>
                 </div>
             </div>
         </div>
@@ -84,53 +97,37 @@
                 <p>ASL Scripts</p>
             </div>
             <div class="col-1">
-                <a><i class="bi bi-printer-fill printer"></i></a>
+                <button id="script-print" class="btn btn-primary">
+                    <i class="bi bi-printer-fill printer"></i>
+                </button>
             </div>
         </div>
-        <div id="asl-table" class="collapse show card card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Select</th>
-                        <th scope="col">Prescribed</th>
-                        <th scope="col">Item</th>
-                        <th scope="col">Qty</th>
-                        <th scope="col">Prescriber</th>
-                        <th scope="col">Rpt</th>
-                        <th scope="col">Paperless</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="asl-paperless">
-                        <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-1"></td>
-                        <td class="asl-date">10/06/2021</td>
-                        <td class="asl-item">Coversyl 5mg tablet, 30 5 mg 30 Tablets<p>MPK00009002020635</p></td>
-                        <td class="asl-qty">30</td>
-                        <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                        <td class="asl-rpt">6</td>
-                        <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                        </tr>
-                    <tr class="asl-paperless">
-                        <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-2"></td>
-                        <td class="asl-date">10/06/2021</td>
-                        <td class="asl-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>MPK00009002020646</p></td>
-                        <td class="asl-qty">90</td>
-                        <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                        <td class="asl-rpt">6</td>
-                        <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                    </tr>
-                    <tr class="asl-paper">
-                        <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-3" disabled></td>
-                        <td class="asl-date">10/06/2021</td>
-                        <td class="asl-item">Lipitor 10mg tablet, 30 10 mg 30 Tablets<p>07689Q00018456E</p></td>
-                        <td class="asl-qty">30</td>
-                        <td class="asl-prescriber">Davis, Phillip<br>987774</td>
-                        <td class="asl-rpt">5</td>
-                        <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <table id="asl-table" class="table">
+            <thead>
+                <tr>
+                    <th scope="col">Select</th>
+                    <th scope="col">Prescribed</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Prescriber</th>
+                    <th scope="col">Rpt</th>
+                    <th scope="col">Paperless</th>
+                </tr>
+            </thead>
+            <tbody>
+{% for asl in pt_data['asl_data'] %}
+<tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
+    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
+    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
+    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
+    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
+    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
+    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
+            </tbody>
+        </table>
     </div>
     <br>
     <div class="container">
@@ -144,39 +141,30 @@
                 <p>Available Local Repeats (View Only)</p>
             </div>
         </div>
-        <div id="alr-table" class="collapse show card card-body">
-            <table class="table">
-                <thead>
-                    <tr>
-                    <th scope="col">Dispensed</th>
-                    <th scope="col">Item</th>
-                    <th scope="col">Qty</th>
-                    <th scope="col">Prescribed</th>
-                    <th scope="col">Rpt</th>
-                    <th scope="col">Paperless</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="alr-paper">
-                        <td class="alr-date">05/07/2021</td>
-                        <td class="alr-item">Levlen ED Tablets, 150mcg-30mcg(28)<p>Take the specified does as directed by the physician</p></td>
-                        <td class="alr-qty">4</td>
-                        <td class="alr-prescriber">Davis, P<br>05/07/2021</td>
-                        <td class="alr-rpt">2</td>
-                        <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                        </tr>
-                    <tr class="alr-paperless">
-                        <td class="alr-date">23/06/2021</td>
-                        <td class="alr-item">Diabex 1 g tablet, 90 1000 mg 90 Tablets<p>Shake well and inhale TWO puffs by mouth TWICE a day as directed by your physician</p></td>
-                        <td class="alr-qty">1</td>
-                        <td class="alr-prescriber">Davis, P<br>10/06/2021</td>
-                        <td class="alr-rpt">3</td>
-                        <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <table id="alr-table"  class="table">
+            <thead>
+                <tr>
+                <th scope="col">Dispensed</th>
+                <th scope="col">Item</th>
+                <th scope="col">Qty</th>
+                <th scope="col">Prescribed</th>
+                <th scope="col">Rpt</th>
+                <th scope="col">Paperless</th>
+                </tr>
+            </thead>
+            <tbody>
+{% for alr in pt_data['alr_data'] %}
+<tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
+    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
+    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
+    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
+    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
+    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
+    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
-</body>
-</html>
+{% endblock %}

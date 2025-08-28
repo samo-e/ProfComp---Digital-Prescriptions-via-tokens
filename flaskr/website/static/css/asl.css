@@ -14,6 +14,8 @@ body > .container {
     text-align: center;
 }
 
+.alr-date,
+.alr-item,
 .asl-date,
 .asl-item {
     font-weight: bold;
@@ -54,4 +56,25 @@ html {
 
 .customer-card {    
     min-height: 100%;
+}
+
+#consent-status {
+    text-decoration: none;
+    font-weight: bold;
+}
+#consent-status.granted {
+    color: green;
+}
+#consent-status.rejected {
+    color: red;
+}
+#consent-status.pending {
+    color: orange;
+}
+#consent-last-updated {
+    font-style: italic;
+}
+
+.btn {
+    font-weight: bold;
 }
