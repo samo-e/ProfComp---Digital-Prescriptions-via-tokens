@@ -29,7 +29,7 @@
     <label for="{{ id }}" class="form-label form-label-sm">{{ label }}</label>
 </div>
 <div class="{{ 'col-10' if fulllength else 'col-4' }}">
-    <select class="form-select" aria-label="State">
+    <select class="form-select form-select-sm" aria-label="State">
         <option selected>Choose...</option>
         {% for k in di %}
         <option value="{{k}}">{{di[k]}}</option>

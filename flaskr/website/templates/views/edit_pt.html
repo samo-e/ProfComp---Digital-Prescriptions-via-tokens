@@ -71,8 +71,18 @@
                     {{ pt_macros.input_field("givenName", "Given name") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("title", "Title") }}
-                    {{ pt_macros.input_field("sex", "Sex") }}
+                    {{ pt_macros.input_select("title", "Title", di={
+                        "ms" : "Ms",
+                        "mrs" : "Mrs",
+                        "mr" : "Mr",
+                        "rev" : "Rev",
+                        "dr" : "Dr",
+                        "honorable" : "Honorable",
+                    }) }}
+                    {{ pt_macros.input_select("sex", "Sex", di={
+                        "male" : "Male",
+                        "female" : "Female",
+                    }) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt_macros.input_field("dob", "Date of Birth", type="date") }} <!-- Calendar -->
@@ -96,7 +106,7 @@
                         "tas" : "Tasmania",
                         "act" : "Australian Capital Territory",
                         "nt"  : "Northern Territory",
-                    }) }} <!-- Dropdown -->
+                    }) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt_macros.input_field("postcode", "Postcode") }}
