@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, request, jsonify
+import requests
 
 views = Blueprint('views', __name__)
 
@@ -161,3 +162,31 @@ def prescription():
 @views.route('/edit-pt/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html", pt=pt)
+
+@views.route('/ac')
+def ac():
+    text = request.args.get("text")
+    if not text:
+        return jsonify({"error": "Missing required parameter: text"}), 400
+    
+    api_key = "704bfce1792e462e9c9f537ffbc6cc6d"
+    url = "https://api.geoapify.com/v1/geocode/autocomplete"
+    
+    # Call Geoapify
+    params = {
+        "text": text,
+        "apiKey": api_key,
+        "lang": "en",
+        "limit": 5,
+        "filter": "countrycode:au",
+        "format": "json"
+    }
+
+    resp = requests.get(url, params=params)
+
+    return resp.json()['results']
+
+
+@views.route('/test')
+def test():
+    return render_template("views/test.html")
