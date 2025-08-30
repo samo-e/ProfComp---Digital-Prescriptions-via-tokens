@@ -102,7 +102,19 @@ $(document).ready(function() {
                 // Fill the other form elements
                 $suburbInput.val(place.city);
                 $postcodeInput.val(place.postcode);
-                $stateInput.val(place.state_code.toLowerCase());
+                let stateCode = place.state_code;
+
+                // If missing, infer from postcode
+                if (!stateCode) {
+                    const postcode = parseInt(place.postcode, 10);
+
+                    if (postcode >= 2600 && postcode <= 2618) {
+                        stateCode = 'act';
+                    } else if (postcode >= 800 && postcode <= 899) { // between 0800 and 0899
+                        stateCode = 'nt';
+                    }
+                }
+                $stateInput.val(stateCode.toLowerCase());
             });
             $addressDropdown.append($item);
         });
