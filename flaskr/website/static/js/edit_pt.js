@@ -11,8 +11,8 @@ $(document).ready(function() {
         }
     });
 
-    const $input = $("#test-input");
-    const $dropdown = $("#suggestions");
+    const $input = $("#address");
+    const $dropdown = $("#address-suggestions");
 
     let debounceTimer;
     let currentRequest = null;

@@ -93,7 +93,13 @@
                 <!-- Contact Info -->
                 <h5 class="mb-3">Contact</h5>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("address", "Address", fulllength=True) }}
+                    <div class="col-2">
+                        <label for="address" class="form-label form-label-sm">Address</label>
+                    </div>
+                    <div class="col-10 position-relative">
+                        <input type="text" id="address" class="form-control form-control-sm" required="">
+                        <ul id="address-suggestions" class="dropdown-menu"></ul>
+                    </div>
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt_macros.input_field("suburb", "Suburb") }}

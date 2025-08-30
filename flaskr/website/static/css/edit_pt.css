@@ -16,3 +16,12 @@
     top: 50%;
     transform: translateY(-50%);
 }
+
+#address-suggestions {
+    width: calc(100%  - 16px);
+}
+#address-suggestions .dropdown-item {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
