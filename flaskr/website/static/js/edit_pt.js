@@ -11,19 +11,23 @@ $(document).ready(function() {
         }
     });
 
-    const $input = $("#address");
-    const $dropdown = $("#address-suggestions");
+    const $addressInput = $("#address");
+    const $addressDropdown = $("#address-suggestions");
+    const $suburbInput = $("#suburb");
+    const $postcodeInput = $("#postcode");
+    const $stateInput = $("#state");
 
     let debounceTimer;
     let currentRequest = null;
+    let selectedIndex = -1;
 
-    $input.on("input", function () {
+    $addressInput.on("input", function () {
         const text = $(this).val();
         clearTimeout(debounceTimer);
 
         debounceTimer = setTimeout(function () {
             if (text.length < 2) {
-                $dropdown.removeClass("show");
+                $addressDropdown.removeClass("show");
                 return;
             }
 
@@ -31,7 +35,7 @@ $(document).ready(function() {
 
             currentRequest = $.getJSON("/ac", { text: text })
                 .done(function (results) {
-                    renderSuggestions(results, $input, $dropdown);
+                    renderSuggestions(results, $addressInput, $addressDropdown);
                 })
                 .fail(function (jqXHR, textStatus) {
                     if (textStatus !== "abort") {
@@ -44,29 +48,65 @@ $(document).ready(function() {
         }, 250);
     });
 
-    $(document).on("click", function(e) {
-        if (!$(e.target).closest($input).length && !$(e.target).closest($dropdown).length) {
-            $dropdown.removeClass("show");
+    $addressInput.on("keydown", function(e) {
+        const $items = $addressDropdown.find("a.dropdown-item");
+        if (!$items.length) return;
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % $items.length;
+            highlightItem($items, selectedIndex);
+        } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + $items.length) % $items.length;
+            highlightItem($items, selectedIndex);
+        } else if (e.key === "Enter") {
+            e.preventDefault();
+            if (selectedIndex >= 0) {
+                $items.eq(selectedIndex).click();
+            }
         }
     });
-});
 
-function renderSuggestions(results, $input, $dropdown) {
-    $dropdown.empty();
-    if (!results || results.length === 0) {
-        $dropdown.removeClass("show");
-        return;
-    }
-    console.log(results);
-    results.forEach(place => {
-        const $item = $('<li><a class="dropdown-item" href="#"></a></li>');
-        $item.find("a").text(place.formatted).on("click", function (e) {
-            e.preventDefault();
-            $input.val(place.formatted);
-            $dropdown.removeClass("show");
-        });
-        $dropdown.append($item);
+    $(document).on("click", function(e) {
+        if (!$(e.target).closest($addressInput).length && !$(e.target).closest($addressDropdown).length) {
+            $addressDropdown.removeClass("show");
+        }
     });
 
-    $dropdown.addClass("show");
-}
+    function highlightItem($items, index) {
+        $items.removeClass("active");
+        $items.eq(index).addClass("active");
+    }
+
+    function renderSuggestions(results, $addressInput, $addressDropdown) {
+        $addressDropdown.empty();
+        selectedIndex = -1;
+
+        if (!results || results.length === 0) {
+            $addressDropdown.removeClass("show");
+            return;
+        }
+
+        results.forEach((place, index) => {
+            const $item = $('<li><a class="dropdown-item" href="#"></a></li>');
+            $item.find("a").text(place.formatted).on("click", function (e) {
+                e.preventDefault();
+                $addressInput.val(place.address_line1);
+                $addressDropdown.removeClass("show");
+                selectedIndex = -1;
+
+                // Print the full JSON of the chosen address
+                console.log("Chosen address JSON:", place);
+                // Fill the other form elements
+                $suburbInput.val(place.city);
+                $postcodeInput.val(place.postcode);
+                $stateInput.val(place.state_code.toLowerCase());
+            });
+            $addressDropdown.append($item);
+        });
+
+        $addressDropdown.addClass("show");
+    }
+
+});
