@@ -123,13 +123,13 @@
                     {{ pt_macros.input_field("licence", "Licence No.") }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsRepeats", "SMS Repeat Reminders") }}
+                    {{ pt_macros.input_check("smsRepeats", "SMS Repeat Reminders", True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsLastRepeats", "SMS Last Repeat Reminders") }}
+                    {{ pt_macros.input_check("smsLastRepeats", "SMS Last Repeat Reminders", True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsOwing", "SMS Owing Reminders") }}
+                    {{ pt_macros.input_check("smsOwing", "SMS Owing Reminders", True) }}
                 </div>
                 <div class="row g-3 align-items-center mb-1">
                     {{ pt_macros.input_field("email", "Email", type="email", fulllength=True) }}

@@ -71,6 +71,7 @@ $(document).ready(function() {
     $(document).on("click", function(e) {
         if (!$(e.target).closest($addressInput).length && !$(e.target).closest($addressDropdown).length) {
             $addressDropdown.removeClass("show");
+            selectedIndex = -1;
         }
     });
 
