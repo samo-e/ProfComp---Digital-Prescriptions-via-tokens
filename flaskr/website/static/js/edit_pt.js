@@ -100,7 +100,7 @@ $(document).ready(function() {
                 // Print the full JSON of the chosen address
                 console.log("Chosen address JSON:", place);
                 // Fill the other form elements
-                $suburbInput.val(place.city);
+                $suburbInput.val(place.suburb);
                 $postcodeInput.val(place.postcode);
                 let stateCode = place.state_code;
 
