@@ -21,7 +21,7 @@
 <div class="col-2"></div>
 <div class="{{ 'col-10' if fulllength else 'col-4-sm' }} form-check">
     <input type="checkbox" class="form-check-input" id="{{ id }}" required>
-    <label class="form-check-label" for="smsRepeats">{{ label }}</label>
+    <label class="form-check-label" for="{{ id }}">{{ label }}</label>
 </div>
 {% endmacro %}
 
