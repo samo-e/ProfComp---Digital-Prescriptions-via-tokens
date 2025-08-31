@@ -2,22 +2,23 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField
 from wtforms.validators import length, Optional, Email
 
+DEFAULT_CHOICE = ("", "")
 class PatientForm(FlaskForm):
     # Personal
     lastName = StringField("Surname")
     givenName = StringField("Given name")
-    title = SelectField("Title", choices=[
+    title = SelectField("Title", choices=[DEFAULT_CHOICE,
         ("ms", "Ms"), ("mrs", "Mrs"), ("mr", "Mr"),
         ("rev", "Rev"), ("dr", "Dr"), ("honorable", "Honorable")
     ])
-    sex = SelectField("Sex", choices=[("", ""), ("male", "Male"), ("female", "Female")])
+    sex = SelectField("Sex", choices=[DEFAULT_CHOICE, ("male", "Male"), ("female", "Female")])
     dob = DateField("Date of Birth", format="%Y-%m-%d")
     ptNumber = StringField("Patient No.")
 
     # Contact
     suburb = StringField("Suburb")
     state = SelectField("State", choices=[
-        ("", ""),
+        DEFAULT_CHOICE,
         ("act", "Australian Capital Territory"),
         ("nt", "Northern Territory"),
         ("nsw", "New South Wales"),

@@ -18,7 +18,7 @@ $(document).ready(function() {
     const $stateInput = $("#state");
 
     let debounceTimer;
-    let currentRequest = null;
+    let currentRequest = null; 
     let selectedIndex = -1;
 
     $addressInput.on("input", function () {
