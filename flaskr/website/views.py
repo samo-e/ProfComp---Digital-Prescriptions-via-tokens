@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 import requests
+from .forms import PatientForm
 
 views = Blueprint('views', __name__)
 
@@ -161,9 +162,24 @@ def prescription():
 
 @views.route('/edit-pt/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
-    return render_template("views/edit_pt.html", pt=pt)
+    form = PatientForm()
+    if form.validate_on_submit():
+        # TODO: save to DB
 
-@views.route('/ac')
+        flash("Patient details saved successfully!", "success")
+
+        return redirect(url_for("views.edit_pt", pt=pt))
+
+    elif request.method == "POST":
+        for field, errors in form.errors.items():
+            label = getattr(form, field).label.text
+            for err in errors:
+                flash(f"{label}: {err}", "danger")
+    
+    else:
+        return render_template("views/edit_pt.html", form=form, pt=pt)
+
+@views.route('/ac') # Maybe '/api/ac'
 def ac():
     text = request.args.get("text")
     if not text:
@@ -185,8 +201,3 @@ def ac():
     resp = requests.get(url, params=params)
 
     return resp.json()['results']
-
-
-@views.route('/test')
-def test():
-    return render_template("views/test.html")

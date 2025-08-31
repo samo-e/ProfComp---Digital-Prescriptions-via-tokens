@@ -121,7 +121,7 @@ $(document).ready(function() {
     }
 
     const medicareInput = $("#medicare");
-    const irnInput = $("#medicare-issue");
+    const irnInput = $("#medicareIssue");
 
     medicareInput.on("input", function () {
         if (medicareInput.val().length === 9) {

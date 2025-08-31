@@ -59,146 +59,166 @@
         </ul>
     </div>
 
+<form method="POST">
+    {{ form.hidden_tag() }}
     <!-- Tab panes -->
     <div class="tab-content">
         <!-- Personal Tab -->
         {{ pt_macros.add_tab_panel("basic-details", "Basic Details", "basic", active=True) }}
-            <form>
-                <!-- Personal Info -->
-                <h5 class="mb-3">Personal</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("lastName", "Surname") }}
-                    {{ pt_macros.input_field("givenName", "Given name") }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_select("title", "Title", di={
-                        "ms" : "Ms",
-                        "mrs" : "Mrs",
-                        "mr" : "Mr",
-                        "rev" : "Rev",
-                        "dr" : "Dr",
-                        "honorable" : "Honorable",
-                    }) }}
-                    {{ pt_macros.input_select("sex", "Sex", di={
-                        "male" : "Male",
-                        "female" : "Female",
-                    }) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("dob", "Date of Birth", type="date") }} <!-- Calendar -->
-                    {{ pt_macros.input_field("ptNumber", "Patient No") }} <!-- Disabled -->
-                </div>
 
-                
-                <!-- Contact Info -->
-                <h5 class="mb-3">Contact</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    <div class="col-2">
-                        <label for="address" class="form-label form-label-sm">Address</label>
-                    </div>
-                    <div class="col-10 position-relative">
-                        <input type="text" id="address" class="form-control form-control-sm" required="">
-                        <ul id="address-suggestions" class="dropdown-menu"></ul>
-                    </div>
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("suburb", "Suburb") }}
-                    {{ pt_macros.input_select("state", "State", di={
-                        "act" : "Australian Capital Territory",
-                        "nt"  : "Northern Territory",
-                        "nsw" : "New South Wales",
-                        "qld" : "Queensland",
-                        "sa"  : "South Australia",
-                        "tas" : "Tasmania",
-                        "vic" : "Victoria",
-                        "wa"  : "Western Australia",
-                    }) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("postcode", "Postcode", ur_char="0-9") }}
-                    {{ pt_macros.input_field("phone", "Phone No.", type="tel", ur_char="0-9-\+") }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("mobile", "Mobile No.", type="tel", ur_char="0-9-\+") }}
-                    {{ pt_macros.input_field("licence", "Licence No.") }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsRepeats", "SMS Repeat Reminders", True) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsLastRepeats", "SMS Last Repeat Reminders", True) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_check("smsOwing", "SMS Owing Reminders", True) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("email", "Email", type="email", fulllength=True) }}
-                </div>
 
-                <!-- Medicare -->
-                <h5 class="mb-3">Medicare</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    <!-- input for medicare number is X-Y (Y is 1 digit) -->
-                    <div class="col-2">
-                        <label for="medicare" class="form-label form-label-sm">Medicare No.</label>
-                    </div>
-                    <div class="col-4">
-                        <div class="input-group input-group-sm w-100">
-                            <input
-                                id="medicare"
-                                maxlength="9"
-                                class="form-control form-control-sm w-75"
-                                >
-                            <span class="input-group-text">-</span>
-                            <input
-                                id="medicare-issue"
-                                maxlength="1"
-                                class="form-control form-control-sm"
-                                >
-                        </div>
-                    </div>
-                    {{ pt_macros.input_field("medicareValidTo", "Valid To", attrs='placeholder="mm / yyyy"') }} <!-- Calendar (MM/YY) -->
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("medicareSurname", "Surname") }}
-                    {{ pt_macros.input_field("medicareGivenName", "Given name") }}
-                </div>
+    <!-- Personal Info -->
+    <h5 class="my-3">Personal</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.lastName.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.lastName(class="form-control form-control-sm") }}</div>
 
-                <!-- Concession -->
-                <h5 class="mb-3">Concession</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("concessionNumber", "Concession No.", ur_char="0-9") }}
-                    {{ pt_macros.input_field("concessionValidTo", "Valid To", type="date") }} <!-- Calendar -->
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("safetyNetNumber", "Safety Net No.", ur_char="0-9") }}
-                    {{ pt_macros.input_field("", "", void=True) }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("repatriationNumber", "Repatriation No.") }}
-                    {{ pt_macros.input_field("repatriationValidTo", "Valid To", type="date") }} <!-- Calendar -->
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("repatriationType", "Repatriation Type") }}
-                    {{ pt_macros.input_field("ndssNumber", "NDSS No.") }}
-                </div>
+        <div class="col-2">{{ form.givenName.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.givenName(class="form-control form-control-sm") }}</div>
+    </div>
 
-                <!-- My HR -->
-                <h5 class="mb-3">My HR</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("ihiNumber", "IHI No.", ur_char="0-9") }}
-                    {{ pt_macros.input_field("ihiStatus", "IHI Status") }}
-                </div>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("ihiRecordStatus", "Record Status") }}
-                </div>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.title.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.title(class="form-select form-select-sm") }}</div>
 
-                <!-- Doctor -->
-                <h5 class="mb-3">Doctor</h5>
-                <div class="row g-3 align-items-center mb-1">
-                    {{ pt_macros.input_field("doctor", "Default Doctor") }}
-                </div>
-            </form>
+        <div class="col-2">{{ form.sex.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.sex(class="form-select form-select-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.dob.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.dob(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.ptNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
+    </div>
+
+    <!-- Contact Info -->
+    <h5 class="my-3">Contact</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2"><label for="address" class="form-label form-label-sm">Address</label></div>
+        <div class="col-10 position-relative">
+            <input type="text" id="address" class="form-control form-control-sm" required>
+            <ul id="address-suggestions" class="dropdown-menu"></ul>
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.suburb.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.suburb(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.state.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.state(class="form-select form-select-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.postcode.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.postcode(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.phone.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.phone(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.mobile.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.mobile(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.licence.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.licence(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2"></div>
+        <div class="col-10">
+            <div class="form-check">{{ form.smsRepeats(class="form-check-input") }} {{ form.smsRepeats.label(class="form-check-label") }}</div>
+            <div class="form-check">{{ form.smsLastRepeats(class="form-check-input") }} {{ form.smsLastRepeats.label(class="form-check-label") }}</div>
+            <div class="form-check">{{ form.smsOwing(class="form-check-input") }} {{ form.smsOwing.label(class="form-check-label") }}</div>
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.email.label(class="form-label form-label-sm") }}</div>
+        <div class="col-10">{{ form.email(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <!-- Medicare -->
+    <h5 class="my-3">Medicare</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.medicare.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">
+            <div class="input-group input-group-sm w-100">
+                {{ form.medicare(class="form-control form-control-sm w-75") }}
+                <span class="input-group-text">-</span>
+                {{ form.medicareIssue(class="form-control form-control-sm") }}
+            </div>
+        </div>
+
+        <div class="col-2">{{ form.medicareValidTo.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.medicareSurname.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.medicareSurname(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.medicareGivenName.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.medicareGivenName(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <!-- Concession -->
+    <h5 class="my-3">Concession</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.concessionNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.concessionNumber(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.concessionValidTo.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.concessionValidTo(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.safetyNetNumber(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.repatriationNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.repatriationNumber(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.repatriationValidTo(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.repatriationType.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.repatriationType(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.ndssNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.ndssNumber(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <!-- My HR -->
+    <h5 class="my-3">My HR</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.ihiNumber.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.ihiNumber(class="form-control form-control-sm") }}</div>
+
+        <div class="col-2">{{ form.ihiStatus.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.ihiStatus(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.ihiRecordStatus(class="form-control form-control-sm") }}</div>
+    </div>
+
+    <!-- Doctor -->
+    <h5 class="my-3">Doctor</h5>
+    <div class="row g-3 align-items-center mb-1">
+        <div class="col-2">{{ form.doctor.label(class="form-label form-label-sm") }}</div>
+        <div class="col-4">{{ form.doctor(class="form-control form-control-sm") }}</div>
+    </div>
+
+
         </div>
 
         <!-- Saftey Net Tab -->
@@ -217,6 +237,7 @@
         <button type="cancel" class="col-2-sm col-3 btn btn-warning ms-1">Cancel</button>
         <button type="submit" class="col-2-sm col-3 btn btn-success ms-1">Save</button>
     </div>
+</form>
 </div>
 
 </div>
