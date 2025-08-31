@@ -221,15 +221,47 @@
 
         </div>
 
+    {% if False %} <!-- Remaining Tabs that have not been implemented -->
         <!-- Saftey Net Tab -->
-        {{ pt_macros.add_tab_panel("safety-net", "Safety Net Details", "safety-net", active=False) }}
+        {{ pt_macros.add_tab_panel("Safety Net Details", "safety-net") }}
             <p>Saftey Net Tab Not implemented</p>
         </div>
 
         <!-- Allergies Tab -->
-        {{ pt_macros.add_tab_panel("allergies", "Allergies/Health", "allergies", active=False) }}
+        {{ pt_macros.add_tab_panel("Allergies/Health", "allergies") }}
             <p>Allergies Tab Not implemented</p>
         </div>
+
+        <!-- Accounts Tab -->
+        {{ pt_macros.add_tab_panel("Accounts", "allergies") }}
+            <p>Accounts Tab Not implemented</p>
+        </div>
+
+        <!-- Notes Tab -->
+        {{ pt_macros.add_tab_panel("Notes", "allergies") }}
+            <p>Notes Tab Not implemented</p>
+        </div>
+
+        <!-- Clinical Interventions Tab -->
+        {{ pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") }}
+            <p>Clinical Tab Not implemented</p>
+        </div>
+
+        <!-- SMS Tab -->
+        {{ pt_macros.add_tab_panel("SMS", "sms") }}
+            <p>SMS Tab Not implemented</p>
+        </div>
+
+        <!-- Clubs/Providers Tab -->
+        {{ pt_macros.add_tab_panel("Clubs/Providers", "clubs") }}
+            <p>Clubs/Providers Tab Not implemented</p>
+        </div>
+
+        <!-- Other Tab -->
+        {{ pt_macros.add_tab_panel("Other", "other") }}
+            <p>Other Tab Not implemented</p>
+        </div>
+    {% endif %}
     </div>
 
     <!-- Submit -->
