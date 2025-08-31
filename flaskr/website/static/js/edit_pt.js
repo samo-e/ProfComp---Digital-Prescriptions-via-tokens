@@ -97,8 +97,6 @@ $(document).ready(function() {
                 $addressDropdown.removeClass("show");
                 selectedIndex = -1;
 
-                // Print the full JSON of the chosen address
-                console.log("Chosen address JSON:", place);
                 // Fill the other form elements
                 $suburbInput.val(place.suburb);
                 $postcodeInput.val(place.postcode);
@@ -122,4 +120,12 @@ $(document).ready(function() {
         $addressDropdown.addClass("show");
     }
 
+    const medicareInput = $("#medicare");
+    const irnInput = $("#medicare-issue");
+
+    medicareInput.on("input", function () {
+        if (medicareInput.val().length === 9) {
+            irnInput.focus();
+        }
+    });
 });
