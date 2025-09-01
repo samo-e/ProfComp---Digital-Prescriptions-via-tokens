@@ -107,7 +107,16 @@ class ClubsSubForm(FlaskForm):
     pass
 
 class OtherSubForm(FlaskForm):
-    pass
+    pbsDiscount = StringField("PBS Discount (Default)")
+    defaultRepeatPrint = SelectField("Default Repeat Print", choices=[DEFAULT_CHOICE])
+    ignoreMinMedCount = BooleanField("Ignore Minimum Medication Count For DAA Export")
+    # eScripts
+    eScriptsRepeatMethod = SelectField("Repeat Token Method", choices=[
+        ("default", "Default (eScript Details)"),
+        ("sms", "SMS"),
+        ("email", "Email"),
+        ("none", "Don't Send")
+    ])
 
 
 class PatientForm(FlaskForm):

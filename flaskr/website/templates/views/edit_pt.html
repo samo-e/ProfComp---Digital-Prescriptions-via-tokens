@@ -270,7 +270,7 @@
 
     </div>{% endcall %}
 {% if False %} <!-- Tab(s) have not been implemented -->
-    <!-- Saftey Net Tab -->
+    <!-- Allergies Net Tab -->
     {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}<div>
         <p>Allergies Tab Not implemented</p>
     </div>{% endcall %}
@@ -331,7 +331,25 @@
 
     <!-- Other Tab -->
     {% call pt_macros.add_tab_panel("Other", "other") %}<div>
-        <p>Other Tab Not implemented</p>
+        <!-- Personal Info -->
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-4">{{ form.other.pbsDiscount.label(class="form-label form-label-sm") }}</div>
+            <div class="col-3">{{ form.other.pbsDiscount(class="form-control form-control-sm") }}</div>
+        </div>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-4">{{ form.other.defaultRepeatPrint.label(class="form-label form-label-sm") }}</div>
+            <div class="col-3">{{ form.other.defaultRepeatPrint(class="form-select form-select-sm") }}</div>
+        </div>
+        <div class="form-check mb-3">
+            {{ form.other.ignoreMinMedCount(class="form-check-input") }}
+            <label class="form-check-label" for="{{ form.other.ignoreMinMedCount.id }}">
+                {{ form.other.ignoreMinMedCount.label.text }}
+            </label>
+        </div>
+        <h5 class="my-3">eScripts</h5>
+        <div>{{ form.other.eScriptsRepeatMethod.label(class="form-label form-label-sm") }}</div>
+        <div class="col-5">{{ form.other.eScriptsRepeatMethod(class="form-select form-select-sm") }}</div>
+        </div>
     </div>{% endcall %}
 </div>
 
