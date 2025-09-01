@@ -29,25 +29,26 @@
     <div class="row">
         <div id="customer-details" class="col">
             <div class="card card-body customer-card">
+                <button id="update-pt" onclick="update_patient()" class="btn btn-secondary position-absolute end-0 top-0 mt-2 me-2">UPDATE</button>
                 <div class="row">
                     <h3>Customer Details (ASL)</h3>
                 </div>
                 <div class="row">
                     <div class="col">
-                        <h4>Name</h4>
+                        <h5>Name</h5>
                         <p>{{ pt_data['name'] }}</p>
                     </div>
                     <div class="col">
-                        <h4>Date of Birth</h4>
+                        <h5>Date of Birth</h5>
                         <p>{{ pt_data['dob'] }}</p>
                     </div>
                     <div class="col">
-                        <h4>Address</h4>
+                        <h5>Address</h5>
                         <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
                     </div>
                 </div>
                 <div class="row">
-                    <h4>Preferred Contact</h4>
+                    <h5>Preferred Contact</h5>
                     <p class="mb-0">{{ pt_data['preferred-contact'] }}</p>
                 </div>
             </div>
@@ -60,7 +61,7 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <h4>Status</h4>
+                        <h5>Status</h5>
                         <p>Registered</p><!-- TODO fix this hardcoded value -->
                     </div>
                     <div class="col">
@@ -68,7 +69,7 @@
                             {% if pt_data.get('asl_status').lower() == 'No Consent'.lower() %}
                             <button id="btn-request-access" 
                                 type="button" 
-                                class="btn btn-{{'info' if pt_data.get('asl_status').lower() != 'no consent' else 'secondary' }} {{ pt_data['asl_status'].lower() }}"
+                                class="btn btn-info {{ pt_data['asl_status'].lower() }}"
                                 onclick="request_access()">
                                 Request Access
                             </button>
@@ -80,7 +81,7 @@
                 
 
                 <div class="row">
-                    <h4 class="col-12">Consent Status</h4>
+                    <h5 class="col-12">Consent Status</h5>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
                             <span id="consent-status" class="{{ pt_data.get('asl_status').lower() }}">{{ pt_data.get('asl_status') }}</span>
@@ -183,8 +184,6 @@
                 <th scope="col">Qty</th>
                 <th scope="col">Prescribed</th>
                 <th scope="col">Rpt</th>
-                <!-- Remaining repeats -->
-                <th scope="col">Remaining</th>
                 <th scope="col">Paperless</th>
                 </tr>
             </thead>

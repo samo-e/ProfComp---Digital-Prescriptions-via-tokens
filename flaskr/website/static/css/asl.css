@@ -92,3 +92,10 @@ html {
     background-color: var(--bs-table-bg) !important; /* keeps the normal table row bg */
     box-shadow: none !important;
 }
+
+[data-bs-theme="dark"] .asl-cloud-prescription img,
+[data-bs-theme="dark"] .alr-cloud-prescription img {
+    filter: brightness(0) invert(1);
+    fill: white;
+    stroke: white;
+}
