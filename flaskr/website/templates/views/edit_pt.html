@@ -278,7 +278,88 @@
 
     <!-- Accounts Tab -->
     {% call pt_macros.add_tab_panel("Accounts", "accounts") %}<div>
-        <p>Accounts Tab Not implemented</p>
+        <h5 class="my-3">Facility Details</h5>
+<div class="row g-3 align-items-center mb-1">
+    <div class="col-2">{{ form.accounts.facility.label(class="form-label form-label-sm") }}</div>
+    <div class="col-10">{{ form.accounts.facility(class="form-control form-control-sm") }}</div>
+</div>
+
+<div class="row g-3 align-items-center mb-1 text-end">
+    <div class="col-2">{{ form.accounts.ward.label(class="form-label form-label-sm") }}</div>
+    <div class="col-4">{{ form.accounts.ward(class="form-control form-control-sm") }}</div>
+
+    <div class="col-2">{{ form.accounts.room.label(class="form-label form-label-sm") }}</div>
+    <div class="col-4">{{ form.accounts.room(class="form-control form-control-sm") }}</div>
+</div>
+
+<div class="row g-3 align-items-center mb-1 text-end">
+    <div class="col-2">{{ form.accounts.bed.label(class="form-label form-label-sm") }}</div>
+    <div class="col-4">{{ form.accounts.bed(class="form-control form-control-sm") }}</div>
+
+    <div class="col-2">{{ form.accounts.ptCat.label(class="form-label form-label-sm") }}</div>
+    <div class="col-4">{{ form.accounts.ptCat(class="form-select form-select-sm") }}</div>
+</div>
+
+<div class="row g-3 align-items-center mb-1 text-end">
+    <div class="col">
+    <div class="row">
+        <div class="col">{{ form.accounts.chartStart.label(class="form-label form-label-sm") }}</div>
+        <div class="col">{{ form.accounts.chartStart(class="form-control form-control-sm") }}</div>
+    </div>
+    </div>
+    <div class="col">
+        <div class="row">
+        <div class="col">{{ form.accounts.chartEnd.label(class="form-label form-label-sm") }}</div>
+        <div class="col">{{ form.accounts.chartEnd(class="form-control form-control-sm") }}</div>
+    </div>
+    </div>
+    <div class="col">
+    <div class="row">
+        <div class="col">{{ form.accounts.chartDuration.label(class="form-label form-label-sm") }}</div>
+        <div class="col">{{ form.accounts.chartDuration(class="form-select form-select-sm") }}</div>
+    </div>
+    </div>
+</div>
+
+<h5 class="my-3">Debtor Account Details</h5>
+<h5 class="my-3">Stock Transfers</h5>
+<div class="row g-3 align-items-center mb-1">
+    <div class="form-check">
+        {{ form.accounts.canTfrStockToCustomer(class="form-check-input") }}
+        {{ form.accounts.canTfrStockToCustomer.label(class="form-check-label") }}
+    </div>
+</div>
+
+<h5 class="my-3">Auto Charging / Debtor Account</h5>
+<div class="form-check">
+    {{ form.accounts.autoChargeScripts(class="form-check-input") }}
+    {{ form.accounts.autoChargeScripts.label(class="form-check-label") }}
+</div>
+
+<div class="form-check">
+    {{ form.accounts.linkToDebtorAcc(class="form-check-input") }}
+    {{ form.accounts.linkToDebtorAcc.label(class="form-check-label") }}
+</div>
+
+<div class="row g-3 align-items-center mb-1">
+<div class="col-4 text-end">{{ form.accounts.linkedClientAcc.label(class="form-label form-label-sm") }}</div>
+<div class="col-8">{{ form.accounts.linkedClientAcc(class="form-control form-control-sm") }}</div>
+</div>
+<div class="row g-3 align-items-center mb-1">
+<div class="col-4 text-end">{{ form.accounts.debtorAcc.label(class="form-label form-label-sm") }}</div>
+<div class="col-8">{{ form.accounts.debtorAcc(class="form-select form-select-sm") }}</div>
+</div>
+<div class="form-check">
+    {{ form.accounts.notSendScriptsToTill(class="form-check-input") }}
+    {{ form.accounts.notSendScriptsToTill.label(class="form-check-label") }}
+</div>
+
+<div class="form-check">
+    {{ form.accounts.notDeductStocks(class="form-check-input") }}
+    {{ form.accounts.notDeductStocks.label(class="form-check-label") }}
+</div>
+    </div>
+
     </div>{% endcall %}
 
     <!-- Notes Tab -->
@@ -342,7 +423,7 @@
                         <th>Membership Expiry</th>
                     </tr>
                 </thead>
-                <tbody class="table-body-minheight">
+                <tbody>
                     <tr><td colspan="3">&nbsp;</td></tr>
                 </tbody>
             </table>
@@ -364,8 +445,8 @@
                         <th>Membership Expiry</th>
                     </tr>
                 </thead>
-                <tbody class="table-body-minheight">
-                    <tr><td colspan="3">&nbsp;</td></tr>
+                <tbody>
+                    <tr><td colspan="4">&nbsp;</td></tr>
                 </tbody>
             </table>
         </div>
