@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField
-from wtforms.validators import length, Optional, Email, NumberRange
+from wtforms.validators import length, Email, NumberRange
 
 DEFAULT_CHOICE = ("", "")
 class BasicDetailsSubForm(FlaskForm):
@@ -12,21 +12,21 @@ class BasicDetailsSubForm(FlaskForm):
         ("rev", "Rev"), ("dr", "Dr"), ("honorable", "Honorable")
     ])
     sex = SelectField("Sex", choices=[DEFAULT_CHOICE, ("male", "Male"), ("female", "Female")])
-    dob = DateField("Date of Birth", format="%Y-%m-%d")
+    dob = DateField("Date of Birth", format="%d-%m-%Y")
     ptNumber = StringField("Patient No.")
 
     # Contact
     suburb = StringField("Suburb")
     state = SelectField("State", choices=[
         DEFAULT_CHOICE,
-        ("act", "Australian Capital Territory"),
-        ("nt", "Northern Territory"),
-        ("nsw", "New South Wales"),
-        ("qld", "Queensland"),
-        ("sa", "South Australia"),
-        ("tas", "Tasmania"),
-        ("vic", "Victoria"),
-        ("wa", "Western Australia"),
+        ("act", "ACT"),
+        ("nt", "NT"),
+        ("nsw", "NSW"),
+        ("qld", "QLD"),
+        ("sa", "SA"),
+        ("tas", "TAS"),
+        ("vic", "VIC"),
+        ("wa", "WA"),
     ])
     postcode = IntegerField("Postcode")
     phone = TelField("Phone No.")
@@ -46,10 +46,10 @@ class BasicDetailsSubForm(FlaskForm):
 
     # Concession
     concessionNumber = StringField("Concession No.")
-    concessionValidTo = DateField("Valid To", format="%Y-%m-%d")
+    concessionValidTo = DateField("Valid To", format="%d-%m-%Y")
     safetyNetNumber = StringField("Safety Net No.")
     repatriationNumber = StringField("Repatriation No.")
-    repatriationValidTo = DateField("Valid To", format="%Y-%m-%d", validators=[Optional()])
+    repatriationValidTo = DateField("Valid To", format="%d-%m-%Y")
     repatriationType = StringField("Repatriation Type")
     ndssNumber = StringField("NDSS No.")
 
@@ -94,7 +94,7 @@ class AccountsSubForm(FlaskForm):
     pass
 
 class NotesSubForm(FlaskForm):
-    content = TextAreaField("Patient Notes", validators=[Optional()])
+    content = TextAreaField("Patient Notes")
     last_edited = StringField("Last Edited", render_kw={"readonly": True})
 
 class ClinicalInterventionsSubForm(FlaskForm):

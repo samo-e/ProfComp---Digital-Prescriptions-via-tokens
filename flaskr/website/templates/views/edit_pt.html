@@ -14,7 +14,7 @@
 {% block body %}
 <div class="container">
 <div class="row">
-<div class="card shadow-lg p-4 col-12 col-lg-9 mx-auto">
+<div class="card shadow-lg p-4 col-12 col-lg-10 mx-auto">
     <div class="position-relative mb-4">
         <h3 class="text-center">Patient Details</h3>
         <button id="generatePtDetails" class="btn btn-secondary position-absolute d-none d-md-flex">
@@ -326,7 +326,49 @@
 
     <!-- Clubs/Providers Tab -->
     {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}<div>
-        <p>Clubs/Providers Tab Not implemented</p>
+        <div class="container mt-3" id="clubs-table">
+            <div class="row align-items-center my-3">
+                <h5 class="col">Clubs</h5>
+                <div class="col-auto ms-auto">
+                    <button id="addClubBtn" class="btn btn-success"><i class="bi bi-plus h5"></i></button>
+                    <button id="delClubBtn" class="btn btn-danger"><i class="bi bi-x h5"></i></button>
+                </div>
+            </div>
+            <table class="table table-bordered" id="clubsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>CardNo</th>
+                        <th>Membership Expiry</th>
+                    </tr>
+                </thead>
+                <tbody class="table-body-minheight">
+                    <tr><td colspan="3">&nbsp;</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="container mt-3" id="providers-table">
+            <div class="row align-items-center my-3">
+                <h5 class="col">Providers</h5>
+                <div class="col-auto ms-auto">
+                    <button id="addProviderBtn" class="btn btn-success"><i class="bi bi-plus h5"></i></button>
+                    <button id="delProviderBtn" class="btn btn-danger"><i class="bi bi-x h5"></i></button>
+                </div>
+            </div>
+            <table class="table table-bordered" id="clubsTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>MemberNo</th>
+                        <th>Indentifier</th>
+                        <th>Membership Expiry</th>
+                    </tr>
+                </thead>
+                <tbody class="table-body-minheight">
+                    <tr><td colspan="3">&nbsp;</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>{% endcall %}
 
     <!-- Other Tab -->
@@ -351,7 +393,6 @@
         <div class="col-5">{{ form.other.eScriptsRepeatMethod(class="form-select form-select-sm") }}</div>
         </div>
     </div>{% endcall %}
-</div>
 
 <!-- Submit -->
 <div class="d-flex flex-row-reverse">
