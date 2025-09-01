@@ -64,9 +64,7 @@
 <!-- Tab panes -->
 <div class="tab-content">
     <!-- Personal Tab -->
-    {% call pt_macros.add_tab_panel("Basic Details", "basic", active=True) %}
-
-
+    {% call pt_macros.add_tab_panel("Basic Details", "basic", active=True) %}<div>
         <!-- Personal Info -->
         <h5 class="my-3">Personal</h5>
         <div class="row g-3 align-items-center mb-1">
@@ -217,49 +215,51 @@
             <div class="col-2">{{ form.doctor.label(class="form-label form-label-sm") }}</div>
             <div class="col-4">{{ form.doctor(class="form-control form-control-sm") }}</div>
         </div>
-    {% endcall %}
+    </div>{% endcall %}
+
     <!-- Saftey Net Tab -->
-    {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}
         <p>Saftey Net Tab Not implemented</p>
     {% endcall %}
+    {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}<div>
+    </div>{% endcall %}
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Saftey Net Tab -->
-    {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}
+    {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}<div>
         <p>Allergies Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 {% endif %}
 
     <!-- Accounts Tab -->
-    {% call pt_macros.add_tab_panel("Accounts", "accounts") %}
+    {% call pt_macros.add_tab_panel("Accounts", "accounts") %}<div>
         <p>Accounts Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 
     <!-- Notes Tab -->
-    {% call pt_macros.add_tab_panel("Notes", "notes") %}
+    {% call pt_macros.add_tab_panel("Notes", "notes") %}<div>
         <p>Accounts Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Clinical Interventions Tab -->
-    {% call pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") %}
+    {% call pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") %}<div>
         <p>Clinical Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 
     <!-- SMS Tab -->
-    {% call pt_macros.add_tab_panel("SMS", "sms") %}
+    {% call pt_macros.add_tab_panel("SMS", "sms") %}<div>
         <p>SMS Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 {% endif %}
 
     <!-- Clubs/Providers Tab -->
-    {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}
+    {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}<div>
         <p>Clubs/Providers Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 
     <!-- Other Tab -->
-    {% call pt_macros.add_tab_panel("Other", "other") %}
+    {% call pt_macros.add_tab_panel("Other", "other") %}<div>
         <p>Other Tab Not implemented</p>
-    {% endcall %}
+    </div>{% endcall %}
 </div>
 
 <!-- Submit -->
