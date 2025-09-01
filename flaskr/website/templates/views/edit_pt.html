@@ -25,14 +25,14 @@
     <!-- Navigation tabs -->
     <ul class="nav nav-tabs mb-3 d-none d-md-flex" id="formTabs" role="tablist">
         {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
-        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
+        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net") }}
         {{ pt_macros.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
-        {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts",    disabled=True) }}
-        {{ pt_macros.add_tab("notes",                   "Notes",                    "notes",       disabled=True) }}
+        {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts") }}
+        {{ pt_macros.add_tab("notes",                   "Notes",                    "notes") }}
         {{ pt_macros.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
         {{ pt_macros.add_tab("sms",                     "SMS",                      "sms",         disabled=True) }}
-        {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
-        {{ pt_macros.add_tab("other",                   "Other",                    "others",      disabled=True) }}
+        {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs") }}
+        {{ pt_macros.add_tab("other",                   "Other",                    "other") }}
     </ul>
     <!-- Dropdown (visible only on small screens) -->
     <div class="dropdown d-lg-none">
@@ -48,227 +48,225 @@
         </div>
         <ul class="dropdown-menu" id="dropdownMenu">
             {{ pt_macros.add_ddown("basic-details",           "Basic Details",            "basic",       active=True) }}
-            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net",  disabled=True) }}
+            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net") }}
             {{ pt_macros.add_ddown("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
-            {{ pt_macros.add_ddown("accounts",                "Accounts",                 "accounts",    disabled=True) }}
-            {{ pt_macros.add_ddown("notes",                   "Notes",                    "notes",       disabled=True) }}
+            {{ pt_macros.add_ddown("accounts",                "Accounts",                 "accounts") }}
+            {{ pt_macros.add_ddown("notes",                   "Notes",                    "notes") }}
             {{ pt_macros.add_ddown("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
             {{ pt_macros.add_ddown("sms",                     "SMS",                      "sms",         disabled=True) }}
-            {{ pt_macros.add_ddown("clubs",                   "Clubs/Providers",          "clubs",       disabled=True) }}
-            {{ pt_macros.add_ddown("other",                   "Other",                    "others",      disabled=True) }}
+            {{ pt_macros.add_ddown("clubs",                   "Clubs/Providers",          "clubs") }}
+            {{ pt_macros.add_ddown("other",                   "Other",                    "others") }}
         </ul>
     </div>
 
 <form method="POST">
     {{ form.hidden_tag() }}
-    <!-- Tab panes -->
-    <div class="tab-content">
-        <!-- Personal Tab -->
-        {{ pt_macros.add_tab_panel("basic-details", "Basic Details", "basic", active=True) }}
+<!-- Tab panes -->
+<div class="tab-content">
+    <!-- Personal Tab -->
+    {% call pt_macros.add_tab_panel("Basic Details", "basic", active=True) %}
 
 
-    <!-- Personal Info -->
-    <h5 class="my-3">Personal</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.lastName.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.lastName(class="form-control form-control-sm") }}</div>
+        <!-- Personal Info -->
+        <h5 class="my-3">Personal</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.lastName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.lastName(class="form-control form-control-sm") }}</div>
 
-        <div class="col-2">{{ form.givenName.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.givenName(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.title.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.title(class="form-select form-select-sm") }}</div>
-
-        <div class="col-2">{{ form.sex.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.sex(class="form-select form-select-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.dob.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.dob(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.ptNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
-    </div>
-
-    <!-- Contact Info -->
-    <h5 class="my-3">Contact</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2"><label for="address" class="form-label form-label-sm">Address</label></div>
-        <div class="col-10 position-relative">
-            <input type="text" id="address" class="form-control form-control-sm" required>
-            <ul id="address-suggestions" class="dropdown-menu"></ul>
+            <div class="col-2">{{ form.givenName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.givenName(class="form-control form-control-sm") }}</div>
         </div>
-    </div>
 
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.suburb.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.suburb(class="form-control form-control-sm") }}</div>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.title.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.title(class="form-select form-select-sm") }}</div>
 
-        <div class="col-2">{{ form.state.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.state(class="form-select form-select-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.postcode.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.postcode(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.phone.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.phone(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.mobile.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.mobile(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.licence.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.licence(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2"></div>
-        <div class="col-10">
-            <div class="form-check">{{ form.smsRepeats(class="form-check-input") }} {{ form.smsRepeats.label(class="form-check-label") }}</div>
-            <div class="form-check">{{ form.smsLastRepeats(class="form-check-input") }} {{ form.smsLastRepeats.label(class="form-check-label") }}</div>
-            <div class="form-check">{{ form.smsOwing(class="form-check-input") }} {{ form.smsOwing.label(class="form-check-label") }}</div>
+            <div class="col-2">{{ form.sex.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.sex(class="form-select form-select-sm") }}</div>
         </div>
-    </div>
 
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.email.label(class="form-label form-label-sm") }}</div>
-        <div class="col-10">{{ form.email(class="form-control form-control-sm") }}</div>
-    </div>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.dob.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.dob(class="form-control form-control-sm") }}</div>
 
-    <!-- Medicare -->
-    <h5 class="my-3">Medicare</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.medicare.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">
-            <div class="input-group input-group-sm w-100">
-                {{ form.medicare(class="form-control form-control-sm w-75") }}
-                <span class="input-group-text">-</span>
-                {{ form.medicareIssue(class="form-control form-control-sm") }}
+            <div class="col-2">{{ form.ptNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
+        </div>
+
+        <!-- Contact Info -->
+        <h5 class="my-3">Contact</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2"><label for="address" class="form-label form-label-sm">Address</label></div>
+            <div class="col-10 position-relative">
+                <input type="text" id="address" class="form-control form-control-sm" required>
+                <ul id="address-suggestions" class="dropdown-menu"></ul>
             </div>
         </div>
 
-        <div class="col-2">{{ form.medicareValidTo.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
-    </div>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.suburb.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.suburb(class="form-control form-control-sm") }}</div>
 
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.medicareSurname.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.medicareSurname(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.medicareGivenName.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.medicareGivenName(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <!-- Concession -->
-    <h5 class="my-3">Concession</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.concessionNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.concessionNumber(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.concessionValidTo.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.concessionValidTo(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.safetyNetNumber(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.repatriationNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.repatriationNumber(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.repatriationValidTo(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.repatriationType.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.repatriationType(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.ndssNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.ndssNumber(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <!-- My HR -->
-    <h5 class="my-3">My HR</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.ihiNumber.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.ihiNumber(class="form-control form-control-sm") }}</div>
-
-        <div class="col-2">{{ form.ihiStatus.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.ihiStatus(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.ihiRecordStatus(class="form-control form-control-sm") }}</div>
-    </div>
-
-    <!-- Doctor -->
-    <h5 class="my-3">Doctor</h5>
-    <div class="row g-3 align-items-center mb-1">
-        <div class="col-2">{{ form.doctor.label(class="form-label form-label-sm") }}</div>
-        <div class="col-4">{{ form.doctor(class="form-control form-control-sm") }}</div>
-    </div>
-
-
+            <div class="col-2">{{ form.state.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.state(class="form-select form-select-sm") }}</div>
         </div>
 
-    {% if False %} <!-- Remaining Tabs that have not been implemented -->
-        <!-- Saftey Net Tab -->
-        {{ pt_macros.add_tab_panel("Safety Net Details", "safety-net") }}
-            <p>Saftey Net Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.postcode.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.postcode(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.phone.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.phone(class="form-control form-control-sm") }}</div>
         </div>
 
-        <!-- Allergies Tab -->
-        {{ pt_macros.add_tab_panel("Allergies/Health", "allergies") }}
-            <p>Allergies Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.mobile.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.mobile(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.licence.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.licence(class="form-control form-control-sm") }}</div>
         </div>
 
-        <!-- Accounts Tab -->
-        {{ pt_macros.add_tab_panel("Accounts", "allergies") }}
-            <p>Accounts Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2"></div>
+            <div class="col-10">
+                <div class="form-check">{{ form.smsRepeats(class="form-check-input") }} {{ form.smsRepeats.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.smsLastRepeats(class="form-check-input") }} {{ form.smsLastRepeats.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.smsOwing(class="form-check-input") }} {{ form.smsOwing.label(class="form-check-label") }}</div>
+            </div>
         </div>
 
-        <!-- Notes Tab -->
-        {{ pt_macros.add_tab_panel("Notes", "allergies") }}
-            <p>Notes Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.email.label(class="form-label form-label-sm") }}</div>
+            <div class="col-10">{{ form.email(class="form-control form-control-sm") }}</div>
         </div>
 
-        <!-- Clinical Interventions Tab -->
-        {{ pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") }}
-            <p>Clinical Tab Not implemented</p>
+        <!-- Medicare -->
+        <h5 class="my-3">Medicare</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.medicare.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">
+                <div class="input-group input-group-sm w-100">
+                    {{ form.medicare(class="form-control form-control-sm w-75") }}
+                    <span class="input-group-text">-</span>
+                    {{ form.medicareIssue(class="form-control form-control-sm") }}
+                </div>
+            </div>
+
+            <div class="col-2">{{ form.medicareValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
         </div>
 
-        <!-- SMS Tab -->
-        {{ pt_macros.add_tab_panel("SMS", "sms") }}
-            <p>SMS Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.medicareSurname.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.medicareSurname(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.medicareGivenName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.medicareGivenName(class="form-control form-control-sm") }}</div>
         </div>
 
-        <!-- Clubs/Providers Tab -->
-        {{ pt_macros.add_tab_panel("Clubs/Providers", "clubs") }}
-            <p>Clubs/Providers Tab Not implemented</p>
+        <!-- Concession -->
+        <h5 class="my-3">Concession</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.concessionNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.concessionNumber(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.concessionValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.concessionValidTo(class="form-control form-control-sm") }}</div>
         </div>
 
-        <!-- Other Tab -->
-        {{ pt_macros.add_tab_panel("Other", "other") }}
-            <p>Other Tab Not implemented</p>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.safetyNetNumber(class="form-control form-control-sm") }}</div>
         </div>
-    {% endif %}
-    </div>
 
-    <!-- Submit -->
-    <div class="d-flex flex-row-reverse">
-        <button type="cancel" class="col-2-sm col-3 btn btn-warning ms-1">Cancel</button>
-        <button type="submit" class="col-2-sm col-3 btn btn-success ms-1">Save</button>
-    </div>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.repatriationNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.repatriationNumber(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.repatriationValidTo(class="form-control form-control-sm") }}</div>
+        </div>
+
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.repatriationType.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.repatriationType(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.ndssNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.ndssNumber(class="form-control form-control-sm") }}</div>
+        </div>
+
+        <!-- My HR -->
+        <h5 class="my-3">My HR</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.ihiNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.ihiNumber(class="form-control form-control-sm") }}</div>
+
+            <div class="col-2">{{ form.ihiStatus.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.ihiStatus(class="form-control form-control-sm") }}</div>
+        </div>
+
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.ihiRecordStatus(class="form-control form-control-sm") }}</div>
+        </div>
+
+        <!-- Doctor -->
+        <h5 class="my-3">Doctor</h5>
+        <div class="row g-3 align-items-center mb-1">
+            <div class="col-2">{{ form.doctor.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.doctor(class="form-control form-control-sm") }}</div>
+        </div>
+    {% endcall %}
+    <!-- Saftey Net Tab -->
+    {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}
+        <p>Saftey Net Tab Not implemented</p>
+    {% endcall %}
+{% if False %} <!-- Tab(s) have not been implemented -->
+    <!-- Saftey Net Tab -->
+    {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}
+        <p>Allergies Tab Not implemented</p>
+    {% endcall %}
+{% endif %}
+
+    <!-- Accounts Tab -->
+    {% call pt_macros.add_tab_panel("Accounts", "accounts") %}
+        <p>Accounts Tab Not implemented</p>
+    {% endcall %}
+
+    <!-- Notes Tab -->
+    {% call pt_macros.add_tab_panel("Notes", "notes") %}
+        <p>Accounts Tab Not implemented</p>
+    {% endcall %}
+
+{% if False %} <!-- Tab(s) have not been implemented -->
+    <!-- Clinical Interventions Tab -->
+    {% call pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") %}
+        <p>Clinical Tab Not implemented</p>
+    {% endcall %}
+
+    <!-- SMS Tab -->
+    {% call pt_macros.add_tab_panel("SMS", "sms") %}
+        <p>SMS Tab Not implemented</p>
+    {% endcall %}
+{% endif %}
+
+    <!-- Clubs/Providers Tab -->
+    {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}
+        <p>Clubs/Providers Tab Not implemented</p>
+    {% endcall %}
+
+    <!-- Other Tab -->
+    {% call pt_macros.add_tab_panel("Other", "other") %}
+        <p>Other Tab Not implemented</p>
+    {% endcall %}
+</div>
+
+<!-- Submit -->
+<div class="d-flex flex-row-reverse">
+    <button type="cancel" class="col-2-sm col-3 btn btn-warning ms-1">Cancel</button>
+    <button type="submit" class="col-2-sm col-3 btn btn-success ms-1">Save</button>
+</div>
 </form>
 </div>
 

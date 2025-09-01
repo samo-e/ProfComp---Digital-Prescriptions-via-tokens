@@ -18,6 +18,8 @@
 {% endmacro %}
 
 <!-- This is inside div constructor -->
-{% macro add_tab_panel(label, target="#", active=False, disabled=False) %}
+{% macro add_tab_panel(label, target="#", active=False) %}
 <div class="tab-pane fade {{ 'show active' if active else '' }}" id="{{ target }}">
+    {{ caller() }}
+</div>
 {% endmacro %}
