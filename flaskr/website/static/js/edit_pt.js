@@ -163,3 +163,20 @@ function activateTableRow(row) {
 
     $row.toggleClass("table-active");
 }
+
+function addNote() {
+    const $notesContainer = $("#patient-notes-container");
+    const index = $notesContainer.children().length;
+    let templateHtml = $("#note-template").html();
+    templateHtml = templateHtml.replace(/__index__/g, index);
+    const $newNote = $(templateHtml);
+
+    // Set last_edited to today in DD/MM/YYYY
+    const now = new Date();
+    const formatted = String(now.getDate()).padStart(2, '0') + '/' +
+                    String(now.getMonth() + 1).padStart(2, '0') + '/' +
+                    now.getFullYear();
+    $newNote.find("input[name*='last_edited']").val(formatted);
+
+    $notesContainer.append($newNote);
+}
