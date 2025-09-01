@@ -65,15 +65,15 @@
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            {% if pt_data.get('asl_status') == 'No-Consent' %}
+                            {% if pt_data.get('asl_status').lower() == 'No Consent'.lower() %}
                             <button id="btn-request-access" 
                                 type="button" 
-                                class="btn btn-{{'info' if enable_req_acc_btn else 'secondary' }}  {{ pt_data['consent-status']['status'].lower() }}"
+                                class="btn btn-{{'info' if enable_req_acc_btn else 'secondary' }} {{ pt_data['asl_status'].lower() }}"
                                 {{ 'aria-disabled=true disabled' if not enable_req_acc_btn }}>
                                 Request Access
                             </button>
                             {% endif %}
-                            <button id="request-status-btn" type="button" class="btn btn-dark" onclick="refresh_consent()">Refresh</button>
+                            <button id="request-status-btn" type="button" class="btn btn-dark" onclick="refresh_consent({{pt}})">Refresh</button>
                         </div>
                     </div>
                 </div>
@@ -84,14 +84,14 @@
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
                             <span id="consent-status" class="{{ pt_data.get('asl_status').lower() }}">{{ pt_data.get('asl_status') }}</span>
-                            {% if pt_data.get('asl_status') != 'No-Consent' %}
+                            {% if pt_data.get('asl_status').lower() != 'No Consent'.lower() %}
                             <span>(</span>
                             <span class="fst-italic">last updated </span>
-                            <span id="consent-last-updated" class="fst-italic">{{ pt_data['consent-status']['last-updated'].lower() }}</span>
+                            <span id="consent-last-updated" class="fst-italic">{{ pt_data['consent_last_updated'].lower() }}</span>
                             <span>)</span>
                             {% endif %}
                         </span>
-                        {% if pt_data.get('asl_status') != 'No-Consent' %}
+                        {% if pt_data.get('asl_status').lower() != 'No Consent'.lower() %}
                         <button 
                             id="delete-consent-btn"
                             type="button"
@@ -112,6 +112,9 @@
         <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
         <input type="search" id="search-input" class="form-control" placeholder="Search prescriptions" aria-label="Search" aria-describedby="basic-addon1">
     </div>
+    <div id="no-results" class="d-none">
+        <p>No matching prescriptions found!</p>
+    </div>
     <br>
     
     <div class="container">
@@ -122,7 +125,7 @@
                 </button>
             </div>
             <div class="col-10">
-                <p>ASL Scripts ({{ pt_data['asl_data']|length }} available)</p>
+                <p>ASL Scripts</p>
             </div>
             <div class="col-1">
                {% if pt_data['asl_data']|length > 0 %}
@@ -145,7 +148,7 @@
                 </tr>
             </thead>
             <tbody>
-{% for asl in pt_data['asl-data'] %}
+{% for asl in pt_data['asl_data'] %}
 <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
     <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
@@ -186,7 +189,7 @@
                 </tr>
             </thead>
             <tbody>
-{% for alr in pt_data['alr-data'] %}
+{% for alr in pt_data['alr_data'] %}
 <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
     <td class="alr-date">{{ alr['dispensed-date'] }}</td>
     <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
@@ -215,7 +218,7 @@
             <div class="modal-body">
                 <div class="row d-table">
                     <div class="col-2 d-table-cell pe-0">
-                        <button onclick="delete_consent()" type="button" class="btn btn-secondary">Delete Consent</button>
+                        <button onclick="delete_consent()" type="button" class="btn btn-danger">Delete Consent</button>
                     </div>
                     <div class="col-10 d-table-cell align-middle">
                         <p class="mb-0">This will delete the existing consent. You will need to request consent again if you wish to access the patient's ASL</p>
