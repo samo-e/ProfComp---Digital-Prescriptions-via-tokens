@@ -90,7 +90,32 @@ class SafetyNetDetailsSubForm(FlaskForm):
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     
     # Family
-    family_name = StringField("Family Name", render_kw={"disabled": True})
+    family_name = StringField("Family Name")
+    family_script_count_outside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        validators=[NumberRange(min=0)])
+    family_script_count_inside = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        render_kw={"disabled": True})
+    family_script_count_total = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        render_kw={"disabled": True})
+    family_scripts_value_outside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        places=2,  # ensures step="0.01" for dollar amounts
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00"})
+    family_scripts_value_inside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        places=2,
+        default=0.00,
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00", "disabled": True})
+    family_scripts_value_total = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
+        places=2,
+        default=0.00,
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00", "disabled": True})
+    
+    class FamilyMember(FlaskForm):
+        name = StringField("Name")
+        type = StringField("Type")
+    family_members = FieldList(FormField(FamilyMember))
 
 class AllergiesSubForm(FlaskForm):
     pass
