@@ -19,17 +19,19 @@ $(document).ready(function() {
             const text = $row.text().toLowerCase();
             
             if (text.includes(query)) {
-                $row.show();
+                $row.removeClass("d-none");
                 hasResults = true;
             } else {
-                $row.hide();
+                $row.addClass("d-none");
             }
         });
         
         if (!hasResults) {
-            $('#no-results').removeClass('d-none');
+            $('#no-results').addClass('visible');
+            $('#no-results').removeClass('invisible');
         } else {
-            $('#no-results').addClass('d-none');
+            $('#no-results').removeClass('visible');
+            $('#no-results').addClass('invisible');
         }
     });
 });

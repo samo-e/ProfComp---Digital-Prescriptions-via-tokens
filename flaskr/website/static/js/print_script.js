@@ -47,7 +47,7 @@ async function print_scripts() {
     let prescriptionCount = 0;
 
     // Loop through prescriptions and append them into container
-    $("#asl-table tbody tr").each(function() { // Need to change to follow filter made by search box
+    $("#asl-table tbody tr.asl-paperless:not(.d-none)").each(function() {
         const $row = $(this);
         const $checkbox = $row.find(".asl-check input");
         
