@@ -263,6 +263,11 @@
 
         </div>
         <h5 class="my-3">Family</h5>
+        <div class="row align-items-left py-2">
+            <div class="col-3">{{ form.safetyNet.family_name.label(class="form-label form-label-sm") }}</div>
+            <div class="col">{{ form.safetyNet.family_name(class="form-control form-control-sm") }}</div>
+        </div>
+
     </div>{% endcall %}
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Saftey Net Tab -->
@@ -278,7 +283,33 @@
 
     <!-- Notes Tab -->
     {% call pt_macros.add_tab_panel("Notes", "notes") %}<div>
-        <p>Accounts Tab Not implemented</p>
+        <div class="row align-items-center mb-3">
+            <div class="col">
+                <h5 class="mb-0">Patient Notes</h5>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-sm btn-secondary" id="add-note-btn">Add Note</button>
+            </div>
+        </div>
+        <div id="patient-notes-container">
+            {% for note in form.notes %}
+                <div class="mb-3 note-entry">
+                    {{ note.content(class="form-control") }}
+                    <div class="col">
+                        {{ note.last_edited(class="form-control-plaintext") }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <!-- Hidden note template -->
+        <div id="note-template" class="d-none">
+            <div class="mb-3 note-entry">
+                <textarea name="patient_notes-__index__-content" id="patient_notes-__index__-content" class="form-control"></textarea>
+                <div class="col">
+                    <input type="text" name="patient_notes-__index__-last_edited" id="patient_notes-__index__-last_edited" class="form-control-plaintext" readonly>
+                </div>
+            </div>
+        </div>
     </div>{% endcall %}
 
 {% if False %} <!-- Tab(s) have not been implemented -->

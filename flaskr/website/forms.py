@@ -83,6 +83,7 @@ class SafetyNetDetailsSubForm(FlaskForm):
         default=0.00,
         validators=[NumberRange(min=0.00)],
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
+    
     # Family
     family_name = StringField("Family Name", render_kw={"disabled": True})
 
@@ -93,10 +94,8 @@ class AccountsSubForm(FlaskForm):
     pass
 
 class NotesSubForm(FlaskForm):
-    patient_notes = FieldList(
-        TextAreaField("Patient Notes", validators=[Optional()])
-    )
-    # Need to pass in each of the patient_notes_last_updated
+    content = TextAreaField("Patient Notes", validators=[Optional()])
+    last_edited = StringField("Last Edited", render_kw={"readonly": True})
 
 class ClinicalInterventionsSubForm(FlaskForm):
     pass
@@ -116,7 +115,7 @@ class PatientForm(FlaskForm):
     safetyNet = FormField(SafetyNetDetailsSubForm)
     allergies = FormField(AllergiesSubForm)
     accounts  = FormField(AccountsSubForm)
-    notes     = FormField(NotesSubForm)
+    notes     = FieldList(FormField(NotesSubForm))
     clinical  = FormField(ClinicalInterventionsSubForm)
     sms       = FormField(SMSSubForm)
     clubs     = FormField(ClubsSubForm)
