@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify
-from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ConsentStatus, ASLStatus
+from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
 from sqlalchemy import or_
 from datetime import datetime
 
@@ -11,32 +11,39 @@ def asl(pt: int):
     try:
         patient = Patient.query.get_or_404(pt)
         
-        # Get available prescriptions
-        asl_prescriptions = db.session.query(Prescription, Prescriber).join(
-            Prescriber, Prescription.prescriber_id == Prescriber.id
-        ).filter(
-            Prescription.patient_id == pt,
-            Prescription.status == PrescriptionStatus.AVAILABLE.value
-        ).all()
+        # Check if we can view this patient's ASL based on asl_status
+        can_view_asl = patient.can_view_asl()
         
-        # Get dispensed ones for ALR section (show it)  
-        alr_prescriptions = db.session.query(Prescription, Prescriber).join(
-            Prescriber, Prescription.prescriber_id == Prescriber.id
-        ).filter(
-            Prescription.patient_id == pt,
-            Prescription.status == PrescriptionStatus.DISPENSED.value
-        ).all()
+        # users can get prescriptions if they have access
+        asl_prescriptions = []
+        alr_prescriptions = []
         
+        if can_view_asl:
+            # AVAILABLE prescriptions only for ASL table
+            asl_prescriptions = db.session.query(Prescription, Prescriber).join(
+                Prescriber, Prescription.prescriber_id == Prescriber.id
+            ).filter(
+                Prescription.patient_id == pt,
+                Prescription.status == PrescriptionStatus.AVAILABLE.value  # Only AVAILABLE show in ASL
+            ).all()
+            
+            # ALR prescriptions
+            alr_prescriptions = db.session.query(Prescription, Prescriber).join(
+                Prescriber, Prescription.prescriber_id == Prescriber.id
+            ).filter(
+                Prescription.patient_id == pt,
+                Prescription.status == PrescriptionStatus.DISPENSED.value,
+                Prescription.dispensed_at_this_pharmacy == True,  # Only from this pharmacy
+                Prescription.remaining_repeats > 0  # only show remaining repeats
+            ).all()
         
-        # split medicare number (like the real system)
         medicare_full = patient.medicare or ""
         medicare_main = medicare_full[:9] if len(medicare_full) >= 9 else medicare_full 
         medicare_suffix = medicare_full[9:] if len(medicare_full) > 9 else ""
         
         pt_data = {
-            # basic patient info
             "medicare": medicare_main,  
-            "medicare-suffix": medicare_suffix,  # combination with the previous one
+            "medicare-suffix": medicare_suffix,
             "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no,
             "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder,
             "rpbs-ben-entitlement-cardholder": patient.rpbs_ben_entitlement_cardholder,
@@ -50,7 +57,6 @@ def asl(pt: int):
             "rpbs": patient.rpbs,
             "brand-sub-not-prmt": None, 
             
-            # in order to make sure templates can still work, keep old filed names
             "name": patient.name,
             "dob": patient.dob,
             "address-1": patient.address_1,
@@ -60,11 +66,11 @@ def asl(pt: int):
             
             # UI status info
             "asl_status": patient.get_asl_status().name.replace('_', ' ').title(),
-            "consent_status": patient.get_consent_status().name.title(),
-            "consent_last_updated": patient.consent_last_updated.strftime('%d/%b/%Y %I:%M%p') if patient.consent_last_updated else "01/Jan/2000 02:59AM"
+            "consent_last_updated": patient.consent_last_updated if patient.consent_last_updated else "01/Jan/2000 02:59AM",
+            # Add access control flag 
+            "can_view_asl": can_view_asl
         }
         
-        # create prescription data
         for prescription, prescriber in asl_prescriptions:
             #combine doctor name and title
             clinician_name_and_title = f"{prescriber.fname} {prescriber.lname}"
@@ -72,7 +78,6 @@ def asl(pt: int):
                 clinician_name_and_title += f" {prescriber.title}"
             
             asl_item = {
-                # to meet the front-end requirement
                 "prescription_id": prescription.id,
                 "DSPID": prescription.DSPID,
                 "status": prescription.get_status().name.title(),
@@ -97,7 +102,6 @@ def asl(pt: int):
                     "fax": prescriber.fax,
                 },
                 
-                # and new flat format for front-end use
                 "clinician-name-and-title": clinician_name_and_title,
                 "clinician-address-1": prescriber.address_1,
                 "clinician-address-2": prescriber.address_2,
@@ -110,7 +114,6 @@ def asl(pt: int):
             }
             pt_data["asl_data"].append(asl_item)
         
-        # Create ALR data 
         for prescription, prescriber in alr_prescriptions:
             clinician_name_and_title = f"{prescriber.fname} {prescriber.lname}"
             if prescriber.title:
@@ -129,9 +132,9 @@ def asl(pt: int):
                 "dispensed-date": prescription.dispensed_date,
                 "paperless": prescription.paperless,
                 "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
+                # Show remaining repeats for ALR 
+                "remaining-repeats": prescription.remaining_repeats,
                 
-
-                # Clinician info
                 "clinician-name-and-title": clinician_name_and_title,
                 "clinician-address-1": prescriber.address_1,
                 "clinician-address-2": prescriber.address_2,
@@ -140,8 +143,7 @@ def asl(pt: int):
                 "hpio": prescriber.hpio,
                 "clinician-phone": prescriber.phone,
                 "clinician-fax": prescriber.fax,
-                
-                # to make sure the old template still works, keep the old format
+
                 "prescriber": {
                     "fname": prescriber.fname,
                     "lname": prescriber.lname,
@@ -162,83 +164,127 @@ def asl(pt: int):
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500
 
-# Interactive functions (refresh, request access, delete consent, search)
+# Enhanced refresh function
 @views.route('/api/asl/<int:pt>/refresh', methods=['POST'])
 def refresh_asl(pt: int):
-    """Refresh Button"""
     try:
         patient = Patient.query.get_or_404(pt)
         
-        # update pending prescriptions
-        updated_count = Prescription.query.filter_by(
-            patient_id=pt,
-            status=PrescriptionStatus.PENDING.value
-        ).update({'status': PrescriptionStatus.AVAILABLE.value})
-        
-
-        db.session.commit()
-        # to show that it works, need to modify it later
-        return jsonify({
-            'success': True,
-            'message': f'ASL refreshed for patient {patient.name}. Updated {updated_count} prescriptions.',
-            'updated_prescriptions': updated_count
-        })
+        # Handle different ASL statuses
+        if patient.asl_status == ASLStatus.PENDING.value:
+            # Simulate patient replying to SMS/email (for this demo, it will auto-approve)
+            patient.asl_status = ASLStatus.GRANTED.value
+            patient.consent_last_updated = datetime.utcnow().strftime('%d/%m/%Y %H:%M')
+            
+            # update any PENDING prescriptions to AVAILABLE
+            updated_count = Prescription.query.filter_by(
+                patient_id=pt,
+                status=PrescriptionStatus.PENDING.value
+            ).update({'status': PrescriptionStatus.AVAILABLE.value})
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'Patient {patient.name} replied and granted access! {updated_count} prescriptions now available.',
+                'updated_prescriptions': updated_count,
+                'should_reload': True
+            })
+            
+        elif patient.asl_status == ASLStatus.GRANTED.value:
+            # For GRANTED status, just check for new PENDING prescriptions
+            updated_count = Prescription.query.filter_by(
+                patient_id=pt,
+                status=PrescriptionStatus.PENDING.value
+            ).update({'status': PrescriptionStatus.AVAILABLE.value})
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True,
+                'message': f'ASL refreshed for patient {patient.name}. {updated_count} new prescriptions found.',
+                'updated_prescriptions': updated_count,
+                'should_reload': updated_count > 0
+            })
+            
+        else:
+            # Handle NO_CONSENT and REJECTED statuses
+            return jsonify({
+                'success': False,
+                'error': f'Cannot refresh ASL - status is {patient.get_asl_status().name.replace("_", " ").title()}'
+            }), 403
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Update request access function
 @views.route('/api/asl/<int:pt>/request-access', methods=['POST'])
 def request_access(pt: int):
-    """Request access Button"""
     try:
         patient = Patient.query.get_or_404(pt)
+        current_status = patient.get_asl_status()
         
-        if patient.asl_status == ASLStatus.REGISTERED.value:
-            patient.asl_status = ASLStatus.ACCESS_REQUESTED.value
-        elif patient.asl_status == ASLStatus.ACCESS_REQUESTED.value:
-            patient.asl_status = ASLStatus.ACCESS_GRANTED.value
-        else:
-            patient.asl_status = ASLStatus.ACCESS_GRANTED.value
-            
+        # Only allow request from NO_CONSENT status (others' buttons would be grey)
+        if current_status != ASLStatus.NO_CONSENT:
+            return jsonify({
+                'success': False,
+                'error': f'Cannot request access - current status is {current_status.name.replace("_", " ").title()}'
+            }), 400
+        
+        # Change NO_CONSENT to PENDING (simulate sending SMS/email)
+        patient.asl_status = ASLStatus.PENDING.value
+        patient.consent_last_updated = datetime.utcnow().strftime('%d/%m/%Y %H:%M')
+        
         db.session.commit()
         
-        # need to modify the message later
         return jsonify({
             'success': True,
-            'message': f'Access status updated for {patient.name}',
-            'new_status': ASLStatus(patient.asl_status).name.replace('_', ' ').title()
+            'message': f'Access request sent to {patient.name}. Patient will receive SMS/email to approve.',
+            'new_status': 'Pending',
+            'should_disable_button': True
         })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Update delete consent function (reset to no consent)
 @views.route('/api/patient/<int:pt>/consent', methods=['DELETE'])
 def delete_consent(pt: int):
-    """Delete/revoke consent"""
     try:
         patient = Patient.query.get_or_404(pt)
-        patient.consent_status = ConsentStatus.REVOKED.value
-        patient.consent_last_updated = datetime.utcnow()
+        
+        # Reset to NO_CONSENT
+        patient.asl_status = ASLStatus.NO_CONSENT.value
+        patient.consent_last_updated = datetime.utcnow().strftime('%d/%m/%Y %H:%M')
         
         db.session.commit()
         
         return jsonify({
             'success': True,
-            'message': f'Consent revoked for {patient.name}',
-            'consent_status': ConsentStatus(patient.consent_status).name.title(),
-            'last_updated': patient.consent_last_updated.strftime('%d/%b/%Y %I:%M%p')
+            'message': f'Consent record deleted for {patient.name}. Can now request access again.',
+            'new_status': 'No Consent',
+            'should_reload': True
         })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Access control to search function
 @views.route('/api/asl/<int:pt>/search')
 def search_asl(pt: int):
-    """Search ASL prescriptions"""
     try:
+        patient = Patient.query.get_or_404(pt)
+        
+        # Check access before allowing search
+        if not patient.can_view_asl():
+            return jsonify({
+                'success': False,
+                'error': 'Cannot search - no access to patient ASL'
+            }), 403
+            
         query = request.args.get('q', '').strip()
         if not query:
             return jsonify({'success': False, 'error': 'Search query required'})
@@ -275,9 +321,9 @@ def search_asl(pt: int):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+# Access control to print function
 @views.route('/api/prescriptions/print-selected', methods=['POST'])
 def print_selected_prescriptions():
-    """Print selected prescriptions from ASL"""
     try:
         prescription_ids = request.json.get('prescription_ids', [])
         
@@ -288,14 +334,21 @@ def print_selected_prescriptions():
             Prescription.id.in_(prescription_ids)
         ).all()
         
-        # format prescription data for printing 
+        # Check access for each patient
+        for prescription in prescriptions:
+            if not prescription.patient.can_view_asl():
+                return jsonify({
+                    'success': False,
+                    'error': f'Cannot print - no access to {prescription.patient.name} ASL'
+                }), 403
+        
+
         print_data = []
         for prescription in prescriptions:
             prescriber = prescription.prescriber
             patient = prescription.patient
             
             print_item = {
-                # Patient info
                 "medicare": patient.medicare,
                 "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no,
                 "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder,
@@ -309,7 +362,6 @@ def print_selected_prescriptions():
                 "pbs": patient.pbs,
                 "rpbs": patient.rpbs,
                 
-                # Prescription info
                 "prescription_id": prescription.id,
                 "DSPID": prescription.DSPID,
                 "status": prescription.get_status().name.title(),
@@ -322,8 +374,7 @@ def print_selected_prescriptions():
                 "prescribed-date": prescription.prescribed_date,
                 "paperless": prescription.paperless,
                 "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
-                
-                # Doctor info
+
                 "clinician-name-and-title": f"{prescriber.fname} {prescriber.lname}" + (f" {prescriber.title}" if prescriber.title else ""),
                 "clinician-address-1": prescriber.address_1,
                 "clinician-address-2": prescriber.address_2,
@@ -335,7 +386,6 @@ def print_selected_prescriptions():
             }
             print_data.append(print_item)
         
-        # modify it later
         return jsonify({
             'success': True,
             'print_data': print_data,
