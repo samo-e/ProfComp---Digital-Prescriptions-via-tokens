@@ -131,26 +131,35 @@ $(document).ready(function() {
 });
 
 function addTableRow(tableId, columnNames) {
-    const tableBody = document.querySelector(`#${tableId} tbody`);
-    if (!tableBody) return;
+    const $tableBody = $(`#${tableId} tbody`);
+    if (!$tableBody.length) return;
 
-    const newRow = document.createElement('tr');
+    const $newRow = $('<tr></tr>')
+        .attr('onclick', `activateTableRow(this)`);
 
     columnNames.forEach(col => {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = 'text'; // you can change type if needed
-        input.name = `${tableId}[]`; // optional: unique name pattern
-        input.className = 'form-control form-control-sm';
-        td.appendChild(input);
-        newRow.appendChild(td);
+        const $td = $('<td></td>');
+        const $input = $('<input>')
+            .attr('type', 'text')
+            .attr('name', `${tableId}[]`)
+            .addClass('form-control form-control-sm');
+        $td.append($input);
+        $newRow.append($td);
     });
 
-    // Insert the new row before the last empty row
-    const lastRow = tableBody.querySelector('tr:last-child');
-    if (lastRow && lastRow.querySelector('td[colspan]')) {
-        tableBody.insertBefore(newRow, lastRow);
+    // Insert before the last row if it is the empty placeholder
+    const $lastRow = $tableBody.find('tr:last-child');
+    if ($lastRow.find('td[colspan]').length) {
+        $newRow.insertBefore($lastRow);
     } else {
-        tableBody.appendChild(newRow);
+        $tableBody.append($newRow);
     }
+}
+
+function activateTableRow(row) {
+    var $row = $(row);
+
+    $row.siblings().removeClass("table-active");
+
+    $row.toggleClass("table-active");
 }
