@@ -128,24 +128,29 @@ $(document).ready(function() {
             irnInput.focus();
         }
     });
+});
 
-    $("#add-note-btn").on("click", function() {
-        const $notesContainer = $("#patient-notes-container");
-        const index = $notesContainer.children().length;
-        let templateHtml = $("#note-template").html();
-        templateHtml = templateHtml.replace(/__index__/g, index);
-        const $newNote = $(templateHtml);
+function addTableRow(tableId, columnNames) {
+    const tableBody = document.querySelector(`#${tableId} tbody`);
+    if (!tableBody) return;
 
-        // Set last_edited to today in DD/MM/YYYY
-        const now = new Date();
-        const formatted = String(now.getDate()).padStart(2, '0') + '/' +
-                        String(now.getMonth() + 1).padStart(2, '0') + '/' +
-                        now.getFullYear();
-        $newNote.find("input[name*='last_edited']").val(formatted);
+    const newRow = document.createElement('tr');
 
-        $notesContainer.append($newNote);
+    columnNames.forEach(col => {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = 'text'; // you can change type if needed
+        input.name = `${tableId}[]`; // optional: unique name pattern
+        input.className = 'form-control form-control-sm';
+        td.appendChild(input);
+        newRow.appendChild(td);
     });
 
-
-
-});
+    // Insert the new row before the last empty row
+    const lastRow = tableBody.querySelector('tr:last-child');
+    if (lastRow && lastRow.querySelector('td[colspan]')) {
+        tableBody.insertBefore(newRow, lastRow);
+    } else {
+        tableBody.appendChild(newRow);
+    }
+}
