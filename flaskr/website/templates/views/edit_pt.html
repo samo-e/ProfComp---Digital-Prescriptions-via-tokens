@@ -129,7 +129,6 @@
             <div class="col-2"></div>
             <div class="col-10">
                 <div class="form-check">{{ form.basic.smsRepeats(class="form-check-input") }} {{ form.basic.smsRepeats.label(class="form-check-label") }}</div>
-                <div class="form-check">{{ form.basic.smsLastRepeats(class="form-check-input") }} {{ form.basic.smsLastRepeats.label(class="form-check-label") }}</div>
                 <div class="form-check">{{ form.basic.smsOwing(class="form-check-input") }} {{ form.basic.smsOwing.label(class="form-check-label") }}</div>
             </div>
         </div>
@@ -214,6 +213,14 @@
         <div class="row g-3 align-items-center mb-1">
             <div class="col-2">{{ form.basic.doctor.label(class="form-label form-label-sm") }}</div>
             <div class="col-4">{{ form.basic.doctor(class="form-control form-control-sm") }}</div>
+        </div>
+
+        <!-- Other Checkboxes -->
+        <div class="row g-3 mb-1">
+            <div class="col-auto form-check pe-4">{{ form.basic.ctgRegistered(class="form-check-input") }} {{ form.basic.ctgRegistered.label(class="form-check-label") }}</div>
+            <div class="col-auto form-check pe-4">{{ form.basic.genericsOnly(class="form-check-input") }} {{ form.basic.genericsOnly.label(class="form-check-label") }}</div>
+            <div class="col-auto form-check pe-4">{{ form.basic.repeatsHeld(class="form-check-input") }} {{ form.basic.repeatsHeld.label(class="form-check-label") }}</div>
+            <div class="col-auto ms-auto form-check">{{ form.basic.ptDeceased(class="form-check-input") }} {{ form.basic.ptDeceased.label(class="form-check-label") }}</div>
         </div>
     </div>{% endcall %}
 

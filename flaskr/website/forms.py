@@ -33,7 +33,6 @@ class BasicDetailsSubForm(FlaskForm):
     mobile = TelField("Mobile No.")
     licence = StringField("Licence No.")
     smsRepeats = BooleanField("SMS Repeat Reminders", default=False)
-    smsLastRepeats = BooleanField("SMS Last Repeat Reminders", default=False)
     smsOwing = BooleanField("SMS Owing Reminders", default=False)
     email = EmailField("Email", validators=[Email()])
 
@@ -60,6 +59,12 @@ class BasicDetailsSubForm(FlaskForm):
 
     # Doctor
     doctor = StringField("Default Doctor")
+
+    # Other Checkboxes
+    ctgRegistered = BooleanField("CTG Registered", default=False)
+    genericsOnly = BooleanField("Generics Only", default=False)
+    repeatsHeld = BooleanField("Repeats Held", default=False)
+    ptDeceased = BooleanField("Patient Deceased", default=False)
 
 class SafetyNetDetailsSubForm(FlaskForm):
     # Individual
