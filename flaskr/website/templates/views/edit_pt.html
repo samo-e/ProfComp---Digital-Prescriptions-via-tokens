@@ -218,9 +218,29 @@
     </div>{% endcall %}
 
     <!-- Saftey Net Tab -->
-        <p>Saftey Net Tab Not implemented</p>
-    {% endcall %}
     {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}<div>
+        <div class="container">
+            <div class="row fw-bold border-bottom">
+                <div class="col-3"></div>
+                <div class="col">Outside</div>
+                <div class="col">Inside</div>
+                <div class="col">Total</div>
+            </div>
+
+            <div class="row align-items-center py-2">
+                <div class="col-3">Scripts Count</div>
+                <div class="col">{{ form.script_count_outside(class="form-control") }}</div>
+                <div class="col">{{ form.script_count_inside(class="form-control") }}</div>
+                <div class="col">{{ form.script_count_total(class="form-control") }}</div>
+            </div>
+
+            <div class="row align-items-center py-2">
+                <div class="col-3">Scripts Value</div>
+                <div class="col">
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        {{ form.scripts_value_outside(class="form-control") }}
+                    </div>
     </div>{% endcall %}
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Saftey Net Tab -->
