@@ -1,7 +1,3 @@
-$(document).ready(function() {
-  $("#script-print").click(print_scripts);
-});
-
 const options = {
   filename: 'prescriptions.pdf',
   margin: 10,
@@ -40,88 +36,79 @@ async function get_blank_prescription() {
 }
 
 async function print_scripts() {
-  console.log("Print function called");
-  const checkedBoxes = $("#asl-table .asl-check input:checked");
-  let select_all = checkedBoxes.length === 0;
+    const checkedBoxes = $("#asl-table .asl-check input:checked");
+    let select_all = checkedBoxes.length === 0;
 
-  
-  // Temp parent container to store the prescriptions
-  let $container = $('<div></div>');
-  const prescription_container = await get_blank_prescription();
-
-  let prescriptionCount = 0;
-
-
-  // Loop through prescriptions and append them into container
-  $("#asl-table tbody tr").each(function(index) {
-    const $row = $(this);
-    const $checkbox = $row.find(".asl-check input");
     
-    
-    if (select_all || $checkbox.is(":checked")) {
-      console.log(`Processing prescription ${index}`);
-      
-      let presc = prescription_container.cloneNode(true);
-      const rowId = $row.attr("id"); // "asl-0", "asl-1"
-      
-      presc = insert_prescription_details(presc, rowId);
+    // Temp parent container to store the prescriptions
+    let $container = $('<div></div>');
+    const prescription_container = await get_blank_prescription();
 
-      let $wrapper = $('<div></div>').append(presc);
-      $wrapper.css({'break-after': 'page','margin-top': '10px'});
+    let prescriptionCount = 0;
 
-      $container.append($wrapper[0]);
-      prescriptionCount++;
+    // Loop through prescriptions and append them into container
+    $("#asl-table tbody tr").each(function() { // Need to change to follow filter made by search box
+        const $row = $(this);
+        const $checkbox = $row.find(".asl-check input");
+        
+        if (select_all || $checkbox.is(":checked")) {      
+            let presc = prescription_container.cloneNode(true);
+            const rowId = $row.attr("id"); // "asl-0", "asl-1"
+            
+            presc = insert_prescription_details(presc, rowId);
+
+            let $wrapper = $('<div></div>').append(presc);
+            $wrapper.css({'break-after': 'page','margin-top': '10px'});
+
+            $container.append($wrapper[0]);
+            prescriptionCount++;
+        }
+    });
+
+    if (prescriptionCount === 0) {
+        alert("No valid prescriptions found to print!");
+        return;
     }
-  });
-  
-  console.log(`Total prescriptions to print: ${prescriptionCount}`);
-
-  console.log(`Total prescriptions to print: ${prescriptionCount}`);
-
-  if (prescriptionCount === 0) {
-      alert("No valid prescriptions found to print!");
-      return;
-  }
-  // print the pdf
-  html2pdf().set(options).from($container[0]).save();
+    // print the pdf
+    html2pdf().set(options).from($container[0]).save();
 }
 
 
 const id_list = [
-  "medicare",
-  "pharmaceut-ben-entitlement-no",
-  "sfty-net-entitlement-cardholder",
-  "rpbs-ben-entitlement-cardholder",
-  "name",
-  "dob",
-  "preferred-contact",
-  "address-1",
-  "address-2",
-  "script-date",
-  "pbs",
-  "rpbs"
+    "medicare",
+    "pharmaceut-ben-entitlement-no",
+    "sfty-net-entitlement-cardholder",
+    "rpbs-ben-entitlement-cardholder",
+    "name",
+    "dob",
+    "preferred-contact",
+    "address-1",
+    "address-2",
+    "script-date",
+    "pbs",
+    "rpbs"
 ]
-const drug_info_ids = [ // prepend `asl-data-X-`
-  "prescriber-fname",
-  "prescriber-lname",
-  "prescriber-title",
-  "prescriber-address-1",
-  "prescriber-address-2",
-  "prescriber-id",
-  "prescriber-hpii",
-  "prescriber-hpio",
-  "prescriber-phone",
-  "prescriber-fax",
-  "DSPID",
-  "status",
-  "brand-sub-not-prmt",
-  "drug-name" ,
-  "drug-code" ,
-  "dose-instr",
-  "dose-qty"  ,
-  "dose-rpt"  ,
-  "prescribed-date",
-  "paperless"
+const drug_info_ids = [ // prepend `asl_data-X-`
+    "prescriber-fname",
+    "prescriber-lname",
+    "prescriber-title",
+    "prescriber-address-1",
+    "prescriber-address-2",
+    "prescriber-id",
+    "prescriber-hpii",
+    "prescriber-hpio",
+    "prescriber-phone",
+    "prescriber-fax",
+    "DSPID",
+    "status",
+    "brand-sub-not-prmt",
+    "drug-name" ,
+    "drug-code" ,
+    "dose-instr",
+    "dose-qty"  ,
+    "dose-rpt"  ,
+    "prescribed-date",
+    "paperless"
 ]
 
 function flatten_dict(dict) {
@@ -159,69 +146,46 @@ function flatten_dict(dict) {
 // See comment in prescription.html
 // data input accessed via `pt_data`: json
 function insert_prescription_details(el, drug_id) {
-  console.log(`Inserting details for drug_id: ${drug_id}`);
-  // Append data
-  id_list.forEach(id => {
-    const $el = $(el).find(`#${id}`);
-    if (pt_data[id] !== undefined) {
-      let data_point = pt_data[id];
-      if (data_point === true) {
-        data_point = 'x';
-      } else if (data_point === false){
-        return; //continue
+    // Append data
+    id_list.forEach(id => {
+      const $el = $(el).find(`#${id}`);
+      if (pt_data[id] !== undefined) {
+        let data_point = pt_data[id];
+        if (data_point === true) {
+            data_point = 'x';
+        } else if (data_point === false){
+            return; //continue
+        }
+        $el.text(data_point);
       }
-      $el.text(data_point);
-    }
-  });
+    });
 
-  // Append ASL specific data
-  drug_info_ids.forEach(id => {
-    
-    const $el = $(el).find(`#${id}`);
-    const new_key = `asl-data-${drug_id.slice(-1)}-${id}`;
-    if (flatted_pt_data[new_key] !== undefined) {
-      let data_point = flatted_pt_data[new_key];
-      if (data_point === true) {
-        data_point = 'x';
-      } else if (data_point === false){
-        return; //continue
-      }
-      $el.text(data_point);
-    }
-  });
+    // Append ASL specific data
+    drug_info_ids.forEach(id => {
+        const $el = $(el).find(`#${id}`);
+        const new_key = `asl_data-${drug_id.slice(-1)}-${id}`;
+        if (flatted_pt_data[new_key] !== undefined) {
+                let data_point = flatted_pt_data[new_key];
+                if (data_point === true) {
+                    data_point = 'x';
+                } else if (data_point === false){
+                    return; //continue
+                }
+                $el.text(data_point);
+        }
+    });
 
-  // Set pt age
-  const $el = $(el).find(`#age`);
-  $el.text(years_old(pt_data['dob']));
-  return el;
+    // Set pt age
+    const $el = $(el).find(`#age`);
+    $el.text(years_old(pt_data['dob']));
+    return el;
 }
 
 /* Expected dob in DD/MM/YYYY form */
 function years_old(dob) {
-  let pt_dob = dob.split("/");
-  let newDate = new Date( pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
-  let timeDifference = Date.now() - newDate;
-  let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
-  return pt_age;
+    let pt_dob = dob.split("/");
+    let newDate = new Date( pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
+    let timeDifference = Date.now() - newDate;
+    let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
+    return pt_age;
 }
-
-// UNTESTED DUE TO LACK OF END POINT - TODO
-function refresh_consent() {
-  $.ajax({
-      url: `/refresh-consent/${pt}/`,
-      data: { timestamp: pt_data['consent-status']['last-updated'] },
-      success: function(data, textStatus, xhr) {
-          if (xhr.status === 200) {
-              $('#consent-last-updated').text(JSON.stringify(data, null, 2));
-              pt_data['consent-status']['last-updated'] = xhr.getResponseHeader('Last-Modified');
-          }
-      },
-      statusCode: {
-          304: function() {} // No changes
-      },
-      error: function(err) {
-          console.error('Error refreshing data:', err);
-      }
-  });
-}
-
