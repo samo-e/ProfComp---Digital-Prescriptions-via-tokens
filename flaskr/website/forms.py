@@ -91,7 +91,28 @@ class AllergiesSubForm(FlaskForm):
     pass
 
 class AccountsSubForm(FlaskForm):
-    pass
+    # Facility Details
+    facility = StringField("Facility:")
+    ward = StringField("Ward")
+    room = StringField("Room No")
+    bed = StringField("Bed No")
+    ptCat = SelectField("Patient Category", choices=[DEFAULT_CHOICE])
+    chartStart = DateField("Chart Start", format="%d-%m-%Y")
+    chartEnd = DateField("Chart End", format="%d-%m-%Y")
+    chartDuration = SelectField("Chart Duration", choices=[DEFAULT_CHOICE])
+
+    # Debtor Account Details
+
+    # Stock Transfers
+    canTfrStockToCustomer = BooleanField("Can transfer stock to this customer", default=False)
+
+    # Auto Charging Details
+    autoChargeScripts = BooleanField("Auto charge scripts for this patient", default=False)
+    linkToDebtorAcc = BooleanField("Link to debtor account", default=False)
+    linkedClientAcc = StringField("Linked client account:")
+    debtorAcc = SelectField("Debtor account:", choices=[DEFAULT_CHOICE])
+    notSendScriptsToTill = BooleanField("Do not send scripts to Till for this patient", default=False)
+    notDeductStocks = BooleanField("Do not deduct stocks for this patient", default=False)
 
 class NotesSubForm(FlaskForm):
     content = TextAreaField("Patient Notes")
