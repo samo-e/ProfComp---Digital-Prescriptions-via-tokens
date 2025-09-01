@@ -269,6 +269,7 @@
         </div>
 
     </div>{% endcall %}
+
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Allergies Net Tab -->
     {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}<div>
@@ -321,7 +322,10 @@
     </div>
 </div>
 
-<h5 class="my-3">Debtor Account Details</h5>
+{% call pt_macros.add_table_form_element("debtor-accounts", "Debtor Account Details", ["Account#", "Description", "Group", "Current", "30 Days", "60 Days", "90 Days", "Total Bal", "Status"]) %}<div>
+
+</div>{% endcall %}
+
 <h5 class="my-3">Stock Transfers</h5>
 <div class="row g-3 align-items-center mb-1">
     <div class="form-check">
@@ -358,8 +362,6 @@
     {{ form.accounts.notDeductStocks(class="form-check-input") }}
     {{ form.accounts.notDeductStocks.label(class="form-check-label") }}
 </div>
-    </div>
-
     </div>{% endcall %}
 
     <!-- Notes Tab -->
@@ -407,49 +409,12 @@
 
     <!-- Clubs/Providers Tab -->
     {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}<div>
-        <div class="container mt-3" id="clubs-table">
-            <div class="row align-items-center my-3">
-                <h5 class="col">Clubs</h5>
-                <div class="col-auto ms-auto">
-                    <button id="addClubBtn" class="btn btn-success"><i class="bi bi-plus h5"></i></button>
-                    <button id="delClubBtn" class="btn btn-danger"><i class="bi bi-x h5"></i></button>
-                </div>
-            </div>
-            <table class="table table-bordered" id="clubsTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>CardNo</th>
-                        <th>Membership Expiry</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="3">&nbsp;</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="container mt-3" id="providers-table">
-            <div class="row align-items-center my-3">
-                <h5 class="col">Providers</h5>
-                <div class="col-auto ms-auto">
-                    <button id="addProviderBtn" class="btn btn-success"><i class="bi bi-plus h5"></i></button>
-                    <button id="delProviderBtn" class="btn btn-danger"><i class="bi bi-x h5"></i></button>
-                </div>
-            </div>
-            <table class="table table-bordered" id="clubsTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>MemberNo</th>
-                        <th>Indentifier</th>
-                        <th>Membership Expiry</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="4">&nbsp;</td></tr>
-                </tbody>
-            </table>
-        </div>
+        {% call pt_macros.add_table_form_element("clubs", "Clubs", ["Name", "CardNo", "Membership Expiry"]) %}<div>
+
+        </div>{% endcall %}
+        {% call pt_macros.add_table_form_element("providers", "Providers", ["Name", "MemberNo", "Indentifier", "Membership Expiry"]) %}<div>
+
+        </div>{% endcall %}
     </div>{% endcall %}
 
     <!-- Other Tab -->
@@ -472,9 +437,11 @@
         <h5 class="my-3">eScripts</h5>
         <div>{{ form.other.eScriptsRepeatMethod.label(class="form-label form-label-sm") }}</div>
         <div class="col-5">{{ form.other.eScriptsRepeatMethod(class="form-select form-select-sm") }}</div>
-        </div>
     </div>{% endcall %}
 
+
+
+</div><!-- Close Tab Content -->
 <!-- Submit -->
 <div class="d-flex flex-row-reverse">
     <button type="cancel" class="col-2-sm col-3 btn btn-warning ms-1">Cancel</button>
