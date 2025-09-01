@@ -102,6 +102,18 @@ class AccountsSubForm(FlaskForm):
     chartDuration = SelectField("Chart Duration", choices=[DEFAULT_CHOICE])
 
     # Debtor Account Details
+    class DebtorAccsRowForm(FlaskForm):
+        account = StringField("Account#")
+        description = StringField("Description")
+        group = StringField("Group")
+        current = StringField("Current")
+        days30 = StringField("30 Days")
+        days60 = StringField("60 Days")
+        days90 = StringField("90 Days")
+        total_bal = StringField("Total Bal")
+        status = StringField("Status")
+
+    debtorAccs = FieldList(FormField(DebtorAccsRowForm), min_entries=0)
 
     # Stock Transfers
     canTfrStockToCustomer = BooleanField("Can transfer stock to this customer", default=False)
@@ -125,7 +137,19 @@ class SMSSubForm(FlaskForm):
     pass
 
 class ClubsSubForm(FlaskForm):
-    pass
+    class ClubRowForm(FlaskForm):
+        name = StringField("Name")
+        card_no = StringField("CardNo")
+        membership_expiry = StringField("Membership Expiry")
+    
+    class ProvidersRowForm(FlaskForm):
+        name = StringField("Name")
+        member_no = StringField("CardNo")
+        identifier = StringField("Identifier")
+        membership_expiry = StringField("Membership Expiry")
+
+    clubs = FieldList(FormField(ClubRowForm), min_entries=0)
+    providers = FieldList(FormField(ClubRowForm), min_entries=0)
 
 class OtherSubForm(FlaskForm):
     pbsDiscount = StringField("PBS Discount (Default)")
