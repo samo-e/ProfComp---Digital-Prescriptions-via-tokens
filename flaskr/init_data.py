@@ -1,7 +1,8 @@
 def init_asl_database():
     """Initialize DB with ASL data"""
     from website import create_app
-    from website.models import db, Patient, Prescriber, Prescription, PrescriptionStatus
+    # Import ASLStatus for creating different scenarios
+    from website.models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
     
     application = create_app()
     app = application
@@ -9,7 +10,7 @@ def init_asl_database():
         db.drop_all()
         db.create_all()
         
-        # Create test patient
+        # GRANTED status test
         patient = Patient(
             id=1,
             medicare="49502864011",
@@ -25,7 +26,8 @@ def init_asl_database():
             pbs=None,
             rpbs=None
         )
-        # Create second test patient (but didn't add any prescription for him/her, we can change it later)
+        
+        # pending status
         patient2 = Patient(
             id=2,
             medicare="12345678901",
@@ -39,7 +41,44 @@ def init_asl_database():
             address_2="MELBOURNE VIC 3000",
             script_date="15/12/2023",
             pbs=None,
-            rpbs=None
+            rpbs=None,
+            asl_status=ASLStatus.PENDING.value
+        )
+        
+        # REJECTED status
+        patient3 = Patient(
+            id=3,
+            medicare="98765432109",
+            pharmaceut_ben_entitlement_no="REJ789012(Z)",
+            sfty_net_entitlement_cardholder=True,
+            rpbs_ben_entitlement_cardholder=False,
+            name="Sarah Johnson",
+            dob="10/07/1992",
+            preferred_contact="0455 123 456",
+            address_1="456 Oak Ave",
+            address_2="PERTH WA 6000",
+            script_date="20/01/2024",
+            pbs=None,
+            rpbs=None,
+            asl_status=ASLStatus.REJECTED.value  # Patient rejected access
+        )
+        
+        # NO_CONSENT status
+        patient4 = Patient(
+            id=4,
+            medicare="11122233344",
+            pharmaceut_ben_entitlement_no="NEW456789(A)",
+            sfty_net_entitlement_cardholder=False,
+            rpbs_ben_entitlement_cardholder=False,
+            name="Michael Brown",
+            dob="05/09/1975",
+            preferred_contact="0433 987 654",
+            address_1="789 Pine St",
+            address_2="SYDNEY NSW 2000",
+            script_date="15/02/2024",
+            pbs=None,
+            rpbs=None,
+            asl_status=ASLStatus.NO_CONSENT.value 
         )
         
         # Create test prescriber
@@ -57,8 +96,9 @@ def init_asl_database():
             fax=None
         )
         
-        # Create ASL
+        # Create ASL prescriptions with different status for Patient 1 (lines 79-118)
         asl_prescriptions = [
+            # prescription - shows in ASL table
             Prescription(
                 patient_id=1, prescriber_id=1,
                 DSPID="MPK00009002011563",
@@ -66,16 +106,21 @@ def init_asl_database():
                 drug_name="Coversyl 5mg tablet, 30 5 mg 30 Tablets",
                 drug_code="9007C", dose_instr="ONCE A DAY",
                 dose_qty=30, dose_rpt=6, prescribed_date="10/06/2021",
-                paperless=True, brand_sub_not_prmt=False
+                paperless=True, brand_sub_not_prmt=False,
+                # ALR fields
+                remaining_repeats=6, dispensed_at_this_pharmacy=False
             ),
+            # prescription PENDING status - prescribed but not yet visible in ASL table
             Prescription(
                 patient_id=1, prescriber_id=1,
                 DSPID="MPK00009002020646", 
-                status=PrescriptionStatus.AVAILABLE.value,
+                status=PrescriptionStatus.PENDING.value, 
                 drug_name="Diabex 1 g tablet, 90 1000 mg 90 Tablets",
                 drug_code="8607B", dose_instr="ONCE A DAY",
                 dose_qty=90, dose_rpt=6, prescribed_date="10/06/2021",
-                paperless=True, brand_sub_not_prmt=False
+                paperless=True, brand_sub_not_prmt=False,
+                # ALR fields
+                remaining_repeats=6, dispensed_at_this_pharmacy=False
             ),
             Prescription(
                 patient_id=1, prescriber_id=1,
@@ -84,46 +129,112 @@ def init_asl_database():
                 drug_name="Lipitor 10mg tablet, 30 10 mg 30 Tablets",
                 drug_code="8213G", dose_instr="ONCE A DAY",
                 dose_qty=30, dose_rpt=5, prescribed_date="10/06/2021",
-                paperless=False, brand_sub_not_prmt=False
+                paperless=False, brand_sub_not_prmt=False,
+                
+                remaining_repeats=5, dispensed_at_this_pharmacy=False
+            ),
+            
+            Prescription(
+                patient_id=1, prescriber_id=1,
+                DSPID="MPK00009002044444",
+                status=PrescriptionStatus.CANCELLED.value,  
+                drug_name="Panadol Extra 500mg tablet, 20 tablets",
+                drug_code="1234A", dose_instr="AS REQUIRED FOR PAIN",
+                dose_qty=20, dose_rpt=2, prescribed_date="15/06/2021",
+                paperless=True, brand_sub_not_prmt=False,
+                remaining_repeats=0, dispensed_at_this_pharmacy=False
             )
         ]
         
-        # Create ALR
+        # prescriptions for other patients (won't show due to ASL status)
+        other_patient_prescriptions = [
+            # Patient 2 (PENDING status) - has prescriptions, can't see it due to ASL status
+            Prescription(
+                patient_id=2, prescriber_id=1,
+                DSPID="MPK00009002055555",
+                status=PrescriptionStatus.AVAILABLE.value,
+                drug_name="Ventolin HFA 100mcg inhaler",
+                drug_code="2345B", dose_instr="TWO PUFFS TWICE DAILY",
+                dose_qty=1, dose_rpt=4, prescribed_date="15/12/2023",
+                paperless=True, brand_sub_not_prmt=False,
+                remaining_repeats=4, dispensed_at_this_pharmacy=False
+            ),
+            # Patient 3 (REJECTED status) - has prescriptions,  can't see it due to ASL status
+            Prescription(
+                patient_id=3, prescriber_id=1,
+                DSPID="MPK00009002066666",
+                status=PrescriptionStatus.AVAILABLE.value,
+                drug_name="Nexium 20mg tablet, 28 tablets",
+                drug_code="3456C", dose_instr="ONCE DAILY BEFORE BREAKFAST",
+                dose_qty=28, dose_rpt=3, prescribed_date="20/01/2024",
+                paperless=True, brand_sub_not_prmt=False,
+                remaining_repeats=3, dispensed_at_this_pharmacy=False
+            ),
+            # Patient 4 (NO_CONSENT status) - has prescriptions,  can't see it due to ASL status
+            Prescription(
+                patient_id=4, prescriber_id=1,
+                DSPID="MPK00009002077777",
+                status=PrescriptionStatus.AVAILABLE.value,
+                drug_name="Atorvastatin 40mg tablet, 30 tablets",
+                drug_code="4567D", dose_instr="ONCE DAILY AT NIGHT",
+                dose_qty=30, dose_rpt=5, prescribed_date="15/02/2024",
+                paperless=True, brand_sub_not_prmt=False,
+                remaining_repeats=5, dispensed_at_this_pharmacy=False
+            )
+        ]
+        
+        # ALR prescriptions
         alr_prescriptions = [
+            # DISPENSED with remaining repeats
             Prescription(
                 patient_id=1, prescriber_id=1,
-                DSPID=None,
+                DSPID=None,  # No DSPID for dispensed
                 status=PrescriptionStatus.DISPENSED.value,
                 drug_name="Levlen ED Tablets, 150mcg-30mcg(28)",
-                drug_code="1394J", dose_instr="",
-                dose_qty=4, dose_rpt=2, 
+                drug_code="1394J", dose_instr="ONCE DAILY",
+                dose_qty=4, dose_rpt=6,  
                 prescribed_date="05/07/2021", dispensed_date="05/07/2021",
-                paperless=False, brand_sub_not_prmt=False
+                paperless=False, brand_sub_not_prmt=False,
+                remaining_repeats=3,  # has 3 repeats left
+                dispensed_at_this_pharmacy=True  # Was dispensed at current pharmacy: Y/N
             ),
+            # second ALR example
             Prescription(
                 patient_id=1, prescriber_id=1,
                 DSPID=None,
                 status=PrescriptionStatus.DISPENSED.value,
-                drug_name="Diabex 1 g tablet, 90 1000 mg 90 Tablets",
-                drug_code="8607B", 
-                dose_instr="Shake well and inhale TWO puffs by mouth TWICE a day as directed by your physician",
-                dose_qty=1, dose_rpt=3,
+                drug_name="Nexium 20mg tablet, 28 tablets",  
+                drug_code="8888X", 
+                dose_instr="ONCE DAILY BEFORE BREAKFAST",  
+                dose_qty=28, dose_rpt=5,  
                 prescribed_date="10/06/2021", dispensed_date="23/06/2021",
-                paperless=True, brand_sub_not_prmt=False
+                paperless=True, brand_sub_not_prmt=False,
+               
+                remaining_repeats=2,  # has 2 repeats left  
+                dispensed_at_this_pharmacy=True
             )
         ]
         
-        # Add those info to database
+        #Add all patients to db
         db.session.add(patient)
-        db.session.add(patient2)
+        db.session.add(patient2)   
+        db.session.add(patient3)   
+        db.session.add(patient4)   
         db.session.add(prescriber)
         
-        for prescription in asl_prescriptions + alr_prescriptions:
+        # Add all prescription types
+        for prescription in asl_prescriptions + alr_prescriptions + other_patient_prescriptions:
             db.session.add(prescription)
         
         db.session.commit()
         print("ASL database initialized successfully")
-        print(f"Created: 2 patient, 1 prescriber, {len(asl_prescriptions + alr_prescriptions)} prescriptions")
+        # Update message
+        print(f"Created: 4 patients, 1 prescriber, {len(asl_prescriptions + alr_prescriptions + other_patient_prescriptions)} prescriptions")
+        print("Patient ASL statuses:")
+        print("- Patient 1 (Draga): GRANTED - can view ASL")
+        print("- Patient 2 (John): PENDING - waiting for SMS/email reply")
+        print("- Patient 3 (Sarah): REJECTED - patient denied access")
+        print("- Patient 4 (Michael): NO_CONSENT - never requested access before")
 
 if __name__ == '__main__':
     init_asl_database()
