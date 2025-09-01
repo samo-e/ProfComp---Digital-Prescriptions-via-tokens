@@ -8,12 +8,13 @@
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/asl.css') }}">
 {% endblock %}
+
 {% block scripts %}
-    <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
 
     <script>
         const pt_id = {{ pt }};
@@ -51,6 +52,7 @@
                 </div>
             </div>
         </div>
+        
         <div id="customer-asl-info" class="col">
             <div class="card card-body customer-card">
                 <div class="row">
@@ -59,40 +61,45 @@
                 <div class="row">
                     <div class="col">
                         <h4>Status</h4>
-                        <p>{{ 'Registered' if pt_data['consent-status']['is-registered'] else 'Not registered' }}</p>
+                        <p>Registered</p>
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            {% set enable_req_acc_btn = pt_data['consent-status']['status'] in ['No-Consent','Granted'] %}
-                            <button id="request-access-btn" 
+                            {% if pt_data.get('asl_status') == 'No-Consent' %}
+                            <button id="btn-request-access" 
                                 type="button" 
                                 class="btn btn-{{'info' if enable_req_acc_btn else 'secondary' }}  {{ pt_data['consent-status']['status'].lower() }}"
                                 {{ 'aria-disabled=true disabled' if not enable_req_acc_btn }}>
                                 Request Access
                             </button>
+                            {% endif %}
                             <button id="request-status-btn" type="button" class="btn btn-dark" onclick="refresh_consent()">Refresh</button>
                         </div>
                     </div>
                 </div>
+                
+
                 <div class="row">
                     <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            <span id="consent-status" class="{{ pt_data['consent-status']['status'].lower() }}">{{ pt_data['consent-status']['status'] }}</span>
-                            {% if pt_data['consent-status']['status'] != 'No-Consent' %}
+                            <span id="consent-status" class="{{ pt_data.get('asl_status').lower() }}">{{ pt_data.get('asl_status') }}</span>
+                            {% if pt_data.get('asl_status') != 'No-Consent' %}
                             <span>(</span>
                             <span class="fst-italic">last updated </span>
                             <span id="consent-last-updated" class="fst-italic">{{ pt_data['consent-status']['last-updated'].lower() }}</span>
                             <span>)</span>
                             {% endif %}
                         </span>
+                        {% if pt_data.get('asl_status') != 'No-Consent' %}
                         <button 
                             id="delete-consent-btn"
                             type="button"
                             data-bs-toggle="modal" data-bs-target="#delete-consent-menu"
-                            class="btn btn-dark btn-sm {{ pt_data['consent-status']['status'].lower() }}">
+                            class="btn btn-dark btn-sm {{ pt_data.get('asl_status').lower() }}">
                             Delete Consent
                         </button>
+                        {% endif %}
                     </p>
                 </div>
             </div>
@@ -100,9 +107,10 @@
     </div>
     <br>
     
+    {% if pt_data.get('can_view_asl') %}
     <div class="input-group">
         <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
-        <input type="search" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
+        <input type="search" id="search-input" class="form-control" placeholder="Search prescriptions" aria-label="Search" aria-describedby="basic-addon1">
     </div>
     <br>
     
@@ -114,12 +122,14 @@
                 </button>
             </div>
             <div class="col-10">
-                <p>ASL Scripts</p>
+                <p>ASL Scripts ({{ pt_data['asl_data']|length }} available)</p>
             </div>
             <div class="col-1">
+               {% if pt_data['asl_data']|length > 0 %}
                 <button id="script-print" class="btn btn-primary">
                     <i class="bi bi-printer-fill printer"></i>
                 </button>
+                {% endif %}
             </div>
         </div>
         <table id="asl-table" class="table table-hover collapse show">
@@ -150,10 +160,11 @@
         </table>
     </div>
     <br>
-    <div class="container">
+    
+   <div class="container">
         <div class="row">
             <div class="col-1">
-                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
+               <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
@@ -169,6 +180,8 @@
                 <th scope="col">Qty</th>
                 <th scope="col">Prescribed</th>
                 <th scope="col">Rpt</th>
+                <!-- Remaining repeats -->
+                <th scope="col">Remaining</th>
                 <th scope="col">Paperless</th>
                 </tr>
             </thead>
@@ -186,6 +199,9 @@
             </tbody>
         </table>
     </div>
+    
+    {% else %}
+    {% endif %}
 </div>
 
 <!-- Delete consent menu -->
