@@ -8,14 +8,12 @@
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/asl.css') }}">
 {% endblock %}
+
 {% block scripts %}
-    <!-- html2pdf -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
-
     <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
-
 
     <script>
         const pt_id = {{ pt }};
@@ -51,6 +49,7 @@
                 <p>{{ pt_data['preferred-contact'] }}</p>
             </div>
         </div>
+        
         <div id="customer-asl-info" class="col">
             <div class="card card-body customer-card">
                 <div class="row">
@@ -59,25 +58,46 @@
                 <div class="row">
                     <div class="col">
                         <h4>Status</h4>
-                        <p id="asl-status">{{ pt_data.get('asl_status', 'Registered') }}</p>
+                        <p id="asl-status">Registered</p>
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
-                            <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                            <!-- Button logic per ASL system -->
+                            {% if pt_data.get('asl_status') == 'No Consent' %}
+                                <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
+                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                            {% elif pt_data.get('asl_status') == 'Granted' %}
+                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                            {% else %}
+                                <button type="button" id="btn-request-access" class="btn btn-secondary" disabled>Request Access</button>
+                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
+                
+
                 <div class="row">
                     <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            <a id="consent-status" class="{{ 'granted' if pt_data.get('consent_status') == 'Granted' else 'revoked' }}">
-                                {{ pt_data.get('consent_status', 'Granted') }}
-                            </a>
-                            <a id="consent-last-updated">(last updated {{ pt_data.get('consent_last_updated', '01/Jan/2000 02:59AM') }})</a>
+                            {% if pt_data.get('asl_status') == 'No Consent' %}
+                                <a id="consent-status" style="color: black; font-weight: normal;">No Consent</a>
+                            {% elif pt_data.get('asl_status') == 'Pending' %}
+                                <a id="consent-status" style="color: orange;">Pending</a>
+                            {% elif pt_data.get('asl_status') == 'Granted' %}
+                                <a id="consent-status" style="color: green;">Granted</a>
+                            {% elif pt_data.get('asl_status') == 'Rejected' %}
+                                <a id="consent-status" style="color: red;">Rejected</a>
+                            {% endif %}
+                            
+                            {% if pt_data.get('asl_status') != 'No Consent' %}
+                            <a id="consent-last-updated"> (last updated {{ pt_data.get('consent_last_updated', '01/Jan/2000 02:59AM') }})</a>
+                            {% endif %}
                         </span>
+                        {% if pt_data.get('asl_status') != 'No Consent' %}
                         <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
+                        {% endif %}
                      </p>
                 </div>
             </div>
@@ -85,9 +105,10 @@
     </div>
     <br>
     
+    {% if pt_data.get('can_view_asl') %}
     <div class="input-group">
         <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
-        <input type="search" id="search-input" class="form-control" placeholder="Search" aria-label="Search" aria-describedby="basic-addon1">
+        <input type="search" id="search-input" class="form-control" placeholder="Search prescriptions" aria-label="Search" aria-describedby="basic-addon1">
     </div>
     <br>
     
@@ -99,15 +120,18 @@
                 </button>
             </div>
             <div class="col-10">
-                <p>ASL Scripts</p>
+                <p>ASL Scripts ({{ pt_data['asl_data']|length }} available)</p>
             </div>
             <div class="col-1">
+               {% if pt_data['asl_data']|length > 0 %}
                 <button id="script-print" class="btn btn-primary">
                     <i class="bi bi-printer-fill printer"></i>
                 </button>
+                {% endif %}
             </div>
         </div>
-        <table id="asl-table" class="table">
+        
+        <table id="asl-table" class="table collapse show">
             <thead>
                 <tr>
                     <th scope="col">Select</th>
@@ -120,33 +144,35 @@
                 </tr>
             </thead>
             <tbody>
-{% for asl in pt_data['asl_data'] %}
-<tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
-    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
-    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
-    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
-    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
-    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
-    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
-    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-</tr>
-{% endfor %}
+                {% for asl in pt_data['asl_data'] %}
+                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
+                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}"></td>
+                    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
+                    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+                    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
+                    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
+                    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
+                    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
     <br>
-    <div class="container">
+    
+   <div class="container">
         <div class="row">
             <div class="col-1">
-                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
+               <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
             <div class="col-11">
-                <p>Available Local Repeats (View Only)</p>
+                <p>Available Local Repeats - View Only ({{ pt_data['alr_data']|length }} with remaining repeats)</p>
             </div>
         </div>
-        <table id="alr-table"  class="table">
+        
+        <table id="alr-table" class="table collapse show">
             <thead>
                 <tr>
                 <th scope="col">Dispensed</th>
@@ -154,22 +180,29 @@
                 <th scope="col">Qty</th>
                 <th scope="col">Prescribed</th>
                 <th scope="col">Rpt</th>
+                <!-- Remaining repeats -->
+                <th scope="col">Remaining</th>
                 <th scope="col">Paperless</th>
                 </tr>
             </thead>
             <tbody>
-{% for alr in pt_data['alr_data'] %}
-<tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
-    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
-    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
-    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
-    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
-    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
-    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-</tr>
-{% endfor %}
+                {% for alr in pt_data['alr_data'] %}
+                <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
+                    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
+                    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
+                    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
+                    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
+                    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
+                    <!-- Show remaining repeats -->
+                    <td class="alr-remaining">{{ alr.get('remaining-repeats', 'N/A') }}</td>
+                    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+                </tr>
+                {% endfor %}
             </tbody>
         </table>
     </div>
+    
+    {% else %}
+    {% endif %}
 </div>
 {% endblock %}
