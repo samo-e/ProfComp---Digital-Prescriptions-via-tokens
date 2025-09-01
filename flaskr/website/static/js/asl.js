@@ -112,17 +112,7 @@ function request_access() {
         console.log('Request Access response:', data);
         if (data.success) {
             alert(data.message);
-            $('#asl-status').text(data.new_status);
-            
-            // Update button state based on response
-            if (data.should_disable_button) {
-            updateButtonStates('PENDING');
-            }
-            
-            // Show refresh button
-            if (data.new_status === 'Pending') {
-            $('#btn-refresh').show();
-            }
+            location.reload();
         } else {
             alert('Request failed: ' + data.error);
             // Re-enable button on failure
@@ -135,4 +125,8 @@ function request_access() {
         // Re-enable button on failure
         $('#btn-request-access').prop('disabled', false);
     });
+}
+
+function update_patient() {
+
 }
