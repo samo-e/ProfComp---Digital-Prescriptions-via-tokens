@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block body_class %}bg-light d-flex justify-content-center align-items-center vh-100{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block options_menu %}{% endblock %}
+
+{% block body %}
+<div class="card shadow-lg p-4" style="width: {% block card_width %}25rem{% endblock %}; border-radius: 1rem;">
+    <h3 class="text-center mb-4">{% block card_title %}{% endblock %}</h3>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    {% block form_content %}{% endblock %}
+    
+    {% block card_footer %}{% endblock %}
+</div>
+{% endblock %}
