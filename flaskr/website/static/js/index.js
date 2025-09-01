@@ -8,6 +8,7 @@ function load_dark_mode() {
   const theme = Cookies.get("theme") || "light";
   $("html").attr("data-bs-theme", theme);
   $("#switch-darkmode").prop("checked", theme === "dark");
+  set_button_theme(theme);
 
   // On toggle
   $("#switch-darkmode").on("change", function () {
@@ -15,16 +16,20 @@ function load_dark_mode() {
     $("html").attr("data-bs-theme", newTheme);
     Cookies.set("theme", newTheme, { expires: 365 });
 
-    const buttons = document.querySelectorAll('.btn-dark, .btn-light');
+    set_button_theme(newTheme);
+  });
+}
 
-    buttons.forEach(btn => {
-      if (btn.classList.contains('btn-dark')) {
-        btn.classList.remove('btn-dark');
-        btn.classList.add('btn-light');
-      } else if (btn.classList.contains('btn-light')) {
-        btn.classList.remove('btn-light');
-        btn.classList.add('btn-dark');
-      }
-    });
+function set_button_theme(theme) {
+  const buttons = document.querySelectorAll('.btn-dark, .btn-light');
+
+  buttons.forEach(btn => {
+    if (theme === "dark") {
+      btn.classList.remove('btn-dark');
+      btn.classList.add('btn-light');
+    } else {
+      btn.classList.remove('btn-light');
+      btn.classList.add('btn-dark');
+    }
   });
 }
