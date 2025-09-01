@@ -1,10 +1,9 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList
+from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField
 from wtforms.validators import length, Optional, Email, NumberRange
 
 DEFAULT_CHOICE = ("", "")
-class PatientForm(FlaskForm):
-    ### BASIC DETAILS
+class BasicDetailsSubForm(FlaskForm):
     # Personal
     lastName = StringField("Surname")
     givenName = StringField("Given name")
@@ -62,19 +61,16 @@ class PatientForm(FlaskForm):
     # Doctor
     doctor = StringField("Default Doctor")
 
-
-    ### SAFETY NET DETAILS
+class SafetyNetDetailsSubForm(FlaskForm):
     # Individual
     script_count_outside = DecimalField(
-        places=2,  # ensures step="0.01" for dollar amounts
-        validators=[NumberRange(min=0.01)],
-        render_kw={"step": "0.01", "min": "0.01"})
+        validators=[NumberRange(min=0)])
     script_count_inside = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     script_count_total = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     scripts_value_outside = DecimalField(
-        places=2,
+        places=2,  # ensures step="0.01" for dollar amounts
         validators=[NumberRange(min=0.00)],
         render_kw={"step": "0.01", "min": "0.00"})
     scripts_value_inside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
@@ -89,14 +85,39 @@ class PatientForm(FlaskForm):
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     # Family
     family_name = StringField("Family Name", render_kw={"disabled": True})
-    
-    ### ALLERGIES/HEALTH
-    ### ACCOUNTS
-    ### NOTES
+
+class AllergiesSubForm(FlaskForm):
+    pass
+
+class AccountsSubForm(FlaskForm):
+    pass
+
+class NotesSubForm(FlaskForm):
     patient_notes = FieldList(
         TextAreaField("Patient Notes", validators=[Optional()])
     )
     # Need to pass in each of the patient_notes_last_updated
-    ### CLINICAL INTERVENTIONS
-    ### SMS
-    ### CLUBS
+
+class ClinicalInterventionsSubForm(FlaskForm):
+    pass
+
+class SMSSubForm(FlaskForm):
+    pass
+
+class ClubsSubForm(FlaskForm):
+    pass
+
+class OtherSubForm(FlaskForm):
+    pass
+
+
+class PatientForm(FlaskForm):
+    basic     = FormField(BasicDetailsSubForm)
+    safetyNet = FormField(SafetyNetDetailsSubForm)
+    allergies = FormField(AllergiesSubForm)
+    accounts  = FormField(AccountsSubForm)
+    notes     = FormField(NotesSubForm)
+    clinical  = FormField(ClinicalInterventionsSubForm)
+    sms       = FormField(SMSSubForm)
+    clubs     = FormField(ClubsSubForm)
+    other     = FormField(OtherSubForm)

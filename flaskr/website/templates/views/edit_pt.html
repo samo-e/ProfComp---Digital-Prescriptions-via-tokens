@@ -68,27 +68,27 @@
         <!-- Personal Info -->
         <h5 class="my-3">Personal</h5>
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.lastName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.lastName(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.lastName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.lastName(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.givenName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.givenName(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.givenName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.givenName(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.title.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.title(class="form-select form-select-sm") }}</div>
+            <div class="col-2">{{ form.basic.title.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.title(class="form-select form-select-sm") }}</div>
 
-            <div class="col-2">{{ form.sex.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.sex(class="form-select form-select-sm") }}</div>
+            <div class="col-2">{{ form.basic.sex.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.sex(class="form-select form-select-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.dob.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.dob(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.dob.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.dob(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.ptNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
+            <div class="col-2">{{ form.basic.ptNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
         </div>
 
         <!-- Contact Info -->
@@ -102,123 +102,128 @@
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.suburb.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.suburb(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.suburb.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.suburb(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.state.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.state(class="form-select form-select-sm") }}</div>
+            <div class="col-2">{{ form.basic.state.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.state(class="form-select form-select-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.postcode.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.postcode(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.postcode.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.postcode(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.phone.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.phone(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.phone.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.phone(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.mobile.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.mobile(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.mobile.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.mobile(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.licence.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.licence(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.licence.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.licence(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
             <div class="col-2"></div>
             <div class="col-10">
-                <div class="form-check">{{ form.smsRepeats(class="form-check-input") }} {{ form.smsRepeats.label(class="form-check-label") }}</div>
-                <div class="form-check">{{ form.smsLastRepeats(class="form-check-input") }} {{ form.smsLastRepeats.label(class="form-check-label") }}</div>
-                <div class="form-check">{{ form.smsOwing(class="form-check-input") }} {{ form.smsOwing.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.basic.smsRepeats(class="form-check-input") }} {{ form.basic.smsRepeats.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.basic.smsLastRepeats(class="form-check-input") }} {{ form.basic.smsLastRepeats.label(class="form-check-label") }}</div>
+                <div class="form-check">{{ form.basic.smsOwing(class="form-check-input") }} {{ form.basic.smsOwing.label(class="form-check-label") }}</div>
             </div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.email.label(class="form-label form-label-sm") }}</div>
-            <div class="col-10">{{ form.email(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.email.label(class="form-label form-label-sm") }}</div>
+            <div class="col-10">{{ form.basic.email(class="form-control form-control-sm") }}</div>
         </div>
 
         <!-- Medicare -->
         <h5 class="my-3">Medicare</h5>
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.medicare.label(class="form-label form-label-sm") }}</div>
+            <div class="col-2">{{ form.basic.medicare.label(class="form-label form-label-sm") }}</div>
             <div class="col-4">
                 <div class="input-group input-group-sm w-100">
-                    {{ form.medicare(class="form-control form-control-sm w-75") }}
+                    {{ form.basic.medicare(class="form-control form-control-sm w-75") }}
                     <span class="input-group-text">-</span>
-                    {{ form.medicareIssue(class="form-control form-control-sm") }}
+                    {{ form.basic.medicareIssue(class="form-control form-control-sm") }}
                 </div>
             </div>
 
-            <div class="col-2">{{ form.medicareValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
+            <div class="col-2">{{ form.basic.medicareValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.medicareSurname.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.medicareSurname(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.medicareSurname.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.medicareSurname(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.medicareGivenName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.medicareGivenName(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.medicareGivenName.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.medicareGivenName(class="form-control form-control-sm") }}</div>
         </div>
 
         <!-- Concession -->
         <h5 class="my-3">Concession</h5>
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.concessionNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.concessionNumber(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.concessionNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.concessionNumber(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.concessionValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.concessionValidTo(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.concessionValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.concessionValidTo(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.safetyNetNumber(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.safetyNetNumber(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.repatriationNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.repatriationNumber(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.repatriationNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.repatriationNumber(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.repatriationValidTo(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.repatriationValidTo(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.repatriationType.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.repatriationType(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.repatriationType.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.repatriationType(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.ndssNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.ndssNumber(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.ndssNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.ndssNumber(class="form-control form-control-sm") }}</div>
         </div>
 
         <!-- My HR -->
         <h5 class="my-3">My HR</h5>
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.ihiNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.ihiNumber(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.ihiNumber.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.ihiNumber(class="form-control form-control-sm") }}</div>
 
-            <div class="col-2">{{ form.ihiStatus.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.ihiStatus(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.ihiStatus.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.ihiStatus(class="form-control form-control-sm") }}</div>
         </div>
 
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.ihiRecordStatus(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.ihiRecordStatus(class="form-control form-control-sm") }}</div>
         </div>
 
         <!-- Doctor -->
         <h5 class="my-3">Doctor</h5>
         <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.doctor.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.doctor(class="form-control form-control-sm") }}</div>
+            <div class="col-2">{{ form.basic.doctor.label(class="form-label form-label-sm") }}</div>
+            <div class="col-4">{{ form.basic.doctor(class="form-control form-control-sm") }}</div>
         </div>
     </div>{% endcall %}
 
     <!-- Saftey Net Tab -->
     {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}<div>
+        <h5 class="my-3">{{ form.basic.givenName.data or "First" }} {{ form.basic.lastName.data or "Last" }}</h5>
+        <!-- More research into PRF Gen/Con required -->
+        <p>PRF Gen: <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> (Ind)</p>
+        <p>PRF Con: <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> (Ind)</p>
+        <h5 class="my-3">Individual</h5>
         <div class="container">
             <div class="row fw-bold border-bottom">
                 <div class="col-3"></div>
@@ -229,9 +234,9 @@
 
             <div class="row align-items-center py-2">
                 <div class="col-3">Scripts Count</div>
-                <div class="col">{{ form.script_count_outside(class="form-control") }}</div>
-                <div class="col">{{ form.script_count_inside(class="form-control") }}</div>
-                <div class="col">{{ form.script_count_total(class="form-control") }}</div>
+                <div class="col">{{ form.safetyNet.script_count_outside(class="form-control") }}</div>
+                <div class="col">{{ form.safetyNet.script_count_inside(class="form-control") }}</div>
+                <div class="col">{{ form.safetyNet.script_count_total(class="form-control") }}</div>
             </div>
 
             <div class="row align-items-center py-2">
@@ -239,24 +244,25 @@
                 <div class="col">
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        {{ form.scripts_value_outside(class="form-control") }}
+                        {{ form.safetyNet.scripts_value_outside(class="form-control") }}
                     </div>
                 </div>
                 <div class="col">
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        {{ form.scripts_value_inside(class="form-control") }}
+                        {{ form.safetyNet.scripts_value_inside(class="form-control") }}
                     </div>
                 </div>
                 <div class="col">
                     <div class="input-group">
                         <span class="input-group-text">$</span>
-                        {{ form.scripts_value_total(class="form-control") }}
+                        {{ form.safetyNet.scripts_value_total(class="form-control") }}
                     </div>
                 </div>
             </div>
 
         </div>
+        <h5 class="my-3">Family</h5>
     </div>{% endcall %}
 {% if False %} <!-- Tab(s) have not been implemented -->
     <!-- Saftey Net Tab -->
