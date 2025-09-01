@@ -75,16 +75,18 @@ class PatientForm(FlaskForm):
         render_kw={"disabled": True})
     scripts_value_outside = DecimalField(
         places=2,
-        validators=[NumberRange(min=0.01)],
-        render_kw={"step": "0.01", "min": "0.01"})
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00"})
     scripts_value_inside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
-        validators=[NumberRange(min=0.01)],
-        render_kw={"step": "0.01", "min": "0.01", "disabled": True})
+        default=0.00,
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     scripts_value_total = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
-        validators=[NumberRange(min=0.01)],
-        render_kw={"step": "0.01", "min": "0.01", "disabled": True})
+        default=0.00,
+        validators=[NumberRange(min=0.00)],
+        render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     # Family
     family_name = StringField("Family Name", render_kw={"disabled": True})
     
