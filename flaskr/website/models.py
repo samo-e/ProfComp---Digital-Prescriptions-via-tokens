@@ -11,15 +11,12 @@ class PrescriptionStatus(Enum): # haven't user this yet
     DISPENSED = 2
     CANCELLED = 3
 
-class ConsentStatus(Enum):
-    GRANTED = 0
-    REVOKED = 1
-
-
-class ASLStatus(Enum):  #can't display this one for now (need to modify the front end later)
-    REGISTERED = 0
-    ACCESS_REQUESTED = 1
-    ACCESS_GRANTED = 2
+# Updated ASL Status combining consent and access status
+class ASLStatus(Enum):
+    NO_CONSENT = 0    
+    PENDING = 1      
+    GRANTED = 2       
+    REJECTED = 3     
 
 class Patient(db.Model):
     __tablename__ = 'patients'
@@ -38,16 +35,16 @@ class Patient(db.Model):
     pbs = db.Column(db.String(50), nullable=True) # set pbs and rpbs (for now their value are 'none')
     rpbs = db.Column(db.String(50), nullable=True)
     
-    # status stored as integer enum
-    consent_status = db.Column(db.Integer, default=ConsentStatus.GRANTED.value)
-    asl_status = db.Column(db.Integer, default=ASLStatus.REGISTERED.value)
-    consent_last_updated = db.Column(db.DateTime, default=datetime.utcnow)
-    
-    def get_consent_status(self):
-        return ConsentStatus(self.consent_status)
+    # Combined status=
+    asl_status = db.Column(db.Integer, default=ASLStatus.GRANTED.value)
+    consent_last_updated = db.Column(db.String(20), default=lambda: datetime.utcnow().strftime('%d/%m/%Y %H:%M'))
     
     def get_asl_status(self):
         return ASLStatus(self.asl_status)
+    
+    # check if pharmacy can view ASL data
+    def can_view_asl(self):
+        return self.asl_status == ASLStatus.GRANTED.value
 
 class Prescriber(db.Model):
     __tablename__ = 'prescribers'
@@ -84,6 +81,10 @@ class Prescription(db.Model):
     prescribed_date = db.Column(db.String(10))
     dispensed_date = db.Column(db.String(10), nullable=True)
     paperless = db.Column(db.Boolean, default=True)
+    
+    # Fields for ALR functionality
+    remaining_repeats = db.Column(db.Integer, nullable=True)  # How many repeats left after dispensing?
+    dispensed_at_this_pharmacy = db.Column(db.Boolean, default=False)  # was this dispensed at current pharmacy?
     
     # DB Relationships
     patient = db.relationship('Patient', backref='prescriptions')
