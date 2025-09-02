@@ -58,20 +58,20 @@ html {
     min-height: 100%;
 }
 
-#consent-status {
+#consent_status {
     text-decoration: none;
     font-weight: bold;
 }
-#consent-status.granted {
+#consent_status.granted {
     color: green;
 }
-#consent-status.rejected {
+#consent_status.rejected {
     color: red;
 }
-#consent-status.pending {
+#consent_status.pending {
     color: orange;
 }
-#consent-last-updated {
+#consent-last_updated {
     font-style: italic;
 }
 

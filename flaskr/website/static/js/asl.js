@@ -1,24 +1,23 @@
 $(document).ready(function() {
-    $('.btn-collapse').on('click', function() {
+  // collapse functionality
+  $('.btn-collapse').on('click', function() {
       var $btn = $(this);
       var $icon = $btn.find('i');
       $icon.toggleClass('bi-chevron-up bi-chevron-down');
-    });
-    
-    // Initialize button states based on ASL status
-    initializeButtonStates();
-    
-    // Request Access button
-    $('#btn-request-access').on('click', function() {
+  });
+  
+  // Initialize button
+  initializeButtonStates();
+  
+  // Request Access button
+  $('#btn-request-access').on('click', function() {
       console.log('Request Access clicked');
       
-      // Check if button should be disabled (e.g. for pending status, 'request access' would be disabled)
       if ($(this).prop('disabled')) {
-        console.log('Button is disabled, ignoring click');
-        return;
+          console.log('Button is disabled, ignoring click');
+          return;
       }
       
-      // disable button during request
       $(this).prop('disabled', true);
       
       $.post(`/api/asl/${pt_id}/request-access`)
@@ -28,34 +27,29 @@ $(document).ready(function() {
               alert(data.message);
               $('#asl-status').text(data.new_status);
               
-              // Update button state based on response
               if (data.should_disable_button) {
-                updateButtonStates('PENDING');
+                  updateButtonStates('PENDING');
               }
               
-              // Show refresh button
               if (data.new_status === 'Pending') {
-                $('#btn-refresh').show();
+                  $('#btn-refresh').show();
               }
           } else {
               alert('Request failed: ' + data.error);
-              // Re-enable button on failure
               $('#btn-request-access').prop('disabled', false);
           }
       })
       .fail(function(xhr, status, error) {
           console.error('Request Access failed:', status, error);
           alert('Request failed: ' + error);
-          // Re-enable button on failure
           $('#btn-request-access').prop('disabled', false);
       });
-    });
-  
-    // Refresh button function
-    $('#btn-refresh').on('click', function() {
+  });
+
+  // Refresh button
+  $('#btn-refresh').on('click', function() {
       console.log('Refresh clicked');
       
-      // Disable button during refresh
       $(this).prop('disabled', true).text('Refreshing...');
       
       $.post(`/api/asl/${pt_id}/refresh`)
@@ -64,7 +58,12 @@ $(document).ready(function() {
           if (data.success) {
               alert(data.message);
               
-              // Reload page if status or prescriptions updated
+              // Handle consent_status structure
+              if (data.consent_status) {
+                  $('#consent_status').text(data.consent_status.status);
+                  $('#consent-last_updated').text(`(last updated ${data.consent_status.last_updated})`);
+              }
+              
               if (data.should_reload) {
                   location.reload();
               }
@@ -81,16 +80,14 @@ $(document).ready(function() {
           }
       })
       .always(function() {
-          // Reset button state
           $('#btn-refresh').prop('disabled', false).text('Refresh');
       });
-    });
-  
-    // Delete Consent button
-    $('#btn-delete-consent').on('click', function() {
+  });
+
+  // Delete Consent button
+  $('#btn-delete-consent').on('click', function() {
       console.log('Delete Consent clicked');
       
-      // confirmation message before deleting
       if (!confirm('Delete consent record? This will reset the patient to "No Consent" status.')) {
           return;
       }
@@ -103,15 +100,13 @@ $(document).ready(function() {
               if (data.success) {
                   alert(data.message);
                   
-                  // Update UI to reflect NO_CONSENT state
-                  $('#consent-status').text('No Consent').removeClass('granted').addClass('revoked');
-                  $('#consent-last-updated').hide(); 
-                  $('#btn-delete-consent').hide(); 
+                  $('#consent_status').text('No Consent').removeClass('granted').addClass('revoked');
+                  $('#consent-last_updated').hide();
+                  $('#btn-delete-consent').hide();
                   $('#btn-request-access').removeClass('btn-secondary').addClass('btn-info')
                       .prop('disabled', false).text('Request Access').show();
-                  $('#btn-refresh').show(); // Show refresh button
+                  $('#btn-refresh').show();
                   
-                  // Reload page
                   if (data.should_reload) {
                       location.reload();
                   }
@@ -124,10 +119,10 @@ $(document).ready(function() {
               alert('Delete consent failed: ' + error);
           }
       });
-    });
-  
-    // search function
-    $('#search-input').on('input', function() {
+  });
+
+  // search functionality
+  $('#search-input').on('input', function() {
       const query = $(this).val().trim().toLowerCase();
       console.log('Search query:', query);
       
@@ -137,9 +132,9 @@ $(document).ready(function() {
       }
       
       performFrontendSearch(query);
-    });
-  
-    function performFrontendSearch(query) {
+  });
+
+  function performFrontendSearch(query) {
       let hasResults = false;
       
       $('#asl-table tbody tr').each(function() {
@@ -167,10 +162,9 @@ $(document).ready(function() {
       });
       
       handleNoResults(hasResults);
-    }
-  
-    //no results handling
-    function handleNoResults(hasResults) {
+  }
+
+  function handleNoResults(hasResults) {
       $('#no-results').remove();
       
       if (!hasResults) {
@@ -182,17 +176,15 @@ $(document).ready(function() {
               </tr>`;
           $('#asl-table tbody').append(noResultsRow);
       }
-    }
-  
-    //show all prescriptions 
-    function showAllPrescriptions() {
+  }
+
+  function showAllPrescriptions() {
       $('#asl-table tbody tr').show();
       $('#alr-table tbody tr').show();
       $('#no-results').remove();
-    }
-  
-    // printing function
-    $('#script-print').on('click', function() {
+  }
+
+  $('#script-print').on('click', function() {
       console.log('Print button clicked');
       
       const selectedIds = [];
@@ -201,59 +193,56 @@ $(document).ready(function() {
       });
       
       console.log('Selected prescription IDs:', selectedIds);
-    });
-  
-    // initialize button states based on ASL status
-    function initializeButtonStates() {
-      const aslStatus = pt_data.asl_status;
+  });
+
+  function initializeButtonStates() {
+      // consent_status nested structure
+      const aslStatus = pt_data['consent_status']['status'];
       updateButtonStates(aslStatus);
-    }
-    
-    // update button states based on ASL status
-    function updateButtonStates(status) {
+  }
+  
+  function updateButtonStates(status) {
       const $requestBtn = $('#btn-request-access');
       const $refreshBtn = $('#btn-refresh');
       const $deleteBtn = $('#btn-delete-consent');
       
-      // Reset all buttons first
       $requestBtn.removeClass('btn-secondary btn-info btn-warning btn-success').prop('disabled', false);
       $refreshBtn.show();
       $deleteBtn.show();
       
       switch(status.toUpperCase()) {
-        case 'NO CONSENT':
-        case 'NO_CONSENT':
-          $requestBtn.addClass('btn-info').prop('disabled', false).text('Request Access');
-          $refreshBtn.show().text('Refresh');
-          $deleteBtn.hide(); // No delete button
-          break;
-          
-        case 'PENDING':
-          $requestBtn.addClass('btn-secondary').prop('disabled', true).text('Request Access');
-          $refreshBtn.show().text('Refresh');
-          $deleteBtn.show();
-          break;
-          
-        case 'GRANTED':
-          // Hide Request Access
-          $requestBtn.hide();
-          $refreshBtn.show().text('Refresh');
-          $deleteBtn.show();
-          break;
-          
-        case 'REJECTED':
-          $requestBtn.addClass('btn-secondary').prop('disabled', true).text('Request Access');
-          $refreshBtn.show().text('Refresh');
-          $deleteBtn.show();
-          break;
-          
-        default:
-          console.warn('Unknown ASL status:', status);
+          case 'NO CONSENT':
+          case 'NO_CONSENT':
+              $requestBtn.addClass('btn-info').prop('disabled', false).text('Request Access');
+              $refreshBtn.show().text('Refresh');
+              $deleteBtn.hide();
+              break;
+              
+          case 'PENDING':
+              $requestBtn.addClass('btn-secondary').prop('disabled', true).text('Request Access');
+              $refreshBtn.show().text('Refresh');
+              $deleteBtn.show();
+              break;
+              
+          case 'GRANTED':
+              $requestBtn.hide();
+              $refreshBtn.show().text('Refresh');
+              $deleteBtn.show();
+              break;
+              
+          case 'REJECTED':
+              $requestBtn.addClass('btn-secondary').prop('disabled', true).text('Request Access');
+              $refreshBtn.show().text('Refresh');
+              $deleteBtn.show();
+              break;
+              
+          default:
+              console.warn('Unknown ASL status:', status);
       }
-    }
-  
-    // debug info
-    console.log('pt_id:', pt_id);
-    console.log('pt_data:', pt_data);
-    console.log('ASL Status:', pt_data.asl_status);
-  });
+  }
+
+  // Debug info
+  console.log('pt_id:', pt_id);
+  console.log('pt_data:', pt_data);
+  console.log('ASL Status:', pt_data['consent_status']['status']);
+});
