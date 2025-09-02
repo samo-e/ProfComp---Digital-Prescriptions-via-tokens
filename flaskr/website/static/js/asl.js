@@ -239,10 +239,10 @@ $(document).ready(function() {
           default:
               console.warn('Unknown ASL status:', status);
       }
-  }
-
-  // Debug info
-  console.log('pt_id:', pt_id);
-  console.log('pt_data:', pt_data);
-  console.log('ASL Status:', pt_data['consent_status']['status']);
-});
+    }
+  
+    // debug info
+    console.log('pt_id:', pt_id);
+    console.log('pt_data:', pt_data);
+    console.log('ASL Status:', pt_data['consent_status']['status']);
+  });
