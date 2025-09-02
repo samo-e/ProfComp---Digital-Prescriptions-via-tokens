@@ -230,7 +230,7 @@
         <!-- More research into PRF Gen/Con required -->
         <p>
             PRF Gen:
-            <span class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
+            <span id="prf-gen-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
                 <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
                 $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
                 (Fam)
@@ -239,9 +239,9 @@
             $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> 
             (Ind)
         </p>
-        <p>
-            PRF Gen:
-            <span class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
+        <p> <!-- This is different to the last p elem -->
+            PRF Con:
+            <span id="prf-con-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
                 <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
                 $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
                 (Fam)
@@ -293,7 +293,7 @@
             <div class="col-3">{{ form.safetyNet.family_name.label(class="form-label form-label-sm") }}</div>
             <div class="col">{{ form.safetyNet.family_name(class="form-control form-control-sm") }}</div>
         </div>
-        <div class="d-none">
+        <div id="fam-safety-net" class="d-none">
             <div class="container">
                 <div class="row fw-bold border-bottom">
                     <div class="col-3"></div>

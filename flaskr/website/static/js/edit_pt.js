@@ -128,6 +128,11 @@ $(document).ready(function() {
             irnInput.focus();
         }
     });
+
+    
+    $('#safetyNet-family_name').on('input', function() {
+        showFamilySafetyNet($(this));
+    });
 });
 
 function addTableRow(tableId, columnNames) {
@@ -179,4 +184,10 @@ function addNote() {
     $newNote.find("input[name*='last_edited']").val(formatted);
 
     $notesContainer.append($newNote);
+}
+
+function showFamilySafetyNet($e) {
+    if ($e.val().trim() !== '') {
+        $('#prf-gen-fam, #prf-con-fam, #fam-safety-net').removeClass('d-none');
+    }
 }
