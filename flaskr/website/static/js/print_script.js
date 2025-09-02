@@ -81,7 +81,7 @@ const id_list = [
   "rpbs-ben-entitlement-cardholder",
   "name",
   "dob",
-  "preferred_contact",
+  "preferred-contact",
   "address-1",
   "address-2",
   "script-date",
