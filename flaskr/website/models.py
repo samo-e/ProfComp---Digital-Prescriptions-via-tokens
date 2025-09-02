@@ -22,23 +22,26 @@ class Patient(db.Model):
     __tablename__ = 'patients'
     
     id = db.Column(db.Integer, primary_key=True)
-    medicare = db.Column(db.String(11))
+    # medicare Integer
+    medicare = db.Column(db.BigInteger)  # Contract specifies int
     pharmaceut_ben_entitlement_no = db.Column(db.String(20))
     sfty_net_entitlement_cardholder = db.Column(db.Boolean, default=False)
     rpbs_ben_entitlement_cardholder = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(100))
-    dob = db.Column(db.String(10))  # format is DD/MM/YYYY
-    preferred_contact = db.Column(db.String(20))
+    dob = db.Column(db.String(10))  # DD/MM/YYYY format
+    preferred_contact = db.Column(db.BigInteger)
     address_1 = db.Column(db.String(100))
     address_2 = db.Column(db.String(100))
     script_date = db.Column(db.String(10))
-    pbs = db.Column(db.String(50), nullable=True) # set pbs and rpbs (for now their value are 'none')
+    pbs = db.Column(db.String(50), nullable=True)
     rpbs = db.Column(db.String(50), nullable=True)
-    
-    # Combined status=
+    # flatten format in this file, will convert it to JSON format in views.py
     asl_status = db.Column(db.Integer, default=ASLStatus.GRANTED.value)
-    consent_last_updated = db.Column(db.String(20), default=lambda: datetime.utcnow().strftime('%d/%m/%Y %H:%M'))
+    consent_last_updated = db.Column(db.String(20), default=lambda: datetime.now().strftime('%d/%m/%Y %I:%M %p'))
     
+
+    is_registered = db.Column(db.Boolean, default=True)
+
     def get_asl_status(self):
         return ASLStatus(self.asl_status)
     
@@ -55,10 +58,10 @@ class Prescriber(db.Model):
     title = db.Column(db.String(100))
     address_1 = db.Column(db.String(100))
     address_2 = db.Column(db.String(100))
-    prescriber_id = db.Column(db.String(10))
-    hpii = db.Column(db.String(16)) # HPI-individual
-    hpio = db.Column(db.String(16)) #HPI - organisation
-    phone = db.Column(db.String(20))
+    prescriber_id = db.Column(db.Integer)  # int
+    hpii = db.Column(db.BigInteger)  # int
+    hpio = db.Column(db.BigInteger)  # int
+    phone = db.Column(db.String(20))  # str
     fax = db.Column(db.String(20), nullable=True)
 
 class Prescription(db.Model):

@@ -13,72 +13,76 @@ def init_asl_database():
         # GRANTED status test
         patient = Patient(
             id=1,
-            medicare="49502864011",
+            medicare=49502864011,  # int
             pharmaceut_ben_entitlement_no="NA318402K(W)",
             sfty_net_entitlement_cardholder=True,
             rpbs_ben_entitlement_cardholder=False,
             name="Draga Diaz",
             dob="26/01/1998",
-            preferred_contact="0401 234 567",
+            preferred_contact=401234567,
             address_1="33 JIT DR",
             address_2="CHARAM VIC 3318",
             script_date="30/11/2020",
             pbs=None,
-            rpbs=None
+            rpbs=None,
+            is_registered=True  # Added
         )
         
         # pending status
         patient2 = Patient(
             id=2,
-            medicare="12345678901",
+            medicare=12345678901,  # int
             pharmaceut_ben_entitlement_no="TEST123456(X)",
             sfty_net_entitlement_cardholder=False,
             rpbs_ben_entitlement_cardholder=True,
             name="John Smith",
             dob="15/03/1985",
-            preferred_contact="0412 345 678",
+            preferred_contact= 412345678,
             address_1="123 Main St",
             address_2="MELBOURNE VIC 3000",
             script_date="15/12/2023",
             pbs=None,
             rpbs=None,
-            asl_status=ASLStatus.PENDING.value
+            asl_status=ASLStatus.PENDING.value,
+            is_registered=True  # Added
         )
         
         # REJECTED status
         patient3 = Patient(
             id=3,
-            medicare="98765432109",
+            medicare=98765432109,  # int
             pharmaceut_ben_entitlement_no="REJ789012(Z)",
             sfty_net_entitlement_cardholder=True,
             rpbs_ben_entitlement_cardholder=False,
             name="Sarah Johnson",
             dob="10/07/1992",
-            preferred_contact="0455 123 456",
+            preferred_contact= 455123456,
             address_1="456 Oak Ave",
             address_2="PERTH WA 6000",
             script_date="20/01/2024",
             pbs=None,
             rpbs=None,
-            asl_status=ASLStatus.REJECTED.value  # Patient rejected access
+            asl_status=ASLStatus.REJECTED.value,
+            is_registered=True  # Added
         )
         
         # NO_CONSENT status
         patient4 = Patient(
             id=4,
-            medicare="11122233344",
+            medicare=11122233344,  # int
             pharmaceut_ben_entitlement_no="NEW456789(A)",
             sfty_net_entitlement_cardholder=False,
             rpbs_ben_entitlement_cardholder=False,
             name="Michael Brown",
             dob="05/09/1975",
-            preferred_contact="0433 987 654",
+            preferred_contact= 433987654,
             address_1="789 Pine St",
             address_2="SYDNEY NSW 2000",
             script_date="15/02/2024",
             pbs=None,
             rpbs=None,
-            asl_status=ASLStatus.NO_CONSENT.value 
+            asl_status=ASLStatus.NO_CONSENT.value,
+            is_registered=True  # Added
         )
         
         # Create test prescriber
@@ -89,9 +93,9 @@ def init_asl_database():
             title="( MBBS; FRACGP )",
             address_1="Level 3  60 Albert Rd",
             address_2="SOUTH MELBOURNE VIC 3205",
-            prescriber_id="987774",
-            hpii="8003619900026805",
-            hpio="8003626566692846",
+            prescriber_id=987774,  
+            hpii=8003619900026805,  
+            hpio=8003626566692846,  
             phone="03 9284 3300",
             fax=None
         )
@@ -107,19 +111,17 @@ def init_asl_database():
                 drug_code="9007C", dose_instr="ONCE A DAY",
                 dose_qty=30, dose_rpt=6, prescribed_date="10/06/2021",
                 paperless=True, brand_sub_not_prmt=False,
-                # ALR fields
                 remaining_repeats=6, dispensed_at_this_pharmacy=False
             ),
             # prescription PENDING status - prescribed but not yet visible in ASL table
             Prescription(
                 patient_id=1, prescriber_id=1,
                 DSPID="MPK00009002020646", 
-                status=PrescriptionStatus.PENDING.value, 
+                status=PrescriptionStatus.PENDING.value,
                 drug_name="Diabex 1 g tablet, 90 1000 mg 90 Tablets",
                 drug_code="8607B", dose_instr="ONCE A DAY",
                 dose_qty=90, dose_rpt=6, prescribed_date="10/06/2021",
                 paperless=True, brand_sub_not_prmt=False,
-                # ALR fields
                 remaining_repeats=6, dispensed_at_this_pharmacy=False
             ),
             Prescription(
@@ -130,14 +132,13 @@ def init_asl_database():
                 drug_code="8213G", dose_instr="ONCE A DAY",
                 dose_qty=30, dose_rpt=5, prescribed_date="10/06/2021",
                 paperless=False, brand_sub_not_prmt=False,
-                
                 remaining_repeats=5, dispensed_at_this_pharmacy=False
             ),
             
             Prescription(
                 patient_id=1, prescriber_id=1,
                 DSPID="MPK00009002044444",
-                status=PrescriptionStatus.CANCELLED.value,  
+                status=PrescriptionStatus.CANCELLED.value,
                 drug_name="Panadol Extra 500mg tablet, 20 tablets",
                 drug_code="1234A", dose_instr="AS REQUIRED FOR PAIN",
                 dose_qty=20, dose_rpt=2, prescribed_date="15/06/2021",
