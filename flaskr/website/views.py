@@ -53,10 +53,10 @@ def asl(pt: int):
             "rpbs": patient.rpbs,
             
             #consent_status nested format
-            "consent_status": {
+            "consent-status": {
                 "is-registered": patient.is_registered,
                 "status": patient.get_asl_status().name.replace('_', ' ').title(),
-                "last_updated": patient.consent_last_updated if patient.consent_last_updated else "01/Jan/2000 02:59AM"
+                "last-updated": patient.consent_last_updated if patient.consent_last_updated else "01/Jan/2000 02:59AM"
             },
             
         
@@ -166,10 +166,10 @@ def refresh_asl(pt: int):
                 'message': f'Patient {patient.name} replied and granted access! {updated_count} prescriptions now available.',
                 'updated_prescriptions': updated_count,
                 'should_reload': True,
-                'consent_status': {
-                    'is_registered': patient.is_registered,
+                'consent-status': {
+                    'is-registered': patient.is_registered,
                     'status': patient.get_asl_status().name.replace('_', ' ').title(),
-                    'last_updated': patient.consent_last_updated
+                    'last-updated': patient.consent_last_updated
                 }
             })
             
@@ -224,10 +224,10 @@ def request_access(pt: int):
         return jsonify({
             'success': True,
             'message': f'Access request sent to {patient.name}. Patient will receive SMS/email to approve.',
-            'consent_status': {
-                'is_registered': patient.is_registered,
+            'consent-status': {
+                'is-registered': patient.is_registered,
                 'status': 'Pending',
-                'last_updated': patient.consent_last_updated
+                'last-updated': patient.consent_last_updated
             },
             'should_disable_button': True
         })
@@ -251,10 +251,10 @@ def delete_consent(pt: int):
         return jsonify({
             'success': True,
             'message': f'Consent record deleted for {patient.name}. Can now request access again.',
-            'consent_status': {
-                'is_registered': patient.is_registered,
+            'consent-status': {
+                'is-registered': patient.is_registered,
                 'status': 'No Consent',
-                'last_updated': patient.consent_last_updated
+                'last-updated': patient.consent_last_updated
             },
             'should_reload': True
         })
