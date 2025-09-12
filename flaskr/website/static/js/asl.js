@@ -59,9 +59,9 @@ $(document).ready(function() {
               alert(data.message);
               
               // Handle consent_status structure
-              if (data.consent_status) {
-                  $('#consent_status').text(data.consent_status.status);
-                  $('#consent-last_updated').text(`(last updated ${data.consent_status.last_updated})`);
+              if (data['consent-status']) {
+                $('#consent-status').text(data['consent-status'].status);
+                $('#consent-last-updated').text(`(last updated ${data['consent-status']['last-updated']})`);
               }
               
               if (data.should_reload) {
@@ -100,8 +100,8 @@ $(document).ready(function() {
               if (data.success) {
                   alert(data.message);
                   
-                  $('#consent_status').text('No Consent').removeClass('granted').addClass('revoked');
-                  $('#consent-last_updated').hide();
+                  $('#consent-status').text('No Consent').removeClass('consent-granted consent-pending consent-rejected').addClass('consent-no-consent');
+                  $('#consent-last-updated').hide();
                   $('#btn-delete-consent').hide();
                   $('#btn-request-access').removeClass('btn-secondary').addClass('btn-info')
                       .prop('disabled', false).text('Request Access').show();
@@ -197,7 +197,7 @@ $(document).ready(function() {
 
   function initializeButtonStates() {
       // consent_status nested structure
-      const aslStatus = pt_data['consent_status']['status'];
+      const aslStatus = pt_data['consent-status']['status'];
       updateButtonStates(aslStatus);
   }
   
@@ -244,5 +244,5 @@ $(document).ready(function() {
     // debug info
     console.log('pt_id:', pt_id);
     console.log('pt_data:', pt_data);
-    console.log('ASL Status:', pt_data['consent_status']['status']);
+    console.log('ASL Status:', pt_data['consent-status']['status']);
   });
