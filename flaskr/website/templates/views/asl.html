@@ -62,10 +62,10 @@
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
                             <!-- onsent-status nested format -->
-                            {% if pt_data['consent_status']['status'] == 'No Consent' %}
+                            {% if pt_data['consent-status']['status'] == 'No Consent' %}
                                 <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
                                 <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
-                            {% elif pt_data['consent_status']['status'] == 'Granted' %}
+                            {% elif pt_data['consent-status']['status'] == 'Granted' %}
                                 <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
                             {% else %}
                                 <button type="button" id="btn-request-access" class="btn btn-secondary" disabled>Request Access</button>
@@ -76,27 +76,27 @@
                 </div>
                 
                 <div class="row">
-                    <h4 class="col-12">ASL Status</h4>
+                    <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
                             <!-- consent_status nested structure -->
-                            {% if pt_data['consent_status']['status'] == 'No Consent' %}
-                                <a id="consent_status" style="color: black; font-weight: normal;">{{ pt_data['consent_status']['status'] }}</a>
-                            {% elif pt_data['consent_status']['status'] == 'Pending' %}
-                                <a id="consent_status" style="color: orange;">{{ pt_data['consent_status']['status'] }}</a>
-                            {% elif pt_data['consent_status']['status'] == 'Granted' %}
-                                <a id="consent_status" style="color: green;">{{ pt_data['consent_status']['status'] }}</a>
-                            {% elif pt_data['consent_status']['status'] == 'Rejected' %}
-                                <a id="consent_status" style="color: red;">{{ pt_data['consent_status']['status'] }}</a>
+                            {% if pt_data['consent-status']['status'] == 'No Consent' %}
+                                <a id="consent-status" class="consent-no-consent">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Pending' %}
+                                <a id="consent-status" class="consent-pending">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Granted' %}
+                                <a id="consent-status" class="consent-granted">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Rejected' %}
+                                <a id="consent-status" class="consent-rejected">{{ pt_data['consent-status']['status'] }}</a>
                             {% endif %}
                             
                            
-                            {% if pt_data['consent_status']['status'] != 'No Consent' %}
-                            <a id="consent-last_updated"> (Last Updated {{ pt_data['consent_status']['last_updated'] }})</a>
+                            {% if pt_data['consent-status']['status'] != 'No Consent' %}
+                            <a id="consent-last-updated"> (Last Updated {{ pt_data['consent-status']['last-updated'] }})</a>
                             {% endif %}
                         </span>
                       
-                        {% if pt_data['consent_status']['status'] != 'No Consent' %}
+                        {% if pt_data['consent-status']['status'] != 'No Consent' %}
                         <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
                         {% endif %}
                      </p>
