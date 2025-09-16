@@ -62,15 +62,24 @@ html {
     text-decoration: none;
     font-weight: bold;
 }
-#consent-status.granted {
-    color: green;
+
+.consent-no-consent {
+    color: black;
+    font-weight: normal;
 }
-#consent-status.rejected {
-    color: red;
-}
-#consent-status.pending {
+
+.consent-pending {
     color: orange;
 }
+
+.consent-granted {
+    color: green;
+}
+
+.consent-rejected {
+    color: red;
+}
+
 #consent-last-updated {
     font-style: italic;
 }
