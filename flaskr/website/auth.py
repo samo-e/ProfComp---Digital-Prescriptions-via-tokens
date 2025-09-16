@@ -14,7 +14,10 @@ def home():
 def login():
     if current_user.is_authenticated:
         # Redirect to dashboard or home if already logged in
-        return redirect(url_for('views.teacher_dashboard'))  # or student_dashboard, or a general dashboard
+        if current_user.is_teacher():
+            return redirect(url_for('views.teacher_dashboard'))
+        if current_user.is_student():
+            return redirect(url_for('views.student_dashboard'))
 
     if request.method == 'POST':
         email = request.form.get('email')
