@@ -12,6 +12,7 @@
 {% block scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     
+    <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
     <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
 
@@ -27,26 +28,29 @@
     <h2>Active Script List</h2>
     <div class="row">
         <div id="customer-details" class="col">
-            <div class="row">
-                <h3>Customer Details (ASL)</h3>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <h4>Name</h4>
-                    <p>{{ pt_data['name'] }}</p>
+            <div class="card card-body customer-card">
+                <button id="update-pt" onclick="update_patient()" class="btn btn-secondary position-absolute end-0 top-0 mt-2 me-2">UPDATE</button>
+                <div class="row">
+                    <h3>Customer Details (ASL)</h3>
                 </div>
-                <div class="col">
-                    <h4>Date of Birth</h4>
-                    <p>{{ pt_data['dob'] }}</p>
+                <div class="row">
+                    <div class="col">
+                        <h5>Name</h5>
+                        <p>{{ pt_data['name'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h5>Date of Birth</h5>
+                        <p>{{ pt_data['dob'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h5>Address</h5>
+                        <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                    </div>
                 </div>
-                <div class="col">
-                    <h4>Address</h4>
-                    <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                <div class="row">
+                    <h5>Preferred Contact</h5>
+                    <p class="mb-0">{{ pt_data['preferred-contact'] }}</p>
                 </div>
-            </div>
-            <div class="row">
-                <h4>Preferred Contact</h4>
-                <p>{{ pt_data['preferred-contact'] }}</p>
             </div>
         </div>
         
@@ -57,48 +61,47 @@
                 </div>
                 <div class="row">
                     <div class="col">
-                        <h4>Status</h4>
-                        <p id="asl-status">Registered</p>
+                        <h5>Status</h5>
+                        <p>Registered</p><!-- TODO fix this hardcoded value -->
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            <!-- Button logic per ASL system -->
-                            {% if pt_data.get('asl_status') == 'No Consent' %}
-                                <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
-                            {% elif pt_data.get('asl_status') == 'Granted' %}
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
-                            {% else %}
-                                <button type="button" id="btn-request-access" class="btn btn-secondary" disabled>Request Access</button>
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                            {% if pt_data.get('asl_status').lower() == 'No Consent'.lower() %}
+                            <button id="btn-request-access" 
+                                type="button" 
+                                class="btn btn-info {{ pt_data['asl_status'].lower() }}"
+                                onclick="request_access()">
+                                Request Access
+                            </button>
                             {% endif %}
+                            <button id="request-status-btn" type="button" class="btn btn-dark" onclick="refresh_consent()">Refresh</button>
                         </div>
                     </div>
                 </div>
                 
 
                 <div class="row">
-                    <h4 class="col-12">Consent Status</h4>
+                    <h5 class="col-12">Consent Status</h5>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            {% if pt_data.get('asl_status') == 'No Consent' %}
-                                <a id="consent-status" style="color: black; font-weight: normal;">No Consent</a>
-                            {% elif pt_data.get('asl_status') == 'Pending' %}
-                                <a id="consent-status" style="color: orange;">Pending</a>
-                            {% elif pt_data.get('asl_status') == 'Granted' %}
-                                <a id="consent-status" style="color: green;">Granted</a>
-                            {% elif pt_data.get('asl_status') == 'Rejected' %}
-                                <a id="consent-status" style="color: red;">Rejected</a>
-                            {% endif %}
-                            
-                            {% if pt_data.get('asl_status') != 'No Consent' %}
-                            <a id="consent-last-updated"> (last updated {{ pt_data.get('consent_last_updated', '01/Jan/2000 02:59AM') }})</a>
+                            <span id="consent-status" class="{{ pt_data.get('asl_status').lower() }}">{{ pt_data.get('asl_status') }}</span>
+                            {% if pt_data.get('asl_status').lower() != 'no consent' %}
+                            <span>(</span>
+                            <span class="fst-italic">last updated </span>
+                            <span id="consent-last-updated" class="fst-italic">{{ pt_data['consent_last_updated'].lower() }}</span>
+                            <span>)</span>
                             {% endif %}
                         </span>
-                        {% if pt_data.get('asl_status') != 'No Consent' %}
-                        <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
+                        {% if pt_data.get('asl_status').lower() != 'no consent' %}
+                        <button 
+                            id="delete-consent-btn"
+                            type="button"
+                            data-bs-toggle="modal" data-bs-target="#delete-consent-menu"
+                            class="btn btn-dark btn-sm {{ pt_data.get('asl_status').lower() }}">
+                            Delete Consent
+                        </button>
                         {% endif %}
-                     </p>
+                    </p>
                 </div>
             </div>
         </div>
@@ -110,28 +113,30 @@
         <span class="input-group-text" id="basic-addon1"><i class="bi bi-search"></i></span>
         <input type="search" id="search-input" class="form-control" placeholder="Search prescriptions" aria-label="Search" aria-describedby="basic-addon1">
     </div>
+    <div id="no-results" class="invisible">
+        <p class="mb-0">No matching prescriptions found!</p>
+    </div>
     <br>
     
     <div class="container">
         <div class="row">
             <div class="col-1">
-                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#asl-table" aria-controls="asl-table">
+                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#asl-table" aria-controls="asl-table" aria-expanded="true">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
             <div class="col-10">
-                <p>ASL Scripts ({{ pt_data['asl_data']|length }} available)</p>
+                <h4>ASL Scripts</h4>
             </div>
             <div class="col-1">
                {% if pt_data['asl_data']|length > 0 %}
-                <button id="script-print" class="btn btn-primary">
+                <button id="script-print" class="btn btn-primary" onclick="print_scripts()">
                     <i class="bi bi-printer-fill printer"></i>
                 </button>
                 {% endif %}
             </div>
         </div>
-        
-        <table id="asl-table" class="table collapse show">
+        <table id="asl-table" class="table table-hover collapse show">
             <thead>
                 <tr>
                     <th scope="col">Select</th>
@@ -144,17 +149,17 @@
                 </tr>
             </thead>
             <tbody>
-                {% for asl in pt_data['asl_data'] %}
-                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}"></td>
-                    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
-                    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
-                    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
-                    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
-                    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
-                    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                </tr>
-                {% endfor %}
+{% for asl in pt_data['asl_data'] %}
+<tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
+    <td class="asl-check"><input class="form-check-input" type="checkbox" value="" id="asl-scripts-check-{{ loop.index }}"></td>
+    <td class="asl-date">{{ asl['prescribed-date'] }}</td>
+    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+    <td class="asl-qty">{{ asl['dose-qty'] }}</td>
+    <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
+    <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
+    <td class="asl-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
             </tbody>
         </table>
     </div>
@@ -168,11 +173,10 @@
                 </button>
             </div>
             <div class="col-11">
-                <p>Available Local Repeats - View Only ({{ pt_data['alr_data']|length }} with remaining repeats)</p>
+                <h4>Available Local Repeats (View Only)</h4>
             </div>
         </div>
-        
-        <table id="alr-table" class="table collapse show">
+        <table id="alr-table"  class="table table-hover collapse show">
             <thead>
                 <tr>
                 <th scope="col">Dispensed</th>
@@ -180,29 +184,51 @@
                 <th scope="col">Qty</th>
                 <th scope="col">Prescribed</th>
                 <th scope="col">Rpt</th>
-                <!-- Remaining repeats -->
-                <th scope="col">Remaining</th>
                 <th scope="col">Paperless</th>
                 </tr>
             </thead>
             <tbody>
-                {% for alr in pt_data['alr_data'] %}
-                <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
-                    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
-                    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
-                    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
-                    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
-                    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
-                    <!-- Show remaining repeats -->
-                    <td class="alr-remaining">{{ alr.get('remaining-repeats', 'N/A') }}</td>
-                    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
-                </tr>
-                {% endfor %}
+{% for alr in pt_data['alr_data'] %}
+<tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
+    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
+    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
+    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
+    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
+    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
+    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+</tr>
+{% endfor %}
             </tbody>
         </table>
     </div>
     
     {% else %}
     {% endif %}
+</div>
+
+<!-- Delete consent menu -->
+<div class="modal fade" id="delete-consent-menu" tabindex="-1" aria-labelledby="delete-consent-menu-label" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 fw-bold" id="delete-consent-menu-label">Edit Consent</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row d-table">
+                    <div class="col-2 d-table-cell pe-0">
+                        <button onclick="delete_consent()" type="button" class="btn btn-danger">Delete Consent</button>
+                    </div>
+                    <div class="col-10 d-table-cell align-middle">
+                        <p class="mb-0">This will delete the existing consent. You will need to request consent again if you wish to access the patient's ASL</p>
+                    </div>
+                    
+                </div>
+            </div>
+            <div class="modal-footer justify-content-right">
+                <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
