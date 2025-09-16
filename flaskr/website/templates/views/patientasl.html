@@ -1,0 +1,233 @@
+{% extends "base.html" %} {% block title %}Patient ASL Information{% endblock %}
+{% block head %}{% endblock %} {% block styles %}
+<link
+  href="{{ url_for('static', filename='css/patientasl.css') }}"
+  rel="stylesheet"
+/>
+{% endblock %} {% block scripts %}{% endblock %} {% block body %}
+<div class="container-fluid py-3 ps-0">
+  <!-- Header -->
+  <div class="d-flex align-items-center border-bottom pb-2 mb-3">
+    <i class="bi bi-person-fill me-2 fs-4 text-secondary"></i>
+    <span class="fw-semibold">Patient Registration for Active Script List</span>
+  </div>
+
+  <!-- Section toggle -->
+  <div class="d-flex align-items-center mb-2">
+    <button
+      type="button"
+      class="btn btn-light btn-collapse me-2"
+      data-bs-toggle="collapse"
+      data-bs-target="#general"
+      aria-controls="general"
+    >
+      <i class="bi bi-chevron-up"></i>
+    </button>
+    <span class="small">General</span>
+  </div>
+
+  <div id="general" class="collapse show mb-3">
+  <h6 class="fw-bold mb-1 ms-1">Personal</h6>
+
+  <div class="container-fluid">
+    <!-- Row 1 -->
+    <div class="row g-3 mb-1">
+      <div class="col-md-6">
+        <div class="row">
+          <label for="familyName" class="col-sm-4 col-form-label"
+            >Family Name</label
+          >
+          <div class="col-sm-8">
+            <input id="familyName" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="row">
+          <label for="givenName" class="col-sm-4 col-form-label"
+            >Given Name</label
+          >
+          <div class="col-sm-8">
+            <input id="givenName" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="row g-3 mb-1">
+      <div class="col-md-6">
+        <div class="row">
+          <label for="DateOfBirth" class="col-sm-4 col-form-label"
+            >Date of Birth</label
+          >
+          <div class="col-sm-8">
+            <input id="DateOfBirth" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="row">
+          <label for="Gender" class="col-sm-4 col-form-label">Gender</label>
+          <div class="col-sm-8">
+            <input id="Gender" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Address -->
+  <h6 class="fw-bold mb-1 ms-1">Address</h6>
+  <div class="container-fluid">
+    <!-- Street spans full width with fixed label width -->
+    <div class="row mb-1">
+      <label for="Street" class="col-sm-2 col-form-label">Street</label>
+      <div class="col-sm-10">
+        <input id="Street" type="text" class="form-control" />
+      </div>
+    </div>
+
+    <!-- City / State -->
+    <div class="row g-3 mb-1">
+      <div class="col-md-6">
+        <div class="row">
+          <label for="City" class="col-sm-4 col-form-label">City</label>
+          <div class="col-sm-8">
+            <input id="City" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="row">
+          <label for="State" class="col-sm-4 col-form-label">State</label>
+          <div class="col-sm-8">
+            <input id="State" type="text" class="form-control" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Post Code -->
+     
+    <div class="row">
+      <label for="PostCode" class="col-sm-2 col-form-label">Post Code</label>
+      <div class="col-sm-3">
+        <input id="PostCode" type="text" class="form-control" />
+      </div>
+    </div>
+  </div>
+
+<h6 class="fw-bold mb-1 ms-1">Contact</h6>
+<div class="container-fluid">
+  <!-- Street spans full width with fixed label width -->
+
+  <!-- City / State -->
+  <div class="row g-3 mb-1">
+    <div class="col-md-6">
+      <div class="row">
+        <label for="Mobile" class="col-sm-4 col-form-label">Mobile</label>
+        <div class="col-sm-8">
+          <input id="Mobile" type="text" class="form-control" />
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="row">
+        <label for="Home" class="col-sm-4 col-form-label">Home</label>
+        <div class="col-sm-8">
+          <input id="Home" type="text" class="form-control" />
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row mb-1">
+    <label for="Email" class="col-sm-2 col-form-label">Email</label>
+    <div class="col-sm-10">
+      <input id="Email" type="text" class="form-control" />
+    </div>
+  </div>
+</div>
+
+<h6 class="fw-bold mb-1 ms-1">Identifiers</h6>
+<div class="container-fluid">
+  <!-- Street spans full width with fixed label width -->
+
+  <!-- City / State -->
+  <div class="row g-3 mb-1">
+    <div class="col-md-6">
+      <div class="row">
+        <label for="Medicare" class="col-sm-4 col-form-label">Medicare</label>
+        <div class="col-sm-8">
+          <input id="Medicare" type="text" class="form-control" />
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="row">
+        <label for="DVA" class="col-sm-4 col-form-label">DVA</label>
+        <div class="col-sm-8">
+          <input id="DVA" type="text" class="form-control" />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+  <!-- Section toggle -->
+<div class="d-flex align-items-center mb-2">
+    <button
+      type="button"
+      class="btn btn-light btn-collapse me-2"
+      data-bs-toggle="collapse"
+      data-bs-target="#contacts"
+      aria-controls="contacts"
+    >
+      <i class="bi bi-chevron-up"></i>
+    </button>
+    <span class="small">Contacts</span>
+  </div>
+  <div id="contacts" class="collapse show mb-3">
+  <h6 class="fw-bold mb-1 ms-1">Carer/Agent Details</h6>
+  <div class="container-fluid">
+  <div class="d-grid gap-2 mb-3">
+    <button type="button" class="btn btn-primary btn-lg"
+            onclick="location.href='#'">
+      Add Manual, Add Exisiting Patient, Add Nursing Home
+    </button>
+  </div>
+</div>
+</div>
+
+  <div class="d-flex align-items-center mb-2">
+    <button
+      type="button"
+      class="btn btn-light btn-collapse me-2"
+      data-bs-toggle="collapse"
+      data-bs-target="#alr-table"
+      aria-controls="alr-table"
+    >
+      <i class="bi bi-chevron-up"></i>
+    </button>
+    <span class="small">Preferred Contact</span>
+  </div>
+
+  <div class="d-flex align-items-center mb-2">
+    <button
+      type="button"
+      class="btn btn-light btn-collapse me-2"
+      data-bs-toggle="collapse"
+      data-bs-target="#alr-table"
+      aria-controls="alr-table"
+    >
+      <i class="bi bi-chevron-up"></i>
+    </button>
+    <span class="small">Consent</span>
+  </div>
+{% endblock %} {% block options_menu %}{% endblock %} F

@@ -179,3 +179,7 @@ class PatientForm(FlaskForm):
     sms       = FormField(SMSSubForm)
     clubs     = FormField(ClubsSubForm)
     other     = FormField(OtherSubForm)
+
+
+class ASLForm(FlaskForm):
+    basic = FormField(BasicDetailsSubForm)

@@ -6,7 +6,7 @@ views = Blueprint('views', __name__)
 
 @views.route('/')
 def home():
-    return "index"
+    return render_template("base.html")
 
 @views.route('/dashboard')
 def teacher_dashboard():
@@ -159,6 +159,10 @@ def asl(pt: int):
 @views.route('/prescription') # I imagine each ASL would be accessed by the patient's IHI
 def prescription():
     return render_template("views/prescription/prescription.html")
+
+@views.route('/patient-asl/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
+def patient_asl(pt: int):
+    return render_template("views/patientasl.html", pt=pt)
 
 @views.route('/edit-pt/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
