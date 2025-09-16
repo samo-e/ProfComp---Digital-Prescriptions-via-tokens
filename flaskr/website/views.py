@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, flash
+from flask import Blueprint, render_template, request, jsonify, flash, redirect
 from .forms import PatientForm  # Import PatientForm from the correct module
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
 from sqlalchemy import or_
