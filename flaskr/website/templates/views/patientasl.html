@@ -4,7 +4,7 @@
   href="{{ url_for('static', filename='css/patientasl.css') }}"
   rel="stylesheet"
 />
-{% endblock %} {% block scripts %}{% endblock %} {% block body %}
+{% endblock %} {% block scripts %}<script src="{{ url_for('static', filename='js/patientasl.js') }}"></script>{% endblock %} {% block body %}
 <div class="container-fluid py-3 ps-0">
   <!-- Header -->
   <div class="d-flex align-items-center border-bottom pb-2 mb-3">
@@ -197,11 +197,11 @@
   <h6 class="fw-bold mb-1 ms-1">Carer/Agent Details</h6>
   <div class="container-fluid">
 <div class="d-flex gap-2 mb-3">
-  <button type="button" class="btn btn-primary btn-sm">Add Manual</button>
-  <button type="button" class="btn btn-primary btn-sm">Add Existing Patient</button>
-  <button type="button" class="btn btn-primary btn-sm">Add Nursing Home</button>
+  <button id="btn-add-manual" type="button" class="btn btn-primary btn-sm">Add Manual</button>
+  <button id="btn-add-existing" type="button" class="btn btn-primary btn-sm">Add Existing Patient</button>
+  <button id="btn-add-nursing-home" type="button" class="btn btn-primary btn-sm">Add Nursing Home</button>
 </div>
-  <div class="border p-3 rounded">
+  <div id="carer-form" class="border p-3 rounded">
       <h6 class="fw-bold mb-2">Carer/Agent Information</h6>
 
       <div class="row mb-2">
@@ -252,7 +252,7 @@
       </div>
 
       <div class="d-flex justify-content-end">
-        <button type="button" class="btn btn-danger btn-sm">
+        <button id="btn-delete-carer" type="button" class="btn btn-danger btn-sm">
           Delete
         </button>
       </div>
