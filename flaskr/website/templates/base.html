@@ -25,6 +25,22 @@
 <body>
 {% block body %}{% endblock %}
 {% block options_menu %}
+<!-- User Info Bar (if logged in) -->
+{% if current_user.is_authenticated %}
+<div class="position-fixed top-0 start-0 p-3" style="z-index: 1000;">
+    <div class="d-flex align-items-center gap-2">
+        <span class="badge bg-primary">
+            <i class="bi bi-person-circle"></i> 
+            {{ current_user.get_full_name() }} 
+            ({{ current_user.role|capitalize }})
+        </span>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-danger">
+            <i class="bi bi-box-arrow-right"></i> Logout
+        </a>
+    </div>
+</div>
+{% endif %}
+
 <!-- Options Menu -->
 <div class="position-fixed top-0 end-0 p-3">
     <a type="button" data-bs-toggle="modal" data-bs-target="#options-menu">
@@ -47,11 +63,27 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="switch-darkmode">
                     <label class="form-check-label" for="switch-darkmode">Darkmode</label>
                 </div>
+                
+                {% if current_user.is_authenticated %}
+                <hr class="my-4">
+                <h2 class="fs-5 mb-3">Account</h2>
+                <p class="text-muted">
+                    Logged in as: <strong>{{ current_user.get_full_name() }}</strong><br>
+                    Email: {{ current_user.email }}<br>
+                    Role: {{ current_user.role|capitalize }}
+                </p>
+                {% endif %}
             </div>
             <div class="modal-footer justify-content-between">
+                {% if current_user.is_authenticated %}
                 <a class="btn btn-outline-warning fw-bold" href="{{ url_for('auth.logout') }}">
                     <i class="bi bi-box-arrow-right"></i> Logout
                 </a>
+                {% else %}
+                <a class="btn btn-outline-primary fw-bold" href="{{ url_for('auth.login') }}">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+                {% endif %}
                 <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
