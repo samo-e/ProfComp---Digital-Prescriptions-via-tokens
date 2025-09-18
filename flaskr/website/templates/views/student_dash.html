@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+
+{% block styles %}
+    <style>
+        body > .container {
+            margin-top: 3%;
+            margin-bottom: 3%;
+        }
+        .scenario-card {
+            transition: transform 0.2s;
+        }
+        .scenario-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <h2><i class="bi bi-person-badge"></i> Student Dashboard</h2>
+        <p class="mb-0">Welcome back, {{ current_user.get_full_name() }}!</p>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-clipboard-check" style="font-size: 2rem; color: #667eea;"></i>
+                    <h5 class="card-title mt-2">Assigned Scenarios</h5>
+                    <p class="card-text display-6">{{ scenarios|length if scenarios else 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #f59e0b;"></i>
+                    <h5 class="card-title mt-2">In Progress</h5>
+                    <p class="card-text display-6">{{ scenarios|selectattr('completed_at', 'none')|list|length if scenarios else 0 }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <i class="bi bi-trophy" style="font-size: 2rem; color: #10b981;"></i>
+                    <h5 class="card-title mt-2">Completed</h5>
+                    <p class="card-text display-6">{{ scenarios|rejectattr('completed_at', 'none')|list|length if scenarios else 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Scenarios Section -->
+    <div class="row">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="bi bi-journal-medical"></i> Your Assigned Scenarios</h3>
+            
+            {% if scenarios and scenarios|length > 0 %}
+                <div class="row">
+                    {% for scenario in scenarios %}
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card scenario-card h-100">
+                            <div class="card-header">
+                                <strong>{{ scenario.name }}</strong>
+                                {% if scenario.version > 1 %}
+                                    <span class="badge bg-info">v{{ scenario.version }}</span>
+                                {% endif %}
+                                {% if scenario.password %}
+                                    <span class="badge bg-warning"><i class="bi bi-lock"></i> Protected</span>
+                                {% endif %}
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">{{ scenario.description|default('No description available', true) }}</p>
+                                
+                                <div class="mb-2">
+                                    <small class="text-muted">
+                                        <i class="bi bi-person"></i> Created by: {{ scenario.creator.get_full_name() if scenario.creator else 'Unknown' }}
+                                    </small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i> Assigned: {{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
+                                    </small>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-grid gap-2">
+                                    {% if scenario.patient_data and scenario.patient_data|length > 0 %}
+                                        <a href="{{ url_for('views.asl', pt=scenario.patient_data[0].patient_id) }}" 
+                                           class="btn btn-primary">
+                                            <i class="bi bi-play-circle"></i> Start Scenario
+                                        </a>
+                                    {% else %}
+                                        <button class="btn btn-secondary" disabled>
+                                            <i class="bi bi-exclamation-triangle"></i> No Patient Data
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="alert alert-info" role="alert">
+                    <i class="bi bi-info-circle"></i> No scenarios have been assigned to you yet. 
+                    Please check back later or contact your teacher.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Practice Patients Section (if no scenarios) -->
+    {% if not scenarios or scenarios|length == 0 %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <h3 class="mb-3"><i class="bi bi-people"></i> Practice Patients</h3>
+            <p class="text-muted">You can practice with these sample patients while waiting for assigned scenarios:</p>
+            
+            <div class="list-group">
+                <a href="{{ url_for('views.asl', pt=1) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Draga Diaz</h5>
+                        <small class="text-muted">Patient ID: 1</small>
+                    </div>
+                    <p class="mb-1">DOB: 26/01/1998 | Medicare: 49502864011</p>
+                    <small class="text-success"><i class="bi bi-check-circle"></i> ASL Access Granted</small>
+                </a>
+                
+                <a href="{{ url_for('views.asl', pt=2) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">John Smith</h5>
+                        <small class="text-muted">Patient ID: 2</small>
+                    </div>
+                    <p class="mb-1">DOB: 15/03/1985 | Medicare: 12345678901</p>
+                    <small class="text-warning"><i class="bi bi-clock"></i> ASL Pending</small>
+                </a>
+                
+                <a href="{{ url_for('views.asl', pt=3) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Sarah Johnson</h5>
+                        <small class="text-muted">Patient ID: 3</small>
+                    </div>
+                    <p class="mb-1">DOB: 10/07/1992 | Medicare: 98765432109</p>
+                    <small class="text-danger"><i class="bi bi-x-circle"></i> ASL Rejected</small>
+                </a>
+                
+                <a href="{{ url_for('views.asl', pt=4) }}" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">Michael Brown</h5>
+                        <small class="text-muted">Patient ID: 4</small>
+                    </div>
+                    <p class="mb-1">DOB: 05/09/1975 | Medicare: 11122233344</p>
+                    <small class="text-secondary"><i class="bi bi-dash-circle"></i> No Consent</small>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
