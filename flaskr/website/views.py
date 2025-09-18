@@ -6,20 +6,22 @@ from datetime import datetime
 
 views = Blueprint('views', __name__)
 
-# Helper function to check teacher role
+# Helper decorator to require teacher role
+from functools import wraps
+
 def teacher_required(f):
     """Decorator to require teacher role"""
+    @wraps(f)
+    @login_required
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_teacher():
+        if not current_user.is_teacher():
             flash('You need to be a teacher to access this page', 'error')
             return redirect(url_for('auth.home'))
         return f(*args, **kwargs)
-    decorated_function.__name__ = f.__name__
     return decorated_function
 
 # Teacher Dashboard
 @views.route('/teacher/dashboard')
-@login_required
 @teacher_required
 def teacher_dashboard():
     """Teacher dashboard showing all scenarios"""
