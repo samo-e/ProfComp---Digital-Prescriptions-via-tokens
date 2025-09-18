@@ -21,9 +21,13 @@ def home():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login"""
-    # Redirect if already logged in
+    # If already logged in and trying to access login page
     if current_user.is_authenticated:
-        return redirect(url_for('auth.home'))
+        # Check if user wants to switch accounts (indicated by accessing login directly)
+        if request.method == 'GET':
+            # Show a message that they're already logged in
+            flash(f'You are already logged in as {current_user.get_full_name()}. Please logout first to switch accounts.', 'info')
+            return redirect(url_for('auth.home'))
     
     if request.method == 'POST':
         email = request.form.get('email')
