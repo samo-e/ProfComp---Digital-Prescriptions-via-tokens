@@ -8,14 +8,12 @@ def index():
             return redirect(url_for('views.student_dashboard'))
     return redirect(url_for('auth.login'))from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
+from functools import wraps
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, Scenario, User
 from sqlalchemy import or_
 from datetime import datetime
 
 views = Blueprint('views', __name__)
-
-# Helper decorator to require teacher role
-from functools import wraps
 
 def teacher_required(f):
     """Decorator to require teacher role"""
