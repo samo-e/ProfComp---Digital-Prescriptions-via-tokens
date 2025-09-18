@@ -21,13 +21,17 @@ def home():
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     """Handle user login"""
+    # Check if user is trying to switch accounts (has 'switch' parameter)
+    if request.args.get('switch') == 'true' and current_user.is_authenticated:
+        logout_user()
+        flash('You have been logged out. Please login with your new account.', 'info')
+        return redirect(url_for('auth.login'))
+    
     # If already logged in and trying to access login page
     if current_user.is_authenticated:
-        # Check if user wants to switch accounts (indicated by accessing login directly)
+        # Show a page with options
         if request.method == 'GET':
-            # Show a message that they're already logged in
-            flash(f'You are already logged in as {current_user.get_full_name()}. Please logout first to switch accounts.', 'info')
-            return redirect(url_for('auth.home'))
+            return render_template("auth/already_logged_in.html", user=current_user)
     
     if request.method == 'POST':
         email = request.form.get('email')
@@ -62,6 +66,10 @@ def login():
         if not user.is_active:
             flash('Your account has been deactivated. Please contact an administrator.', 'error')
             return render_template("auth/login.html")
+        
+        # If a different user is trying to login, logout the current user first
+        if current_user.is_authenticated and current_user.id != user.id:
+            logout_user()
         
         # Update last login time
         user.last_login = datetime.now()
