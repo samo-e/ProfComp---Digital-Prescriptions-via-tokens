@@ -8,6 +8,11 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asl_simulation.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    # Session configuration for better security
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour session timeout
+    
     # CSRF Protection
     csrf = CSRFProtect(app)
     
