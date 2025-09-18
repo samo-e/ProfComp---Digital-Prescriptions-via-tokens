@@ -1,4 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+@views.route('/')
+def index():
+    """Root route - redirects to appropriate dashboard"""
+    if current_user.is_authenticated:
+        if current_user.is_teacher():
+            return redirect(url_for('views.teacher_dashboard'))
+        else:
+            return redirect(url_for('views.student_dashboard'))
+    return redirect(url_for('auth.login'))from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, Scenario, User
 from sqlalchemy import or_
