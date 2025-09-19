@@ -1,5 +1,5 @@
 
-from flask import Blueprint, render_template, redirect, url_for, flash，jsonify
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
 from sqlalchemy import or_
@@ -23,7 +23,7 @@ def teacher_dashboard():
         return redirect(url_for('views.student_dashboard'))
     return render_template("views/teacher_dash.html")
   
- @views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
+@views.route('/edit-pt/<pt>') # I imagine each ASL would be accessed by the patient's IHI
 def edit_pt(pt: int):
     return render_template("views/edit_pt.html")
 

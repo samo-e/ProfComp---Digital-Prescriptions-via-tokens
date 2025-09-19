@@ -13,7 +13,8 @@
 </head>
 
 {% extends "base.html" %}
-<body class="bg-light d-flex justify-content-center align-items-center vh-100">
+{% block body %}
+<div class="bg-light d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow-lg p-4" style="width: 22rem; border-radius: 1rem;">
         <h3 class="text-center mb-4">Sign Up</h3>
         <form method="POST">
@@ -52,5 +53,5 @@
             <button type="submit" class="btn btn-primary w-100">Create Account</button>
         </form>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
