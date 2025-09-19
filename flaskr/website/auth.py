@@ -33,6 +33,7 @@ def login():
 
                 flash('Login successful!', category='success')
                 login_user(user, remember=True)
+                print(f"[DEBUG] auth.py: login successful")
                 return redirect(url_for('views.teacher_dashboard'))
             else:
                 flash('Invalid role.', category='error')
