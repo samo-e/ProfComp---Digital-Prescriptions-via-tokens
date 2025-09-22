@@ -70,7 +70,7 @@ def edit_pt(scenario_id):
         patient = Patient(
             name=f"{request.form.get('basic-lastName')} {request.form.get('basic-givenName')}",
             dob=request.form.get('basic-dob'),
-            preferred_contact=request.form.get('basic-sex')
+            sex=request.form.get('basic-sex')
         )
 
         db.session.add(patient)
@@ -500,9 +500,18 @@ def prescription():
     """Printing pdf"""
     return render_template("views/prescription/prescription.html")
 
-@views.route('/patient-asl/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
-def patient_asl(pt: int):
-    return render_template("views/patientasl.html", pt=pt)
+@views.route('/scenario/<int:scenario_id>/patient/<int:patient_id>/asl', methods=["GET", "POST"])
+def patient_asl_form(scenario_id, patient_id):
+    """Simple placeholder route for patient ASL creation."""
+    patient = Patient.query.get_or_404(patient_id)
+
+    if request.method == "POST":
+        # For now just flash a message, later save ASL to DB
+        flash(f"ASL created for {patient.name}!", "success")
+        return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+    return render_template("views/patientasl.html", patient=patient, scenario_id=scenario_id)
+
 
 
 @views.route('/ac') # Maybe '/api/ac'

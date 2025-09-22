@@ -38,7 +38,10 @@
             >Family Name</label
           >
           <div class="col-sm-8">
-            <input id="familyName" type="text" class="form-control" />
+            <input id="familyName" type="text" class="form-control"
+       value="{{ patient.family_name if patient.family_name else patient.name.split(' ')[-1] }}"
+       readonly>
+
           </div>
         </div>
       </div>
@@ -49,7 +52,9 @@
             >Given Name</label
           >
           <div class="col-sm-8">
-            <input id="givenName" type="text" class="form-control" />
+            <input id="givenName" type="text" class="form-control"
+       value="{{ patient.given_name if patient.given_name else patient.name.split(' ')[0] }}"
+       readonly>
           </div>
         </div>
       </div>
@@ -63,7 +68,9 @@
             >Date of Birth</label
           >
           <div class="col-sm-8">
-            <input id="DateOfBirth" type="text" class="form-control" />
+            <input id="DateOfBirth" type="text" class="form-control"
+       value="{{ patient.dob }}"
+       readonly>
           </div>
         </div>
       </div>
@@ -72,7 +79,9 @@
         <div class="row">
           <label for="Gender" class="col-sm-4 col-form-label">Gender</label>
           <div class="col-sm-8">
-            <input id="Gender" type="text" class="form-control" />
+            <input id="Gender" type="text" class="form-control"
+       value="{{ patient.sex if patient.sex else 'N/A' }}"
+       readonly>
           </div>
         </div>
       </div>

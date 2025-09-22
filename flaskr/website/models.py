@@ -125,6 +125,7 @@ class Patient(db.Model):
     sfty_net_entitlement_cardholder = db.Column(db.Boolean, default=False)
     rpbs_ben_entitlement_cardholder = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(100))
+    sex = db.Column(db.String(10))
     dob = db.Column(db.String(10))  # format is DD/MM/YYYY
     preferred_contact = db.Column(db.String(20))
     address_1 = db.Column(db.String(100))
