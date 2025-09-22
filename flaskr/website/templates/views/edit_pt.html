@@ -22,7 +22,7 @@
         </button>
     </div>
 
-    <!-- Navigation tabs -->
+    <!-- Navigation tabs (visible only on medium+ screens) -->
     <ul class="nav nav-tabs mb-3 d-none d-md-flex" id="formTabs" role="tablist">
         {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
         {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net") }}
@@ -34,7 +34,7 @@
         {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs") }}
         {{ pt_macros.add_tab("other",                   "Other",                    "other") }}
     </ul>
-    <!-- Dropdown (visible only on small screens) -->
+    <!-- Dropdown (visible only on small- screens) -->
     <div class="dropdown d-lg-none">
         <div class="nav nav-tabs" data-bs-toggle="dropdown">
         <div class="nav-item">
@@ -228,8 +228,28 @@
     {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}<div>
         <h5 class="my-3">{{ form.basic.givenName.data or "First" }} {{ form.basic.lastName.data or "Last" }}</h5>
         <!-- More research into PRF Gen/Con required -->
-        <p>PRF Gen: <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> (Ind)</p>
-        <p>PRF Con: <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> (Ind)</p>
+        <p>
+            PRF Gen:
+            <span id="prf-gen-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
+                <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
+                $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
+                (Fam)
+            </span>
+            <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, 
+            $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> 
+            (Ind)
+        </p>
+        <p> <!-- This is different to the last p elem -->
+            PRF Con:
+            <span id="prf-con-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
+                <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
+                $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
+                (Fam)
+            </span>
+            <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, 
+            $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> 
+            (Ind)
+        </p>
         <h5 class="my-3">Individual</h5>
         <div class="container">
             <div class="row fw-bold border-bottom">
@@ -267,14 +287,56 @@
                     </div>
                 </div>
             </div>
-
         </div>
         <h5 class="my-3">Family</h5>
         <div class="row align-items-left py-2">
             <div class="col-3">{{ form.safetyNet.family_name.label(class="form-label form-label-sm") }}</div>
             <div class="col">{{ form.safetyNet.family_name(class="form-control form-control-sm") }}</div>
         </div>
+        <div id="fam-safety-net" class="d-none">
+            <div class="container">
+                <div class="row fw-bold border-bottom">
+                    <div class="col-3"></div>
+                    <div class="col">Outside</div>
+                    <div class="col">Inside</div>
+                    <div class="col">Total</div>
+                </div>
 
+                <div class="row align-items-center py-2">
+                    <div class="col-3">Family Scripts Count</div>
+                    <div class="col">{{ form.safetyNet.family_script_count_outside(class="form-control") }}</div>
+                    <div class="col">{{ form.safetyNet.family_script_count_inside(class="form-control") }}</div>
+                    <div class="col">{{ form.safetyNet.family_script_count_total(class="form-control") }}</div>
+                </div>
+
+                <div class="row align-items-center py-2">
+                    <div class="col-3">Family Scripts Value</div>
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.safetyNet.family_scripts_value_outside(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.safetyNet.family_scripts_value_inside(class="form-control") }}
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            {{ form.safetyNet.family_scripts_value_total(class="form-control") }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row align-items-center py-2">
+                {% call pt_macros.add_table_form_element("family-members","Family members", ["Name","Type"]) %}<div>
+
+                </div>{% endcall %}
+            </div>
+        </div>
     </div>{% endcall %}
 
 {% if False %} <!-- Tab(s) have not been implemented -->
