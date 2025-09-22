@@ -1,13 +1,111 @@
-from flask import Blueprint, render_template, request, jsonify, flash, redirect
-from .forms import PatientForm  # Import PatientForm from the correct module
+
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
+from .forms import PatientForm
+from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
 from sqlalchemy import or_
 from datetime import datetime
-import requests  # Import requests module
+import requests
 
 views = Blueprint('views', __name__)
 
-@views.route('/asl/<int:pt>')
+@views.route('/student_dashboard')
+@login_required 
+def student_dashboard():
+    if not current_user.role.value == "student":
+        flash("Access denied: Students only.", "error")
+        return redirect(url_for('views.teacher_dashboard'))
+    return render_template("views/student_dashboard.html")
+
+@views.route('/teacher_dashboard')
+@login_required 
+def teacher_dashboard():
+    if not current_user.role.value == "teacher":
+        flash("Access denied: Teachers only.", "error")
+        return redirect(url_for('views.student_dashboard'))
+    return render_template("views/teacher_dash.html")
+
+@views.route('/scenario/<int:scenario_id>/set_current/<int:patient_id>', methods=["POST"])
+def set_current_patient(scenario_id, patient_id):
+    # clear existing current patient (if you only allow one)
+    Patient.query.update({Patient.asl_status: None})  # or use a separate column like is_current
+
+    # mark this patient as current
+    patient = Patient.query.get(patient_id)
+    patient.asl_status = "current"   # or patient.is_current = True if you added that column
+    db.session.commit()
+
+    flash(f"Patient {patient.name} set as current!", "success")
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+@views.route('/scenario/<int:scenario_id>/dashboard')
+def scenario_dashboard(scenario_id):
+    patients = Patient.query.all()
+
+    # pick the first patient with status=current (or use is_current flag)
+    current_patient = Patient.query.filter_by(asl_status="current").first()
+
+    return render_template(
+        "views/scenario_dashboard.html",
+        scenario_id=scenario_id,
+        patients=patients,
+        current_patient=current_patient
+    )
+
+@views.route('/scenario/<int:scenario_id>/create_patient')
+def create_patient(scenario_id):
+    return f"<h1>Create Patient Page for Scenario {scenario_id}</h1>"
+
+  
+@views.route('/edit-pt/<int:scenario_id>', methods=["GET", "POST"])
+def edit_pt(scenario_id):
+    # grab patient if exists
+    patient = Patient.query.first()  # for now just grab first, later filter by scenario_id
+    form = PatientForm(obj=patient)  # keep passing form to template
+
+    if request.method == "POST":
+        print("Form data:", request.form)  # debug
+
+        # manually create Patient from raw POST data
+        patient = Patient(
+            name=f"{request.form.get('basic-lastName')} {request.form.get('basic-givenName')}",
+            dob=request.form.get('basic-dob'),
+            preferred_contact=request.form.get('basic-sex')
+        )
+
+        db.session.add(patient)
+        db.session.commit()
+
+        flash("Patient details saved successfully!", "success")
+        return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+    # always pass form to template to avoid 'undefined'
+    return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id)
+
+
+@views.route('/scenario/<int:scenario_id>/delete-pt/<int:patient_id>', methods=["POST", "GET"])
+def delete_pt(scenario_id, patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+    
+    db.session.delete(patient)
+    db.session.commit()
+
+    flash("Patient deleted successfully!", "success")
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+
+
+
+@views.route('/show-users')
+def show_users():
+    from .models import User
+    users = User.query.all()
+    return '<br>'.join([
+        f'ID: {u.id} | Username: {u.username} | Email: {u.email} | Password: {u.password} | Role: {u.role}'
+        for u in users
+    ])
+  
+@views.route('/asl/<int:pt>') 
 def asl(pt: int):
     """ASL page: show patient prescriptions"""
     try:
@@ -145,7 +243,6 @@ def asl(pt: int):
                 "hpio": prescriber.hpio,
                 "clinician-phone": prescriber.phone,
                 "clinician-fax": prescriber.fax,
-
                 "prescriber": {
                     "fname": prescriber.fname,
                     "lname": prescriber.lname,
@@ -397,6 +494,7 @@ def print_selected_prescriptions():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @views.route('/prescription')
 def prescription():
     """Printing pdf"""
@@ -406,24 +504,6 @@ def prescription():
 def patient_asl(pt: int):
     return render_template("views/patientasl.html", pt=pt)
 
-@views.route('/edit-pt/<int:pt>') # I imagine each ASL would be accessed by the patient's IHI
-def edit_pt(pt: int):
-    form = PatientForm()
-    if form.validate_on_submit():
-        # TODO: save to DB
-
-        flash("Patient details saved successfully!", "success")
-
-        return redirect(url_for("views.edit_pt", pt=pt))
-
-    elif request.method == "POST":
-        for field, errors in form.errors.items():
-            label = getattr(form, field).label.text
-            for err in errors:
-                flash(f"{label}: {err}", "danger")
-    
-    else:
-        return render_template("views/edit_pt.html", form=form, pt=pt)
 
 @views.route('/ac') # Maybe '/api/ac'
 def ac():
@@ -447,3 +527,4 @@ def ac():
     resp = requests.get(url, params=params)
 
     return resp.json()['results']
+
