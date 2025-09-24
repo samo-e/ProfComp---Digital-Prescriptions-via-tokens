@@ -150,29 +150,76 @@ class Role(enum.Enum):
     STUDENT = "student"
     TEACHER = "teacher"
 
+# Define roles
+class Role(enum.Enum):
+    STUDENT = "student"
+    TEACHER = "teacher"
+
 class User(UserMixin, db.Model):
     __tablename__ = "users"
-
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password = db.Column(db.String(256), nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
     role = db.Column(db.Enum(Role), nullable=False)
 
-    # Relationships (optional, if you’ll add more tables later)
-    # teacher_profile = db.relationship('Teacher', backref='user', uselist=False)
-    # student_profile = db.relationship('Student', backref='user', uselist=False)
-
+    # --- Password handling ---
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    # --- Role checks ---
     def is_teacher(self):
         return self.role == Role.TEACHER
 
     def is_student(self):
         return self.role == Role.STUDENT
 
+    # --- Permissions ---
+    def can_edit_scenario(self):
+        return self.is_teacher()
+
+    def can_edit_patient(self):
+        return self.is_teacher()
+
+    def can_create_asl(self):
+        return self.is_teacher()
+
+    def can_edit_asl(self):
+        return self.is_teacher()
+
+    def can_dispense(self):
+        return True  # both teacher + student
+
+class Scenario(db.Model):
+    __tablename__ = 'scenarios'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(200), nullable=False)
+    instructions = db.Column(db.Text, nullable=True)
+    num_students = db.Column(db.Integer, default=0)
+    num_students_completed = db.Column(db.Integer, default=0)
+    creation_date = db.Column(db.DateTime, default=datetime.utcnow)
+    due_date = db.Column(db.DateTime, nullable=True)
+    # time_limit in seconds; front end can render as human-readable (e.g., 1 hour)
+    time_limit_seconds = db.Column(db.Integer, nullable=True)
+
+    # Who can edit this scenario
+    edit_access = db.relationship('User', secondary=scenario_edit_access, backref='editable_scenarios')
+
+
+class ScenarioAttempt(db.Model):
+    __tablename__ = 'scenario_attempts'
+
+    id = db.Column(db.Integer, primary_key=True)
+    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    attempt_number = db.Column(db.Integer, default=1)  # monotonically increasing per user/scenario
+    submission_time = db.Column(db.DateTime, nullable=True)
+    datapoints = db.Column(db.JSON, nullable=True)  # flexible payload, per client requirements
+
+    scenario = db.relationship('Scenario', backref='attempts')
+    user = db.relationship('User', backref='attempts')
