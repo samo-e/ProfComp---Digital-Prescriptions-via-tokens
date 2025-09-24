@@ -1,524 +1,885 @@
-{% extends "base.html" %}
-{% import "views/pt_detail_input.html" as pt_macros %}
-{% block title %}Edit Patient Details{% endblock %}
-
-{% block head %}{% endblock %}
-
-{% block styles %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_pt.css') }}">
-{% endblock %}
-{% block scripts %}
-    <script src="{{ url_for('static', filename='js/edit_pt.js') }}"></script>
-{% endblock %}
-
-{% block body %}
+{% extends "base.html" %} {% import "views/pt_detail_input.html" as pt_macros %}
+{% block title %}Edit Patient Details{% endblock %} {% block head %}{% endblock
+%} {% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/edit_pt.css') }}"
+/>
+{% endblock %} {% block scripts %}
+<script src="{{ url_for('static', filename='js/edit_pt.js') }}"></script>
+{% endblock %} {% block body %}
 <div class="container">
-<div class="row">
-<div class="card shadow-lg p-4 col-12 col-lg-10 mx-auto">
-    <div class="position-relative mb-4">
+  <div class="row">
+    <div class="card shadow-lg p-4 col-12 col-lg-10 mx-auto">
+      <div class="position-relative mb-4">
         <h3 class="text-center">Patient Details</h3>
-        <button id="generatePtDetails" class="btn btn-secondary position-absolute d-none d-md-flex">
-            Generate Details
+        <button
+          id="generatePtDetails"
+          class="btn btn-secondary position-absolute d-none d-md-flex"
+        >
+          Generate Details
         </button>
-    </div>
+      </div>
 
-    <!-- Navigation tabs (visible only on medium+ screens) -->
-    <ul class="nav nav-tabs mb-3 d-none d-md-flex" id="formTabs" role="tablist">
-        {{ pt_macros.add_tab("basic-details",           "Basic Details",            "basic",       active=True) }}
-        {{ pt_macros.add_tab("safety-net",              "Safety Net Details",       "safety-net") }}
-        {{ pt_macros.add_tab("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
-        {{ pt_macros.add_tab("accounts",                "Accounts",                 "accounts") }}
-        {{ pt_macros.add_tab("notes",                   "Notes",                    "notes") }}
-        {{ pt_macros.add_tab("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
-        {{ pt_macros.add_tab("sms",                     "SMS",                      "sms",         disabled=True) }}
-        {{ pt_macros.add_tab("clubs",                   "Clubs/Providers",          "clubs") }}
-        {{ pt_macros.add_tab("other",                   "Other",                    "other") }}
-    </ul>
-    <!-- Dropdown (visible only on small- screens) -->
-    <div class="dropdown d-lg-none">
+      <!-- Navigation tabs (visible only on medium+ screens) -->
+      <ul
+        class="nav nav-tabs mb-3 d-none d-md-flex"
+        id="formTabs"
+        role="tablist"
+      >
+        {{ pt_macros.add_tab("basic-details", "Basic Details", "basic",
+        active=True) }} {{ pt_macros.add_tab("safety-net", "Safety Net Details",
+        "safety-net") }} {{ pt_macros.add_tab("allergies", "Allergies/Health",
+        "allergies", disabled=True) }} {{ pt_macros.add_tab("accounts",
+        "Accounts", "accounts") }} {{ pt_macros.add_tab("notes", "Notes",
+        "notes") }} {{ pt_macros.add_tab("clinical-interventions", "Clinical
+        Interventions", "clinical", disabled=True) }} {{
+        pt_macros.add_tab("sms", "SMS", "sms", disabled=True) }} {{
+        pt_macros.add_tab("clubs", "Clubs/Providers", "clubs") }} {{
+        pt_macros.add_tab("other", "Other", "other") }}
+      </ul>
+      <!-- Dropdown (visible only on small- screens) -->
+      <div class="dropdown d-lg-none">
         <div class="nav nav-tabs" data-bs-toggle="dropdown">
-        <div class="nav-item">
-            <a class="nav-link active dropdown-toggle" href="#" id="dropdownMenuLink">
-                Basic Details
+          <div class="nav-item">
+            <a
+              class="nav-link active dropdown-toggle"
+              href="#"
+              id="dropdownMenuLink"
+            >
+              Basic Details
             </a>
-        </div>
-        <button id="generatePtDetails" class="btn btn-secondary position-absolute">
+          </div>
+          <button
+            id="generatePtDetails"
+            class="btn btn-secondary position-absolute"
+          >
             Generate Details
-        </button>
+          </button>
         </div>
         <ul class="dropdown-menu" id="dropdownMenu">
-            {{ pt_macros.add_ddown("basic-details",           "Basic Details",            "basic",       active=True) }}
-            {{ pt_macros.add_ddown("safety-net",              "Safety Net Details",       "safety-net") }}
-            {{ pt_macros.add_ddown("allergies",               "Allergies/Health",         "allergies",   disabled=True) }}
-            {{ pt_macros.add_ddown("accounts",                "Accounts",                 "accounts") }}
-            {{ pt_macros.add_ddown("notes",                   "Notes",                    "notes") }}
-            {{ pt_macros.add_ddown("clinical-interventions",  "Clinical Interventions",   "clinical",    disabled=True) }}
-            {{ pt_macros.add_ddown("sms",                     "SMS",                      "sms",         disabled=True) }}
-            {{ pt_macros.add_ddown("clubs",                   "Clubs/Providers",          "clubs") }}
-            {{ pt_macros.add_ddown("other",                   "Other",                    "others") }}
+          {{ pt_macros.add_ddown("basic-details", "Basic Details", "basic",
+          active=True) }} {{ pt_macros.add_ddown("safety-net", "Safety Net
+          Details", "safety-net") }} {{ pt_macros.add_ddown("allergies",
+          "Allergies/Health", "allergies", disabled=True) }} {{
+          pt_macros.add_ddown("accounts", "Accounts", "accounts") }} {{
+          pt_macros.add_ddown("notes", "Notes", "notes") }} {{
+          pt_macros.add_ddown("clinical-interventions", "Clinical
+          Interventions", "clinical", disabled=True) }} {{
+          pt_macros.add_ddown("sms", "SMS", "sms", disabled=True) }} {{
+          pt_macros.add_ddown("clubs", "Clubs/Providers", "clubs") }} {{
+          pt_macros.add_ddown("other", "Other", "others") }}
         </ul>
-    </div>
+      </div>
 
-<form method="POST">
-    {{ form.hidden_tag() }}
-<!-- Tab panes -->
-<div class="tab-content">
-    <!-- Personal Tab -->
-    {% call pt_macros.add_tab_panel("Basic Details", "basic", active=True) %}<div>
-        <!-- Personal Info -->
-        <h5 class="my-3">Personal</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.lastName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.lastName(class="form-control form-control-sm") }}</div>
+      <form method="POST">
+        {{ form.hidden_tag() }}
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <!-- Personal Tab -->
+          {% call pt_macros.add_tab_panel("Basic Details", "basic", active=True)
+          %}
+          <div>
+            <!-- Personal Info -->
+            <h5 class="my-3">Personal</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.lastName.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.lastName(class="form-control form-control-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.givenName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.givenName(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.givenName.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.givenName(class="form-control form-control-sm") }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.title.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.title(class="form-select form-select-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.title.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.title(class="form-select form-select-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.sex.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.sex(class="form-select form-select-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.sex.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.sex(class="form-select form-select-sm") }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.dob.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.dob(class="form-control form-control-sm")}}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.dob.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.dob(class="form-control form-control-sm")}}
+              </div>
 
-            <div class="col-2">{{ form.basic.ptNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.ptNumber(class="form-control form-control-sm", disabled=True) }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.ptNumber.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.ptNumber(class="form-control form-control-sm",
+                disabled=True) }}
+              </div>
+            </div>
 
-        <!-- Contact Info -->
-        <h5 class="my-3">Contact</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2"><label for="address"  name = "basic-address" class="form-label form-label-sm">Address</label></div>
-            <div class="col-10 position-relative">
-                <input type="text" id="address" class="form-control form-control-sm" required>
+            <!-- Contact Info -->
+            <h5 class="my-3">Contact</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                <label for="address" class="form-label form-label-sm"
+                  >Address</label
+                >
+              </div>
+              <div class="col-10 position-relative">
+                <input
+                  type="text"
+                  id="address"
+                  name="basic-address"
+                  class="form-control form-control-sm"
+                  value="{{ patient.address or '' }}"
+                  required
+                />
                 <ul id="address-suggestions" class="dropdown-menu"></ul>
+              </div>
             </div>
-        </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.suburb.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.suburb(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.suburb.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.suburb(class="form-control form-control-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.state.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.state(class="form-select form-select-sm") }}</div>
-        </div>
-
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.postcode.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.postcode(class="form-control form-control-sm") }}</div>
-
-            <div class="col-2">{{ form.basic.phone.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.phone(class="form-control form-control-sm") }}</div>
-        </div>
-
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.mobile.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.mobile(class="form-control form-control-sm") }}</div>
-
-            <div class="col-2">{{ form.basic.licence.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.licence(class="form-control form-control-sm") }}</div>
-        </div>
-
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2"></div>
-            <div class="col-10">
-                <div class="form-check">{{ form.basic.smsRepeats(class="form-check-input") }} {{ form.basic.smsRepeats.label(class="form-check-label") }}</div>
-                <div class="form-check">{{ form.basic.smsOwing(class="form-check-input") }} {{ form.basic.smsOwing.label(class="form-check-label") }}</div>
+              <div class="col-2">
+                {{ form.basic.state.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.state(class="form-select form-select-sm") }}
+              </div>
             </div>
-        </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.email.label(class="form-label form-label-sm") }}</div>
-            <div class="col-10">{{ form.basic.email(class="form-control form-control-sm") }}</div>
-        </div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.postcode.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.postcode(class="form-control form-control-sm") }}
+              </div>
 
-        <!-- Medicare -->
-        <h5 class="my-3">Medicare</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.medicare.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">
-                <div class="input-group input-group-sm w-100">
-                    {{ form.basic.medicare(class="form-control form-control-sm w-75") }}
-                    <span class="input-group-text">-</span>
-                    {{ form.basic.medicareIssue(class="form-control form-control-sm") }}
+              <div class="col-2">
+                {{ form.basic.phone.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.phone(class="form-control form-control-sm") }}
+              </div>
+            </div>
+
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.mobile.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.mobile(class="form-control form-control-sm") }}
+              </div>
+
+              <div class="col-2">
+                {{ form.basic.licence.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.licence(class="form-control form-control-sm") }}
+              </div>
+            </div>
+
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2"></div>
+              <div class="col-10">
+                <div class="form-check">
+                  {{ form.basic.smsRepeats(class="form-check-input") }} {{
+                  form.basic.smsRepeats.label(class="form-check-label") }}
                 </div>
+                <div class="form-check">
+                  {{ form.basic.smsOwing(class="form-check-input") }} {{
+                  form.basic.smsOwing.label(class="form-check-label") }}
+                </div>
+              </div>
             </div>
 
-            <div class="col-2">{{ form.basic.medicareValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.medicareValidTo(class="form-control form-control-sm", placeholder="mm / yyyy") }}</div>
-        </div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.email.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-10">
+                {{ form.basic.email(class="form-control form-control-sm") }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.medicareSurname.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.medicareSurname(class="form-control form-control-sm") }}</div>
+            <!-- Medicare -->
+            <h5 class="my-3">Medicare</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.medicare.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                <div class="input-group input-group-sm w-100">
+                  {{ form.basic.medicare(class="form-control form-control-sm
+                  w-75") }}
+                  <span class="input-group-text">-</span>
+                  {{ form.basic.medicareIssue(class="form-control
+                  form-control-sm") }}
+                </div>
+              </div>
 
-            <div class="col-2">{{ form.basic.medicareGivenName.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.medicareGivenName(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.medicareValidTo.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.medicareValidTo(class="form-control
+                form-control-sm", placeholder="mm / yyyy") }}
+              </div>
+            </div>
 
-        <!-- Concession -->
-        <h5 class="my-3">Concession</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.concessionNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.concessionNumber(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.medicareSurname.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.medicareSurname(class="form-control
+                form-control-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.concessionValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.concessionValidTo(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.medicareGivenName.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.medicareGivenName(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.safetyNetNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.safetyNetNumber(class="form-control form-control-sm") }}</div>
-        </div>
+            <!-- Concession -->
+            <h5 class="my-3">Concession</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.concessionNumber.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.concessionNumber(class="form-control
+                form-control-sm") }}
+              </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.repatriationNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.repatriationNumber(class="form-control form-control-sm") }}</div>
+              <div class="col-2">
+                {{ form.basic.concessionValidTo.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.concessionValidTo(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
 
-            <div class="col-2">{{ form.basic.repatriationValidTo.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.repatriationValidTo(class="form-control form-control-sm") }}</div>
-        </div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.safetyNetNumber.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.safetyNetNumber(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.repatriationType.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.repatriationType(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.repatriationNumber.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.repatriationNumber(class="form-control
+                form-control-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.ndssNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.ndssNumber(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.repatriationValidTo.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.repatriationValidTo(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
 
-        <!-- My HR -->
-        <h5 class="my-3">My HR</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.ihiNumber.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.ihiNumber(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.repatriationType.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.repatriationType(class="form-control
+                form-control-sm") }}
+              </div>
 
-            <div class="col-2">{{ form.basic.ihiStatus.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.ihiStatus(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.ndssNumber.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.ndssNumber(class="form-control form-control-sm")
+                }}
+              </div>
+            </div>
 
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.ihiRecordStatus.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.ihiRecordStatus(class="form-control form-control-sm") }}</div>
-        </div>
+            <!-- My HR -->
+            <h5 class="my-3">My HR</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.ihiNumber.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.ihiNumber(class="form-control form-control-sm") }}
+              </div>
 
-        <!-- Doctor -->
-        <h5 class="my-3">Doctor</h5>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-2">{{ form.basic.doctor.label(class="form-label form-label-sm") }}</div>
-            <div class="col-4">{{ form.basic.doctor(class="form-control form-control-sm") }}</div>
-        </div>
+              <div class="col-2">
+                {{ form.basic.ihiStatus.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.ihiStatus(class="form-control form-control-sm") }}
+              </div>
+            </div>
 
-        <!-- Other Checkboxes -->
-        <div class="row g-3 mb-1">
-            <div class="col-auto form-check pe-4">{{ form.basic.ctgRegistered(class="form-check-input") }} {{ form.basic.ctgRegistered.label(class="form-check-label") }}</div>
-            <div class="col-auto form-check pe-4">{{ form.basic.genericsOnly(class="form-check-input") }} {{ form.basic.genericsOnly.label(class="form-check-label") }}</div>
-            <div class="col-auto form-check pe-4">{{ form.basic.repeatsHeld(class="form-check-input") }} {{ form.basic.repeatsHeld.label(class="form-check-label") }}</div>
-            <div class="col-auto ms-auto form-check">{{ form.basic.ptDeceased(class="form-check-input") }} {{ form.basic.ptDeceased.label(class="form-check-label") }}</div>
-        </div>
-    </div>{% endcall %}
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.ihiRecordStatus.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.ihiRecordStatus(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
 
-    <!-- Saftey Net Tab -->
-    {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}<div>
-        <h5 class="my-3">{{ form.basic.givenName.data or "First" }} {{ form.basic.lastName.data or "Last" }}</h5>
-        <!-- More research into PRF Gen/Con required -->
-        <p>
-            PRF Gen:
-            <span id="prf-gen-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
-                <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
-                $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
+            <!-- Doctor -->
+            <h5 class="my-3">Doctor</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.basic.doctor.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.basic.doctor(class="form-control form-control-sm") }}
+              </div>
+            </div>
+
+            <!-- Other Checkboxes -->
+            <div class="row g-3 mb-1">
+              <div class="col-auto form-check pe-4">
+                {{ form.basic.ctgRegistered(class="form-check-input") }} {{
+                form.basic.ctgRegistered.label(class="form-check-label") }}
+              </div>
+              <div class="col-auto form-check pe-4">
+                {{ form.basic.genericsOnly(class="form-check-input") }} {{
+                form.basic.genericsOnly.label(class="form-check-label") }}
+              </div>
+              <div class="col-auto form-check pe-4">
+                {{ form.basic.repeatsHeld(class="form-check-input") }} {{
+                form.basic.repeatsHeld.label(class="form-check-label") }}
+              </div>
+              <div class="col-auto ms-auto form-check">
+                {{ form.basic.ptDeceased(class="form-check-input") }} {{
+                form.basic.ptDeceased.label(class="form-check-label") }}
+              </div>
+            </div>
+          </div>
+          {% endcall %}
+
+          <!-- Saftey Net Tab -->
+          {% call pt_macros.add_tab_panel("Safety Net Details", "safety-net") %}
+          <div>
+            <h5 class="my-3">
+              {{ form.basic.givenName.data or "First" }} {{
+              form.basic.lastName.data or "Last" }}
+            </h5>
+            <!-- More research into PRF Gen/Con required -->
+            <p>
+              PRF Gen:
+              <span
+                id="prf-gen-fam"
+                class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}"
+              >
+                <span
+                  >{{ form.safetyNet.family_script_count_total.data or "0"
+                  }}</span
+                >, $<span
+                  >{{ form.safetyNet.family_scripts_value_total.data or "0.00"
+                  }}</span
+                >
                 (Fam)
-            </span>
-            <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, 
-            $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> 
-            (Ind)
-        </p>
-        <p> <!-- This is different to the last p elem -->
-            PRF Con:
-            <span id="prf-con-fam" class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}">
-                <span>{{ form.safetyNet.family_script_count_total.data or "0" }}</span>, 
-                $<span>{{ form.safetyNet.family_scripts_value_total.data or "0.00" }}</span> 
+              </span>
+              <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>,
+              $<span
+                >{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span
+              >
+              (Ind)
+            </p>
+            <p>
+              <!-- This is different to the last p elem -->
+              PRF Con:
+              <span
+                id="prf-con-fam"
+                class="{% if not form.safetyNet.family_name.data %}d-none{% endif %}"
+              >
+                <span
+                  >{{ form.safetyNet.family_script_count_total.data or "0"
+                  }}</span
+                >, $<span
+                  >{{ form.safetyNet.family_scripts_value_total.data or "0.00"
+                  }}</span
+                >
                 (Fam)
-            </span>
-            <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>, 
-            $<span>{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span> 
-            (Ind)
-        </p>
-        <h5 class="my-3">Individual</h5>
-        <div class="container">
-            <div class="row fw-bold border-bottom">
+              </span>
+              <span>{{ form.safetyNet.script_count_total.data or "0" }}</span>,
+              $<span
+                >{{ form.safetyNet.scripts_value_total.data or "0.00" }}</span
+              >
+              (Ind)
+            </p>
+            <h5 class="my-3">Individual</h5>
+            <div class="container">
+              <div class="row fw-bold border-bottom">
                 <div class="col-3"></div>
                 <div class="col">Outside</div>
                 <div class="col">Inside</div>
                 <div class="col">Total</div>
-            </div>
+              </div>
 
-            <div class="row align-items-center py-2">
+              <div class="row align-items-center py-2">
                 <div class="col-3">Scripts Count</div>
-                <div class="col">{{ form.safetyNet.script_count_outside(class="form-control") }}</div>
-                <div class="col">{{ form.safetyNet.script_count_inside(class="form-control") }}</div>
-                <div class="col">{{ form.safetyNet.script_count_total(class="form-control") }}</div>
-            </div>
+                <div class="col">
+                  {{ form.safetyNet.script_count_outside(class="form-control")
+                  }}
+                </div>
+                <div class="col">
+                  {{ form.safetyNet.script_count_inside(class="form-control") }}
+                </div>
+                <div class="col">
+                  {{ form.safetyNet.script_count_total(class="form-control") }}
+                </div>
+              </div>
 
-            <div class="row align-items-center py-2">
+              <div class="row align-items-center py-2">
                 <div class="col-3">Scripts Value</div>
                 <div class="col">
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        {{ form.safetyNet.scripts_value_outside(class="form-control") }}
-                    </div>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{
+                    form.safetyNet.scripts_value_outside(class="form-control")
+                    }}
+                  </div>
                 </div>
                 <div class="col">
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        {{ form.safetyNet.scripts_value_inside(class="form-control") }}
-                    </div>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.safetyNet.scripts_value_inside(class="form-control")
+                    }}
+                  </div>
                 </div>
                 <div class="col">
-                    <div class="input-group">
-                        <span class="input-group-text">$</span>
-                        {{ form.safetyNet.scripts_value_total(class="form-control") }}
-                    </div>
+                  <div class="input-group">
+                    <span class="input-group-text">$</span>
+                    {{ form.safetyNet.scripts_value_total(class="form-control")
+                    }}
+                  </div>
                 </div>
+              </div>
             </div>
-        </div>
-        <h5 class="my-3">Family</h5>
-        <div class="row align-items-left py-2">
-            <div class="col-3">{{ form.safetyNet.family_name.label(class="form-label form-label-sm") }}</div>
-            <div class="col">{{ form.safetyNet.family_name(class="form-control form-control-sm") }}</div>
-        </div>
-        <div id="fam-safety-net" class="d-none">
-            <div class="container">
+            <h5 class="my-3">Family</h5>
+            <div class="row align-items-left py-2">
+              <div class="col-3">
+                {{ form.safetyNet.family_name.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col">
+                {{ form.safetyNet.family_name(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
+            <div id="fam-safety-net" class="d-none">
+              <div class="container">
                 <div class="row fw-bold border-bottom">
-                    <div class="col-3"></div>
-                    <div class="col">Outside</div>
-                    <div class="col">Inside</div>
-                    <div class="col">Total</div>
+                  <div class="col-3"></div>
+                  <div class="col">Outside</div>
+                  <div class="col">Inside</div>
+                  <div class="col">Total</div>
                 </div>
 
                 <div class="row align-items-center py-2">
-                    <div class="col-3">Family Scripts Count</div>
-                    <div class="col">{{ form.safetyNet.family_script_count_outside(class="form-control") }}</div>
-                    <div class="col">{{ form.safetyNet.family_script_count_inside(class="form-control") }}</div>
-                    <div class="col">{{ form.safetyNet.family_script_count_total(class="form-control") }}</div>
+                  <div class="col-3">Family Scripts Count</div>
+                  <div class="col">
+                    {{
+                    form.safetyNet.family_script_count_outside(class="form-control")
+                    }}
+                  </div>
+                  <div class="col">
+                    {{
+                    form.safetyNet.family_script_count_inside(class="form-control")
+                    }}
+                  </div>
+                  <div class="col">
+                    {{
+                    form.safetyNet.family_script_count_total(class="form-control")
+                    }}
+                  </div>
                 </div>
 
                 <div class="row align-items-center py-2">
-                    <div class="col-3">Family Scripts Value</div>
-                    <div class="col">
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.safetyNet.family_scripts_value_outside(class="form-control") }}
-                        </div>
+                  <div class="col-3">Family Scripts Value</div>
+                  <div class="col">
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      {{
+                      form.safetyNet.family_scripts_value_outside(class="form-control")
+                      }}
                     </div>
-                    <div class="col">
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.safetyNet.family_scripts_value_inside(class="form-control") }}
-                        </div>
+                  </div>
+                  <div class="col">
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      {{
+                      form.safetyNet.family_scripts_value_inside(class="form-control")
+                      }}
                     </div>
-                    <div class="col">
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            {{ form.safetyNet.family_scripts_value_total(class="form-control") }}
-                        </div>
+                  </div>
+                  <div class="col">
+                    <div class="input-group">
+                      <span class="input-group-text">$</span>
+                      {{
+                      form.safetyNet.family_scripts_value_total(class="form-control")
+                      }}
                     </div>
+                  </div>
                 </div>
+              </div>
+              <div class="row align-items-center py-2">
+                {% call
+                pt_macros.add_table_form_element("family-members","Family
+                members", ["Name","Type"]) %}
+                <div></div>
+                {% endcall %}
+              </div>
             </div>
-            <div class="row align-items-center py-2">
-                {% call pt_macros.add_table_form_element("family-members","Family members", ["Name","Type"]) %}<div>
+          </div>
+          {% endcall %} {% if False %}
+          <!-- Tab(s) have not been implemented -->
+          <!-- Allergies Net Tab -->
+          {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}
+          <div>
+            <p>Allergies Tab Not implemented</p>
+          </div>
+          {% endcall %} {% endif %}
 
-                </div>{% endcall %}
+          <!-- Accounts Tab -->
+          {% call pt_macros.add_tab_panel("Accounts", "accounts") %}
+          <div>
+            <h5 class="my-3">Facility Details</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-2">
+                {{ form.accounts.facility.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-10">
+                {{ form.accounts.facility(class="form-control form-control-sm")
+                }}
+              </div>
             </div>
-        </div>
-    </div>{% endcall %}
 
-{% if False %} <!-- Tab(s) have not been implemented -->
-    <!-- Allergies Net Tab -->
-    {% call pt_macros.add_tab_panel("Allergies/Health", "allergies") %}<div>
-        <p>Allergies Tab Not implemented</p>
-    </div>{% endcall %}
-{% endif %}
+            <div class="row g-3 align-items-center mb-1 text-end">
+              <div class="col-2">
+                {{ form.accounts.ward.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.accounts.ward(class="form-control form-control-sm") }}
+              </div>
 
-    <!-- Accounts Tab -->
-    {% call pt_macros.add_tab_panel("Accounts", "accounts") %}<div>
-        <h5 class="my-3">Facility Details</h5>
-<div class="row g-3 align-items-center mb-1">
-    <div class="col-2">{{ form.accounts.facility.label(class="form-label form-label-sm") }}</div>
-    <div class="col-10">{{ form.accounts.facility(class="form-control form-control-sm") }}</div>
-</div>
+              <div class="col-2">
+                {{ form.accounts.room.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.accounts.room(class="form-control form-control-sm") }}
+              </div>
+            </div>
 
-<div class="row g-3 align-items-center mb-1 text-end">
-    <div class="col-2">{{ form.accounts.ward.label(class="form-label form-label-sm") }}</div>
-    <div class="col-4">{{ form.accounts.ward(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1 text-end">
+              <div class="col-2">
+                {{ form.accounts.bed.label(class="form-label form-label-sm") }}
+              </div>
+              <div class="col-4">
+                {{ form.accounts.bed(class="form-control form-control-sm") }}
+              </div>
 
-    <div class="col-2">{{ form.accounts.room.label(class="form-label form-label-sm") }}</div>
-    <div class="col-4">{{ form.accounts.room(class="form-control form-control-sm") }}</div>
-</div>
+              <div class="col-2">
+                {{ form.accounts.ptCat.label(class="form-label form-label-sm")
+                }}
+              </div>
+              <div class="col-4">
+                {{ form.accounts.ptCat(class="form-select form-select-sm") }}
+              </div>
+            </div>
 
-<div class="row g-3 align-items-center mb-1 text-end">
-    <div class="col-2">{{ form.accounts.bed.label(class="form-label form-label-sm") }}</div>
-    <div class="col-4">{{ form.accounts.bed(class="form-control form-control-sm") }}</div>
+            <div class="row g-3 align-items-center mb-1 text-end">
+              <div class="col">
+                <div class="row">
+                  <div class="col">
+                    {{ form.accounts.chartStart.label(class="form-label
+                    form-label-sm") }}
+                  </div>
+                  <div class="col">
+                    {{ form.accounts.chartStart(class="form-control
+                    form-control-sm") }}
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="row">
+                  <div class="col">
+                    {{ form.accounts.chartEnd.label(class="form-label
+                    form-label-sm") }}
+                  </div>
+                  <div class="col">
+                    {{ form.accounts.chartEnd(class="form-control
+                    form-control-sm") }}
+                  </div>
+                </div>
+              </div>
+              <div class="col">
+                <div class="row">
+                  <div class="col">
+                    {{ form.accounts.chartDuration.label(class="form-label
+                    form-label-sm") }}
+                  </div>
+                  <div class="col">
+                    {{ form.accounts.chartDuration(class="form-select
+                    form-select-sm") }}
+                  </div>
+                </div>
+              </div>
+            </div>
 
-    <div class="col-2">{{ form.accounts.ptCat.label(class="form-label form-label-sm") }}</div>
-    <div class="col-4">{{ form.accounts.ptCat(class="form-select form-select-sm") }}</div>
-</div>
+            {% call pt_macros.add_table_form_element("debtor-accounts", "Debtor
+            Account Details", ["Account#", "Description", "Group", "Current",
+            "30 Days", "60 Days", "90 Days", "Total Bal", "Status"]) %}
+            <div></div>
+            {% endcall %}
 
-<div class="row g-3 align-items-center mb-1 text-end">
-    <div class="col">
-    <div class="row">
-        <div class="col">{{ form.accounts.chartStart.label(class="form-label form-label-sm") }}</div>
-        <div class="col">{{ form.accounts.chartStart(class="form-control form-control-sm") }}</div>
-    </div>
-    </div>
-    <div class="col">
-        <div class="row">
-        <div class="col">{{ form.accounts.chartEnd.label(class="form-label form-label-sm") }}</div>
-        <div class="col">{{ form.accounts.chartEnd(class="form-control form-control-sm") }}</div>
-    </div>
-    </div>
-    <div class="col">
-    <div class="row">
-        <div class="col">{{ form.accounts.chartDuration.label(class="form-label form-label-sm") }}</div>
-        <div class="col">{{ form.accounts.chartDuration(class="form-select form-select-sm") }}</div>
-    </div>
-    </div>
-</div>
+            <h5 class="my-3">Stock Transfers</h5>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="form-check">
+                {{ form.accounts.canTfrStockToCustomer(class="form-check-input")
+                }} {{
+                form.accounts.canTfrStockToCustomer.label(class="form-check-label")
+                }}
+              </div>
+            </div>
 
-{% call pt_macros.add_table_form_element("debtor-accounts", "Debtor Account Details", ["Account#", "Description", "Group", "Current", "30 Days", "60 Days", "90 Days", "Total Bal", "Status"]) %}<div>
+            <h5 class="my-3">Auto Charging / Debtor Account</h5>
+            <div class="form-check">
+              {{ form.accounts.autoChargeScripts(class="form-check-input") }} {{
+              form.accounts.autoChargeScripts.label(class="form-check-label") }}
+            </div>
 
-</div>{% endcall %}
+            <div class="form-check">
+              {{ form.accounts.linkToDebtorAcc(class="form-check-input") }} {{
+              form.accounts.linkToDebtorAcc.label(class="form-check-label") }}
+            </div>
 
-<h5 class="my-3">Stock Transfers</h5>
-<div class="row g-3 align-items-center mb-1">
-    <div class="form-check">
-        {{ form.accounts.canTfrStockToCustomer(class="form-check-input") }}
-        {{ form.accounts.canTfrStockToCustomer.label(class="form-check-label") }}
-    </div>
-</div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-4 text-end">
+                {{ form.accounts.linkedClientAcc.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-8">
+                {{ form.accounts.linkedClientAcc(class="form-control
+                form-control-sm") }}
+              </div>
+            </div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-4 text-end">
+                {{ form.accounts.debtorAcc.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-8">
+                {{ form.accounts.debtorAcc(class="form-select form-select-sm")
+                }}
+              </div>
+            </div>
+            <div class="form-check">
+              {{ form.accounts.notSendScriptsToTill(class="form-check-input") }}
+              {{
+              form.accounts.notSendScriptsToTill.label(class="form-check-label")
+              }}
+            </div>
 
-<h5 class="my-3">Auto Charging / Debtor Account</h5>
-<div class="form-check">
-    {{ form.accounts.autoChargeScripts(class="form-check-input") }}
-    {{ form.accounts.autoChargeScripts.label(class="form-check-label") }}
-</div>
+            <div class="form-check">
+              {{ form.accounts.notDeductStocks(class="form-check-input") }} {{
+              form.accounts.notDeductStocks.label(class="form-check-label") }}
+            </div>
+          </div>
+          {% endcall %}
 
-<div class="form-check">
-    {{ form.accounts.linkToDebtorAcc(class="form-check-input") }}
-    {{ form.accounts.linkToDebtorAcc.label(class="form-check-label") }}
-</div>
-
-<div class="row g-3 align-items-center mb-1">
-<div class="col-4 text-end">{{ form.accounts.linkedClientAcc.label(class="form-label form-label-sm") }}</div>
-<div class="col-8">{{ form.accounts.linkedClientAcc(class="form-control form-control-sm") }}</div>
-</div>
-<div class="row g-3 align-items-center mb-1">
-<div class="col-4 text-end">{{ form.accounts.debtorAcc.label(class="form-label form-label-sm") }}</div>
-<div class="col-8">{{ form.accounts.debtorAcc(class="form-select form-select-sm") }}</div>
-</div>
-<div class="form-check">
-    {{ form.accounts.notSendScriptsToTill(class="form-check-input") }}
-    {{ form.accounts.notSendScriptsToTill.label(class="form-check-label") }}
-</div>
-
-<div class="form-check">
-    {{ form.accounts.notDeductStocks(class="form-check-input") }}
-    {{ form.accounts.notDeductStocks.label(class="form-check-label") }}
-</div>
-    </div>{% endcall %}
-
-    <!-- Notes Tab -->
-    {% call pt_macros.add_tab_panel("Notes", "notes") %}<div>
-        <div class="row align-items-center mb-3">
-            <div class="col">
+          <!-- Notes Tab -->
+          {% call pt_macros.add_tab_panel("Notes", "notes") %}
+          <div>
+            <div class="row align-items-center mb-3">
+              <div class="col">
                 <h5 class="mb-0">Patient Notes</h5>
+              </div>
+              <div class="col-auto">
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  id="add-note-btn"
+                  onclick="addNote()"
+                >
+                  Add Note
+                </button>
+              </div>
             </div>
-            <div class="col-auto">
-                <button type="button" class="btn btn-sm btn-secondary" id="add-note-btn" onclick="addNote()">Add Note</button>
-            </div>
-        </div>
-        <div id="patient-notes-container">
-            {% for note in form.notes %}
-                <div class="mb-3 note-entry">
-                    {{ note.content(class="form-control") }}
-                    <div class="col">
-                        {{ note.last_edited(class="form-control-plaintext") }}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <!-- Hidden note template -->
-        <div id="note-template" class="d-none">
-            <div class="mb-3 note-entry">
-                <textarea name="patient_notes-__index__-content" id="patient_notes-__index__-content" class="form-control"></textarea>
+            <div id="patient-notes-container">
+              {% for note in form.notes %}
+              <div class="mb-3 note-entry">
+                {{ note.content(class="form-control") }}
                 <div class="col">
-                    <input type="text" name="patient_notes-__index__-last_edited" id="patient_notes-__index__-last_edited" class="form-control-plaintext" readonly>
+                  {{ note.last_edited(class="form-control-plaintext") }}
                 </div>
+              </div>
+              {% endfor %}
             </div>
-        </div>
-    </div>{% endcall %}
+            <!-- Hidden note template -->
+            <div id="note-template" class="d-none">
+              <div class="mb-3 note-entry">
+                <textarea
+                  name="patient_notes-__index__-content"
+                  id="patient_notes-__index__-content"
+                  class="form-control"
+                ></textarea>
+                <div class="col">
+                  <input
+                    type="text"
+                    name="patient_notes-__index__-last_edited"
+                    id="patient_notes-__index__-last_edited"
+                    class="form-control-plaintext"
+                    readonly
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endcall %} {% if False %}
+          <!-- Tab(s) have not been implemented -->
+          <!-- Clinical Interventions Tab -->
+          {% call pt_macros.add_tab_panel("Clinical Interventions",
+          "clinical-interventions") %}
+          <div>
+            <p>Clinical Tab Not implemented</p>
+          </div>
+          {% endcall %}
 
-{% if False %} <!-- Tab(s) have not been implemented -->
-    <!-- Clinical Interventions Tab -->
-    {% call pt_macros.add_tab_panel("Clinical Interventions", "clinical-interventions") %}<div>
-        <p>Clinical Tab Not implemented</p>
-    </div>{% endcall %}
+          <!-- SMS Tab -->
+          {% call pt_macros.add_tab_panel("SMS", "sms") %}
+          <div>
+            <p>SMS Tab Not implemented</p>
+          </div>
+          {% endcall %} {% endif %}
 
-    <!-- SMS Tab -->
-    {% call pt_macros.add_tab_panel("SMS", "sms") %}<div>
-        <p>SMS Tab Not implemented</p>
-    </div>{% endcall %}
-{% endif %}
+          <!-- Clubs/Providers Tab -->
+          {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}
+          <div>
+            {% call pt_macros.add_table_form_element("clubs", "Clubs", ["Name",
+            "CardNo", "Membership Expiry"]) %}
+            <div></div>
+            {% endcall %} {% call pt_macros.add_table_form_element("providers",
+            "Providers", ["Name", "MemberNo", "Indentifier", "Membership
+            Expiry"]) %}
+            <div></div>
+            {% endcall %}
+          </div>
+          {% endcall %}
 
-    <!-- Clubs/Providers Tab -->
-    {% call pt_macros.add_tab_panel("Clubs/Providers", "clubs") %}<div>
-        {% call pt_macros.add_table_form_element("clubs", "Clubs", ["Name", "CardNo", "Membership Expiry"]) %}<div>
-
-        </div>{% endcall %}
-        {% call pt_macros.add_table_form_element("providers", "Providers", ["Name", "MemberNo", "Indentifier", "Membership Expiry"]) %}<div>
-
-        </div>{% endcall %}
-    </div>{% endcall %}
-
-    <!-- Other Tab -->
-    {% call pt_macros.add_tab_panel("Other", "other") %}<div>
-        <!-- Personal Info -->
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-4">{{ form.other.pbsDiscount.label(class="form-label form-label-sm") }}</div>
-            <div class="col-3">{{ form.other.pbsDiscount(class="form-control form-control-sm") }}</div>
-        </div>
-        <div class="row g-3 align-items-center mb-1">
-            <div class="col-4">{{ form.other.defaultRepeatPrint.label(class="form-label form-label-sm") }}</div>
-            <div class="col-3">{{ form.other.defaultRepeatPrint(class="form-select form-select-sm") }}</div>
-        </div>
-        <div class="form-check mb-3">
-            {{ form.other.ignoreMinMedCount(class="form-check-input") }}
-            <label class="form-check-label" for="{{ form.other.ignoreMinMedCount.id }}">
+          <!-- Other Tab -->
+          {% call pt_macros.add_tab_panel("Other", "other") %}
+          <div>
+            <!-- Personal Info -->
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-4">
+                {{ form.other.pbsDiscount.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-3">
+                {{ form.other.pbsDiscount(class="form-control form-control-sm")
+                }}
+              </div>
+            </div>
+            <div class="row g-3 align-items-center mb-1">
+              <div class="col-4">
+                {{ form.other.defaultRepeatPrint.label(class="form-label
+                form-label-sm") }}
+              </div>
+              <div class="col-3">
+                {{ form.other.defaultRepeatPrint(class="form-select
+                form-select-sm") }}
+              </div>
+            </div>
+            <div class="form-check mb-3">
+              {{ form.other.ignoreMinMedCount(class="form-check-input") }}
+              <label
+                class="form-check-label"
+                for="{{ form.other.ignoreMinMedCount.id }}"
+              >
                 {{ form.other.ignoreMinMedCount.label.text }}
-            </label>
+              </label>
+            </div>
+            <h5 class="my-3">eScripts</h5>
+            <div>
+              {{ form.other.eScriptsRepeatMethod.label(class="form-label
+              form-label-sm") }}
+            </div>
+            <div class="col-5">
+              {{ form.other.eScriptsRepeatMethod(class="form-select
+              form-select-sm") }}
+            </div>
+          </div>
+          {% endcall %}
         </div>
-        <h5 class="my-3">eScripts</h5>
-        <div>{{ form.other.eScriptsRepeatMethod.label(class="form-label form-label-sm") }}</div>
-        <div class="col-5">{{ form.other.eScriptsRepeatMethod(class="form-select form-select-sm") }}</div>
-    </div>{% endcall %}
-
-
-
-</div><!-- Close Tab Content -->
-<!-- Submit -->
-<div class="d-flex flex-row-reverse">
-    <button type="button" class="col-2-sm col-3 btn btn-warning ms-1">Cancel</button>
-    <button type="submit" class="col-2-sm col-3 btn btn-success ms-1">Save</button>
-</div>
-</form>
-</div>
-
-</div>
+        <!-- Close Tab Content -->
+        <!-- Submit -->
+        <div class="d-flex flex-row-reverse">
+          <button type="button" class="col-2-sm col-3 btn btn-warning ms-1">
+            Cancel
+          </button>
+          <button type="submit" class="col-2-sm col-3 btn btn-success ms-1">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock %}

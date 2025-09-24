@@ -1,8 +1,8 @@
 
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
-from .forms import PatientForm
+from .forms import PatientForm,ASLForm
 from flask_login import login_required, current_user
-from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus
+from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, ASL
 from sqlalchemy import or_
 from datetime import datetime
 import requests
@@ -124,6 +124,17 @@ def edit_pt(scenario_id):
         print(form.errors)
 
     return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id)
+
+@views.route("/patients")
+def list_patients():
+    patients = Patient.query.all()
+    rows = []
+    for p in patients:
+        rows.append(
+            f"id={p.id}, last_name={p.last_name}, given_name={p.given_name}, "
+            f"DOB={p.dob}, Medicare={p.medicare}, Suburb={p.suburb}, State={p.state}"
+        )
+    return "<br>".join(rows)
 
 
 
@@ -547,15 +558,40 @@ def prescription():
 
 @views.route('/scenario/<int:scenario_id>/patient/<int:patient_id>/asl', methods=["GET", "POST"])
 def patient_asl_form(scenario_id, patient_id):
-    """Simple placeholder route for patient ASL creation."""
     patient = Patient.query.get_or_404(patient_id)
 
-    if request.method == "POST":
-        # For now just flash a message, later save ASL to DB
-        flash(f"ASL created for {patient.name}!", "success")
+    # Load or create ASL record for this patient
+    asl = ASL.query.filter_by(patient_id=patient.id).first()
+    if not asl:
+        asl = ASL(patient_id=patient.id)
+
+    form = ASLForm(obj=asl)
+
+    if form.validate_on_submit():
+        # Save ASL-specific fields
+        asl.carer_name = form.carer_name.data
+        asl.carer_relationship = form.carer_relationship.data
+        asl.carer_mobile = form.carer_mobile.data
+        asl.carer_email = form.carer_email.data
+        asl.notes = form.notes.data
+        asl.consent_status = int(form.consent_status.data)
+
+        # Update patient’s preferred contact (lives in Patient model)
+        patient.preferred_contact = form.preferred_contact.data
+
+        db.session.add(asl)
+        db.session.commit()
+
+        flash(f"ASL record saved for {patient.given_name or patient.name}!", "success")
         return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
 
-    return render_template("views/patientasl.html", patient=patient, scenario_id=scenario_id)
+    return render_template(
+        "views/patientasl.html",
+        form=form,
+        patient=patient,
+        scenario_id=scenario_id
+    )
+
 
 
 

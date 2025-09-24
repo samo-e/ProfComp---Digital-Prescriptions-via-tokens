@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField
-from wtforms.validators import length, Email, NumberRange,DataRequired,Regexp
+from wtforms.validators import length, Email, NumberRange,DataRequired,Regexp,Optional
 
 DEFAULT_CHOICE = ("", "")
 class BasicDetailsSubForm(FlaskForm):
@@ -213,5 +213,36 @@ class PatientForm(FlaskForm):
     other     = FormField(OtherSubForm)
 
 
+# forms.py
 class ASLForm(FlaskForm):
-    basic = FormField(BasicDetailsSubForm)
+    # Contacts (Carer/Agent)
+    carer_name = StringField("Carer Name", validators=[Optional()])
+    carer_relationship = StringField("Carer Relationship", validators=[Optional()])
+    carer_mobile = StringField("Carer Mobile", validators=[Optional()])
+    carer_email = StringField("Carer Email", validators=[Optional()])
+
+    # Preferred Contact
+    preferred_contact = SelectField(
+        "Preferred Contact",
+        choices=[
+            ("mobile", "Mobile"),
+            ("home", "Home"),
+            ("email", "Email"),
+        ],
+        validators=[Optional()]
+    )
+
+    # Consent
+    consent_status = SelectField(
+        "Consent",
+        choices=[
+            ("0", "No Consent"),
+            ("1", "Pending"),
+            ("2", "Granted"),
+            ("3", "Rejected"),
+        ],
+        default="1"
+    )
+
+    # Notes
+    notes = TextAreaField("Notes", validators=[Optional()])

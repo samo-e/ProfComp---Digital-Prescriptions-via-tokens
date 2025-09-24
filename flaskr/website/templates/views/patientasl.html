@@ -1,10 +1,13 @@
-{% extends "base.html" %} {% block title %}Patient ASL Information{% endblock %}
-{% block head %}{% endblock %} {% block styles %}
-<link
-  href="{{ url_for('static', filename='css/patientasl.css') }}"
-  rel="stylesheet"
-/>
-{% endblock %} {% block scripts %}<script src="{{ url_for('static', filename='js/patientasl.js') }}"></script>{% endblock %} {% block body %}
+{% extends "base.html" %}
+{% block title %}Patient ASL Information{% endblock %}
+{% block head %}{% endblock %}
+{% block styles %}
+<link href="{{ url_for('static', filename='css/patientasl.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/patientasl.js') }}"></script>
+{% endblock %}
+{% block body %}
 <div class="container-fluid py-3 ps-0">
   <!-- Header -->
   <div class="d-flex align-items-center border-bottom pb-2 mb-3">
@@ -12,301 +15,221 @@
     <span class="fw-semibold">Patient Registration for Active Script List</span>
   </div>
 
-  <!-- Section toggle -->
-  <div class="d-flex align-items-center mb-2">
-    <button
-      type="button"
-      class="btn btn-light btn-collapse me-2"
-      data-bs-toggle="collapse"
-      data-bs-target="#general"
-      aria-controls="general"
-    >
-      <i class="bi bi-chevron-up"></i>
-    </button>
-    <span class="small">General</span>
-  </div>
+  <form method="POST">
+    {{ form.hidden_tag() }}
 
-  <div id="general" class="collapse show mb-3">
-  <h6 class="fw-bold mb-1 ms-1">Personal</h6>
+    <!-- Section toggle -->
+    <div class="d-flex align-items-center mb-2">
+      <button type="button" class="btn btn-light btn-collapse me-2" data-bs-toggle="collapse" data-bs-target="#general" aria-controls="general">
+        <i class="bi bi-chevron-up"></i>
+      </button>
+      <span class="small">General</span>
+    </div>
 
-  <div class="container-fluid">
-    <!-- Row 1 -->
-    <div class="row g-3 mb-1">
-      <div class="col-md-6">
-        <div class="row">
-          <label for="familyName" class="col-sm-4 col-form-label"
-            >Family Name</label
-          >
-          <div class="col-sm-8">
-            <input id="familyName" type="text" class="form-control"
-       value="{{ patient.family_name if patient.family_name else patient.name.split(' ')[-1] }}"
-       readonly>
+    <div id="general" class="collapse show mb-3">
+      <h6 class="fw-bold mb-1 ms-1">Personal</h6>
+      <div class="container-fluid">
+        <!-- Row 1 -->
+        <div class="row g-3 mb-1">
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Family Name</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control"
+                  value="{{ patient.last_name or (patient.name.split(' ')[-1] if patient.name else '') }}" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Given Name</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control"
+                  value="{{ patient.given_name or (patient.name.split(' ')[0] if patient.name else '') }}" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
 
+        <!-- Row 2 -->
+        <div class="row g-3 mb-1">
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Date of Birth</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.dob or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Gender</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.sex or 'N/A' }}" readonly>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="col-md-6">
+      <!-- Address -->
+      <h6 class="fw-bold mb-1 ms-1">Address</h6>
+      <div class="container-fluid">
+        <div class="row mb-1">
+          <label class="col-sm-2 col-form-label">Street</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" value="{{ patient.address or '' }}" readonly>
+          </div>
+        </div>
+        <div class="row g-3 mb-1">
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Suburb</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.suburb or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">State</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.state or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="row">
-          <label for="givenName" class="col-sm-4 col-form-label"
-            >Given Name</label
-          >
-          <div class="col-sm-8">
-            <input id="givenName" type="text" class="form-control"
-       value="{{ patient.given_name if patient.given_name else patient.name.split(' ')[0] }}"
-       readonly>
+          <label class="col-sm-2 col-form-label">Post Code</label>
+          <div class="col-sm-3">
+            <input type="text" class="form-control" value="{{ patient.postcode or '' }}" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact -->
+      <h6 class="fw-bold mb-1 ms-1">Contact</h6>
+      <div class="container-fluid">
+        <div class="row g-3 mb-1">
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Mobile</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.mobile or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Home</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.phone or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mb-1">
+          <label class="col-sm-2 col-form-label">Email</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" value="{{ patient.email or '' }}" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Identifiers -->
+      <h6 class="fw-bold mb-1 ms-1">Identifiers</h6>
+      <div class="container-fluid">
+        <div class="row g-3 mb-1">
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">Medicare</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.medicare or '' }}" readonly>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="row">
+              <label class="col-sm-4 col-form-label">DVA</label>
+              <div class="col-sm-8">
+                <input type="text" class="form-control" value="{{ patient.repatriation_number or '' }}" readonly>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Row 2 -->
-    <div class="row g-3 mb-1">
-      <div class="col-md-6">
-        <div class="row">
-          <label for="DateOfBirth" class="col-sm-4 col-form-label"
-            >Date of Birth</label
-          >
-          <div class="col-sm-8">
-            <input id="DateOfBirth" type="text" class="form-control"
-       value="{{ patient.dob }}"
-       readonly>
-          </div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="row">
-          <label for="Gender" class="col-sm-4 col-form-label">Gender</label>
-          <div class="col-sm-8">
-            <input id="Gender" type="text" class="form-control"
-       value="{{ patient.sex if patient.sex else 'N/A' }}"
-       readonly>
-          </div>
-        </div>
-      </div>
+    <!-- ASL Sections -->
+    <div class="d-flex align-items-center mb-2">
+      <button type="button" class="btn btn-light btn-collapse me-2" data-bs-toggle="collapse" data-bs-target="#contacts" aria-controls="contacts">
+        <i class="bi bi-chevron-up"></i>
+      </button>
+      <span class="small">Contacts</span>
     </div>
-  </div>
-
-  <!-- Address -->
-  <h6 class="fw-bold mb-1 ms-1">Address</h6>
-  <div class="container-fluid">
-    <!-- Street spans full width with fixed label width -->
-    <div class="row mb-1">
-      <label for="Street" class="col-sm-2 col-form-label">Street</label>
-      <div class="col-sm-10">
-        <input id="Street" type="text" class="form-control"
-       value="{{ patient.address_1 if patient.address_1  }}"
-       readonly>
-      </div>
-    </div>
-
-    <!-- City / State -->
-    <div class="row g-3 mb-1">
-      <div class="col-md-6">
-        <div class="row">
-          <label for="City" class="col-sm-4 col-form-label">City</label>
-          <div class="col-sm-8">
-            <input id="City" type="text" class="form-control"
-       value="{{ patient. if patient.address_1  }}"
-       readonly>
+    <div id="contacts" class="collapse show mb-3">
+      <h6 class="fw-bold mb-1 ms-1">Carer/Agent Details</h6>
+      <div class="container-fluid border p-3 rounded">
+        <div class="row mb-2">
+          <div class="col-md-6">
+            {{ form.carer_name.label(class="form-label") }}
+            {{ form.carer_name(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ form.carer_relationship.label(class="form-label") }}
+            {{ form.carer_relationship(class="form-control") }}
           </div>
         </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="row">
-          <label for="State" class="col-sm-4 col-form-label">State</label>
-          <div class="col-sm-8">
-            <input id="State" type="text" class="form-control" />
+        <div class="row mb-2">
+          <div class="col-md-6">
+            {{ form.carer_mobile.label(class="form-label") }}
+            {{ form.carer_mobile(class="form-control") }}
+          </div>
+          <div class="col-md-6">
+            {{ form.carer_email.label(class="form-label") }}
+            {{ form.carer_email(class="form-control") }}
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Post Code -->
-     
-    <div class="row">
-      <label for="PostCode" class="col-sm-2 col-form-label">Post Code</label>
-      <div class="col-sm-3">
-        <input id="PostCode" type="text" class="form-control" />
-      </div>
+    <div class="d-flex align-items-center mb-2">
+      <button type="button" class="btn btn-light btn-collapse me-2" data-bs-toggle="collapse" data-bs-target="#preferred_contact" aria-controls="preferred_contact">
+        <i class="bi bi-chevron-up"></i>
+      </button>
+      <span class="small">Preferred Contact</span>
     </div>
-  </div>
-
-<h6 class="fw-bold mb-1 ms-1">Contact</h6>
-<div class="container-fluid">
-  <!-- Street spans full width with fixed label width -->
-
-  <!-- City / State -->
-  <div class="row g-3 mb-1">
-    <div class="col-md-6">
-      <div class="row">
-        <label for="Mobile" class="col-sm-4 col-form-label">Mobile</label>
-        <div class="col-sm-8">
-          <input id="Mobile" type="text" class="form-control" />
-        </div>
+    <div id="preferred_contact" class="collapse show mb-3">
+      <div class="mb-3">
+        {{ form.preferred_contact.label }}
+        {{ form.preferred_contact(class="form-select") }}
       </div>
     </div>
 
-    <div class="col-md-6">
-      <div class="row">
-        <label for="Home" class="col-sm-4 col-form-label">Home</label>
-        <div class="col-sm-8">
-          <input id="Home" type="text" class="form-control" />
-        </div>
-      </div>
+    <div class="d-flex align-items-center mb-2">
+      <button type="button" class="btn btn-light btn-collapse me-2" data-bs-toggle="collapse" data-bs-target="#consent" aria-controls="consent">
+        <i class="bi bi-chevron-up"></i>
+      </button>
+      <span class="small">Consent</span>
     </div>
-  </div>
-  <div class="row mb-1">
-    <label for="Email" class="col-sm-2 col-form-label">Email</label>
-    <div class="col-sm-10">
-      <input id="Email" type="text" class="form-control" />
-    </div>
-  </div>
-</div>
-
-<h6 class="fw-bold mb-1 ms-1">Identifiers</h6>
-<div class="container-fluid">
-  <!-- Street spans full width with fixed label width -->
-
-  <!-- City / State -->
-  <div class="row g-3 mb-1">
-    <div class="col-md-6">
-      <div class="row">
-        <label for="Medicare" class="col-sm-4 col-form-label">Medicare</label>
-        <div class="col-sm-8">
-          <input id="Medicare" type="text" class="form-control" />
-        </div>
+    <div id="consent" class="collapse show mb-3">
+      <div class="mb-3">
+        {{ form.consent_status.label }}
+        {{ form.consent_status(class="form-select") }}
       </div>
     </div>
 
-    <div class="col-md-6">
-      <div class="row">
-        <label for="DVA" class="col-sm-4 col-form-label">DVA</label>
-        <div class="col-sm-8">
-          <input id="DVA" type="text" class="form-control" />
-        </div>
-      </div>
+    <h6 class="fw-bold mb-1 ms-1">Notes</h6>
+    <div class="mb-3">
+      {{ form.notes.label }}
+      {{ form.notes(class="form-control") }}
     </div>
-  </div>
-</div>
-</div>
 
-  <!-- Section toggle -->
-<div class="d-flex align-items-center mb-2">
-    <button
-      type="button"
-      class="btn btn-light btn-collapse me-2"
-      data-bs-toggle="collapse"
-      data-bs-target="#contacts"
-      aria-controls="contacts"
-    >
-      <i class="bi bi-chevron-up"></i>
-    </button>
-    <span class="small">Contacts</span>
-  </div>
-  <div id="contacts" class="collapse show mb-3">
-  <h6 class="fw-bold mb-1 ms-1">Carer/Agent Details</h6>
-  <div class="container-fluid">
-<div class="d-flex gap-2 mb-3">
-  <button id="btn-add-manual" type="button" class="btn btn-primary btn-sm">Add Manual</button>
-  <button id="btn-add-existing" type="button" class="btn btn-primary btn-sm">Add Existing Patient</button>
-  <button id="btn-add-nursing-home" type="button" class="btn btn-primary btn-sm">Add Nursing Home</button>
-</div>
-  <div id="carer-form" class="border p-3 rounded">
-      <h6 class="fw-bold mb-2">Carer/Agent Information</h6>
-
-      <div class="row mb-2">
-        <div class="col-md-6">
-          <label class="form-label">Family Name</label>
-          <input type="text" class="form-control">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Given Name</label>
-          <input type="text" class="form-control">
-        </div>
-      </div>
-
-      <div class="row mb-2">
-        <div class="col-md-6">
-          <label class="form-label">Street</label>
-          <input type="text" class="form-control">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">City</label>
-          <input type="text" class="form-control">
-        </div>
-      </div>
-
-      <div class="row mb-2">
-        <div class="col-md-6">
-          <label class="form-label">Mobile</label>
-          <input type="text" class="form-control">
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Email</label>
-          <input type="text" class="form-control">
-        </div>
-      </div>
-
-      <div class="row mb-2">
-        <div class="col-md-6">
-          <label class="form-label">Role</label>
-          <select class="form-select">
-            <option value="Carer">Carer</option>
-            <option value="Agent">Agent</option>
-          </select>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">Relationship</label>
-          <input type="text" class="form-control">
-        </div>
-      </div>
-
-      <div class="d-flex justify-content-end">
-        <button id="btn-delete-carer" type="button" class="btn btn-danger btn-sm">
-          Delete
-        </button>
-      </div>
+    <div class="d-flex justify-content-end gap-2">
+      <button type="submit" class="btn btn-success">Register</button>
+      <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario_id) }}" class="btn btn-secondary">Close</a>
     </div>
-  </div>
+  </form>
 </div>
-</div>
-</div>
-
-  <div class="d-flex align-items-center mb-2">
-    <button
-      type="button"
-      class="btn btn-light btn-collapse me-2"
-      data-bs-toggle="collapse"
-      data-bs-target="#preferred contact"
-      aria-controls="preferred contact"
-    >
-      <i class="bi bi-chevron-up"></i>
-    </button>
-    <span class="small">Preferred Contact</span>
-  </div>
-
-  <div class="d-flex align-items-center mb-2">
-    <button
-      type="button"
-      class="btn btn-light btn-collapse me-2"
-      data-bs-toggle="collapse"
-      data-bs-target="#consent"
-      aria-controls="consent"
-    >
-      <i class="bi bi-chevron-up"></i>
-    </button>
-    <span class="small">Consent</span>
-  </div>
-
-<div class="d-flex justify-content-end gap-2">
-  <button class="btn btn-success">Register</button>
-  <button class="btn btn-secondary">Close</button>
-</div>
-
-
-
-
-{% endblock %} {% block options_menu %}{% endblock %} F
+{% endblock %}
+{% block options_menu %}{% endblock %}

@@ -136,15 +136,15 @@ class Prescription(db.Model):
      
 class ASL(db.Model):
     __tablename__ = "asls"
-    
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
     consent_status = db.Column(db.Integer, default=ASLStatus.PENDING.value)  
     carer_name = db.Column(db.String(100))
     carer_relationship = db.Column(db.String(100))
+    carer_mobile = db.Column(db.String(30))       # NEW
+    carer_email = db.Column(db.String(120))       # NEW
     notes = db.Column(db.Text)
-    
-    patient = db.relationship("Patient", backref="asls")
+
     
 class Role(enum.Enum):
     STUDENT = "student"
