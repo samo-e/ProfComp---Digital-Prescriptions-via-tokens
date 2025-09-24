@@ -1,48 +1,56 @@
-{% macro input_field(id, label, type="text", fulllength=False, void=False, attrs="") %}
-{% if void %}
-<div class="col-6"></div>
-{% else %}
-<div class="col-2">
-    <label for="{{ id }}" class="form-label form-label-sm">{{ label }}</label>
-</div>
-<div class="{{ 'col-10' if fulllength else 'col-4' }}">
-    <input
-        type="{{ type }}"
-        id="{{ id }}"
-        class="form-control form-control-sm"
-        {{ attrs|safe }}
-        required>
-</div>
-{% endif %}
-{% endmacro %}
-
-{% macro input_check(id, label, fulllength=False) %}
-<div class="col-2"></div>
-<div class="{{ 'col-10' if fulllength else 'col-4' }} form-check">
-    <input type="checkbox" class="form-check-input" id="{{ id }}" required>
-    <label class="form-check-label" for="smsRepeats">{{ label }}</label>
-</div>
-{% endmacro %}
-
-
 {% macro add_tab(id, label, target="", active=False, disabled=False) %}
-<li class="nav-item" role="presentation">
-    <button 
-        class="nav-link {{ 'active' if active else '' }} {{ 'disabled' if disabled else '' }}" 
-        id="{{ id }}-tab"
-        data-bs-toggle="tab"
-        data-bs-target="#{{ target }}"
-        type="button"
-        role="tab"
-        aria-controls="{{ target }}"
-        {{ 'aria-selected=true' if active else 'aria-selected=false' }}
-        {{ 'aria-disabled=true' if disabled else '' }}
-        >{{ label }}
-    </button>
+<li class="nav-item">
+    <a id="{{id}}-tab" class="nav-link {{ 'active' if active else '' }} {{ 'disabled' if disabled else '' }}" data-bs-toggle="tab" href="#{{ target }}">{{ label }}</a>
 </li>
 {% endmacro %}
 
-<!-- This is inside div constructor -->
-{% macro add_tab_panel(id, label, target="#", active=False, disabled=False) %}
-<div class="tab-pane fade {{ 'show active' if active else '' }}" id="{{ target }}" role="tabpanel" aria-labelledby="{{ id }}-tab">
+{% macro add_ddown(id, label, target="", active=False, disabled=False) %}
+<li>
+    <a id="{{id}}-ddown"
+       class="dropdown-item {{ 'disabled' if disabled else '' }} {{ 'd-none' if active else '' }}"
+       href="#{{ target }}"
+       data-bs-toggle="tab"
+       onclick="document.getElementById('{{id}}-tab').click();"
+       {{ 'style="display:none;"' if active else '' }}>
+       {{ label }}
+    </a>
+</li>
+{% endmacro %}
+
+{% macro add_tab_panel(label, target="#", active=False) %}
+<div class="tab-pane fade {{ 'show active' if active else '' }}" id="{{ target }}">
+    {{ caller() }}
+</div>
+{% endmacro %}
+
+
+{% macro add_table_form_element(id, label, column_names) %}
+<div class="mt-3" id="{{ id }}-table-container">
+    <div class="row align-items-center my-3">
+        <h5 class="col">{{ label }}</h5>
+        <div class="col-auto ms-auto">
+            <button id="add{{id}}Btn"
+                class="btn btn-success"
+                onclick="addTableRow('{{ id }}-table', {{ column_names }})">
+                <i class="bi bi-plus h5"></i>
+            </button>
+            <button id="del{{id}}Btn" class="btn btn-danger">
+                <i class="bi bi-x h5"></i>
+            </button>
+        </div>
+    </div>
+    <table class="table table-bordered" id="{{ id }}-table">
+        <thead>
+            <tr>
+                {% for col in column_names %}
+                    <th>{{ col }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {{ caller() }}
+            <tr><td colspan="{{ column_names|length }}">&nbsp;</td></tr>
+        </tbody>
+    </table>
+</div>
 {% endmacro %}

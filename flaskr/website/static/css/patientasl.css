@@ -1,0 +1,47 @@
+/* Make collapse button compact */
+.btn-collapse {
+  padding: 0;                     /* remove default padding */
+  width: 24px;                    /* fixed width */
+  height: 24px;                   /* fixed height */
+  display: flex;                  /* center icon */
+  align-items: center;
+  justify-content: center;
+}
+
+/* Scale the chevron inside */
+.btn-collapse i {
+  font-size: 0.8rem;
+}
+
+.section-title {
+  font-weight: 600;  /* same as fw-semibold */
+  font-size: 1.1rem; /* optional, make it slightly bigger */
+  margin-bottom: .5rem; /* spacing */
+  margin-left: 0.5rem; /* spacing */
+}
+
+.section-part {
+  width: 50%;       /* each takes half of the page */
+  display: flex;
+  align-items: center;
+  padding: 5px 10px; /* optional spacing */
+  box-sizing: border-box;
+  gap: 3px;
+  flex-wrap:wrap;
+}
+
+.section-part label {
+  display:flex;  /* keeps labels aligned */
+  margin-right: 10px;
+}
+
+.section-part input {
+  display:flex;
+  flex: 1;            /* input stretches inside its half */
+}
+
+.form-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;      /* full page width */
+}
