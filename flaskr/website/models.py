@@ -145,11 +145,6 @@ class ASL(db.Model):
     carer_email = db.Column(db.String(120))       # NEW
     notes = db.Column(db.Text)
 
-    
-class Role(enum.Enum):
-    STUDENT = "student"
-    TEACHER = "teacher"
-
 # Define roles
 class Role(enum.Enum):
     STUDENT = "student"
@@ -193,7 +188,8 @@ class User(UserMixin, db.Model):
 
     def can_dispense(self):
         return True  # both teacher + student
-
+    
+    
 class Scenario(db.Model):
     __tablename__ = 'scenarios'
 
@@ -204,11 +200,8 @@ class Scenario(db.Model):
     num_students_completed = db.Column(db.Integer, default=0)
     creation_date = db.Column(db.DateTime, default=datetime.utcnow)
     due_date = db.Column(db.DateTime, nullable=True)
-    # time_limit in seconds; front end can render as human-readable (e.g., 1 hour)
     time_limit_seconds = db.Column(db.Integer, nullable=True)
 
-    # Who can edit this scenario
-    edit_access = db.relationship('User', secondary=scenario_edit_access, backref='editable_scenarios')
 
 
 class ScenarioAttempt(db.Model):
