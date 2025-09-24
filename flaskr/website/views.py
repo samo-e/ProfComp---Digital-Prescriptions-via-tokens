@@ -59,28 +59,71 @@ def create_patient(scenario_id):
   
 @views.route('/edit-pt/<int:scenario_id>', methods=["GET", "POST"])
 def edit_pt(scenario_id):
-    # grab patient if exists
-    patient = Patient.query.first()  # for now just grab first, later filter by scenario_id
-    form = PatientForm(obj=patient)  # keep passing form to template
+    patient = Patient.query.first()  # later filter by scenario_id
+    form = PatientForm(obj=patient)
 
-    if request.method == "POST":
-        print("Form data:", request.form)  # debug
+    if form.validate_on_submit():
+        # if patient exists, update it; else, create new
+        if not patient:
+            patient = Patient()
 
-        # manually create Patient from raw POST data
-        patient = Patient(
-            name=f"{request.form.get('basic-lastName')} {request.form.get('basic-givenName')}",
-            dob=request.form.get('basic-dob'),
-            sex=request.form.get('basic-sex')
-        )
+        # Basic details
+        patient.last_name   = form.basic.lastName.data
+        patient.given_name  = form.basic.givenName.data
+        patient.title       = form.basic.title.data
+        patient.sex         = form.basic.sex.data
+        patient.dob         = form.basic.dob.data.strftime("%d/%m/%Y") if form.basic.dob.data else None
+        patient.pt_number   = form.basic.ptNumber.data
+
+        # Contact
+        patient.address     = request.form.get("basic-address")  # since address is raw input in HTML
+        patient.suburb      = form.basic.suburb.data
+        patient.state       = form.basic.state.data
+        patient.postcode    = form.basic.postcode.data
+        patient.phone       = form.basic.phone.data
+        patient.mobile      = form.basic.mobile.data
+        patient.licence     = form.basic.licence.data
+        patient.sms_repeats = form.basic.smsRepeats.data
+        patient.sms_owing   = form.basic.smsOwing.data
+        patient.email       = form.basic.email.data
+
+        # Medicare
+        patient.medicare         = form.basic.medicare.data
+        patient.medicare_issue   = form.basic.medicareIssue.data
+        patient.medicare_valid_to= form.basic.medicareValidTo.data
+        patient.medicare_surname = form.basic.medicareSurname.data
+        patient.medicare_given_name = form.basic.medicareGivenName.data
+
+        # Concession
+        patient.concession_number = form.basic.concessionNumber.data
+        patient.concession_valid_to= form.basic.concessionValidTo.data.strftime("%d/%m/%Y") if form.basic.concessionValidTo.data else None
+        patient.safety_net_number = form.basic.safetyNetNumber.data
+        patient.repatriation_number = form.basic.repatriationNumber.data
+        patient.repatriation_valid_to= form.basic.repatriationValidTo.data.strftime("%d/%m/%Y") if form.basic.repatriationValidTo.data else None
+        patient.repatriation_type = form.basic.repatriationType.data
+        patient.ndss_number = form.basic.ndssNumber.data
+
+        # MyHR
+        patient.ihi_number = form.basic.ihiNumber.data
+        patient.ihi_status = form.basic.ihiStatus.data
+        patient.ihi_record_status = form.basic.ihiRecordStatus.data
+
+        # Doctor + flags
+        patient.doctor       = form.basic.doctor.data
+        patient.ctg_registered = form.basic.ctgRegistered.data
+        patient.generics_only  = form.basic.genericsOnly.data
+        patient.repeats_held   = form.basic.repeatsHeld.data
+        patient.pt_deceased    = form.basic.ptDeceased.data
 
         db.session.add(patient)
         db.session.commit()
 
-        flash("Patient details saved successfully!", "success")
+        flash("Patient saved successfully!", "success")
         return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
 
-    # always pass form to template to avoid 'undefined'
     return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id)
+
+
 
 
 @views.route('/scenario/<int:scenario_id>/delete-pt/<int:patient_id>', methods=["POST", "GET"])
