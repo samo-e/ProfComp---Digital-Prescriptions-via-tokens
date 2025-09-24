@@ -13,7 +13,7 @@ def student_dashboard():
     if not current_user.role.value == "student":
         flash("Access denied: Students only.", "error")
         return redirect(url_for('views.teacher_dashboard'))
-    return render_template("views/student_dashboard.html")
+    return render_template("views/student_dash.html")
 
 @views.route('/teacher_dashboard')
 @login_required 
