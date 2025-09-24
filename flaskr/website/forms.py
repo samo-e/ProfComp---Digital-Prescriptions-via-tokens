@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField
-from wtforms.validators import length, Email, NumberRange
+from wtforms.validators import length, Email, NumberRange,DataRequired,Regexp
 
 DEFAULT_CHOICE = ("", "")
 class BasicDetailsSubForm(FlaskForm):
@@ -37,8 +37,15 @@ class BasicDetailsSubForm(FlaskForm):
     email = EmailField("Email", validators=[Email()])
 
     # Medicare
-    medicare = IntegerField("Medicare No.",[length(min=9, max=9)])
-    medicareIssue = IntegerField(validators=[length(min=1, max=1)])
+    medicare = StringField(
+    "Medicare No.",
+    validators=[
+        DataRequired(),
+        length(min=10, max=10, message="Medicare number must be 10 digits"),
+        Regexp("^[0-9]*$", message="Medicare number must contain only digits")
+    ]
+)
+    medicareIssue = IntegerField(validators=[NumberRange(min=0, max=9)])
     medicareValidTo = StringField("Valid To")  # can also use custom validator
     medicareSurname = StringField("Surname")
     medicareGivenName = StringField("Given name")
