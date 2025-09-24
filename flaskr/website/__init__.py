@@ -1,3 +1,5 @@
+
+import os
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
@@ -36,7 +38,22 @@ def create_app():
 
     # Register blueprints
     app.register_blueprint(views, url_prefix='/')
-    app.register_blueprint(auth, url_prefix='/') 
+    app.register_blueprint(auth, url_prefix='/')
+
+    # Check and initialize database if needed
+    initialize_database(app)
+
+    return app
+
+# Function to check for existing database and initialize if missing
+def initialize_database(app):
+    db_path = app.config['SQLALCHEMY_DATABASE_URI'].replace('sqlite:///', '')
+    if not os.path.exists(db_path):
+        from .models import db
+        with app.app_context():
+            db.create_all()
+
+    return app
 
 
 
