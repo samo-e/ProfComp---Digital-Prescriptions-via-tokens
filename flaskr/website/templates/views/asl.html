@@ -11,7 +11,6 @@
 
 {% block scripts %}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.3/html2pdf.bundle.min.js" integrity="sha512-yu5WG6ewBNKx8svICzUA01vozhmiQCVfzjzW40eCHJdsDRaOifh9hPlWBDex5b32gWCzawTp1F3FJz60ps6TnQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    
     <script src="{{ url_for('static', filename='js/print_script.js') }}"></script>
     <script src="{{ url_for('static', filename='js/asl.js') }}"></script>
 
@@ -62,11 +61,11 @@
                     </div>
                     <div class="col">
                         <div class="d-flex flex-row justify-content-end gap-2">
-                            <!-- Button logic per ASL system -->
-                            {% if pt_data.get('asl_status') == 'No Consent' %}
+                            <!-- onsent-status nested format -->
+                            {% if pt_data['consent-status']['status'] == 'No Consent' %}
                                 <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
                                 <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
-                            {% elif pt_data.get('asl_status') == 'Granted' %}
+                            {% elif pt_data['consent-status']['status'] == 'Granted' %}
                                 <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
                             {% else %}
                                 <button type="button" id="btn-request-access" class="btn btn-secondary" disabled>Request Access</button>
@@ -76,26 +75,28 @@
                     </div>
                 </div>
                 
-
                 <div class="row">
                     <h4 class="col-12">Consent Status</h4>
                     <p class="d-flex justify-content-between align-items-center">
                         <span>
-                            {% if pt_data.get('asl_status') == 'No Consent' %}
-                                <a id="consent-status" style="color: black; font-weight: normal;">No Consent</a>
-                            {% elif pt_data.get('asl_status') == 'Pending' %}
-                                <a id="consent-status" style="color: orange;">Pending</a>
-                            {% elif pt_data.get('asl_status') == 'Granted' %}
-                                <a id="consent-status" style="color: green;">Granted</a>
-                            {% elif pt_data.get('asl_status') == 'Rejected' %}
-                                <a id="consent-status" style="color: red;">Rejected</a>
+                            <!-- consent_status nested structure -->
+                            {% if pt_data['consent-status']['status'] == 'No Consent' %}
+                                <a id="consent-status" class="consent-no-consent">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Pending' %}
+                                <a id="consent-status" class="consent-pending">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Granted' %}
+                                <a id="consent-status" class="consent-granted">{{ pt_data['consent-status']['status'] }}</a>
+                            {% elif pt_data['consent-status']['status'] == 'Rejected' %}
+                                <a id="consent-status" class="consent-rejected">{{ pt_data['consent-status']['status'] }}</a>
                             {% endif %}
                             
-                            {% if pt_data.get('asl_status') != 'No Consent' %}
-                            <a id="consent-last-updated"> (last updated {{ pt_data.get('consent_last_updated', '01/Jan/2000 02:59AM') }})</a>
+                           
+                            {% if pt_data['consent-status']['status'] != 'No Consent' %}
+                            <a id="consent-last-updated"> (Last Updated {{ pt_data['consent-status']['last-updated'] }})</a>
                             {% endif %}
                         </span>
-                        {% if pt_data.get('asl_status') != 'No Consent' %}
+                      
+                        {% if pt_data['consent-status']['status'] != 'No Consent' %}
                         <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
                         {% endif %}
                      </p>
@@ -120,10 +121,12 @@
                 </button>
             </div>
             <div class="col-10">
-                <p>ASL Scripts ({{ pt_data['asl_data']|length }} available)</p>
+                <!-- CHANGED: Use asl-data instead of asl_data -->
+                <p>ASL Scripts ({{ pt_data['asl-data']|length }} available)</p>
             </div>
             <div class="col-1">
-               {% if pt_data['asl_data']|length > 0 %}
+                <!-- CHANGED: Use asl-data instead of asl_data -->
+                {% if pt_data['asl-data']|length > 0 %}
                 <button id="script-print" class="btn btn-primary">
                     <i class="bi bi-printer-fill printer"></i>
                 </button>
@@ -144,7 +147,8 @@
                 </tr>
             </thead>
             <tbody>
-                {% for asl in pt_data['asl_data'] %}
+                <!-- Use asl-data -->
+                {% for asl in pt_data['asl-data'] %}
                 <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
                     <td class="asl-check"><input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}"></td>
                     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
@@ -160,15 +164,16 @@
     </div>
     <br>
     
-   <div class="container">
+    <div class="container">
         <div class="row">
             <div class="col-1">
-               <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
+                <button type="button" class="btn btn-light btn-collapse" data-bs-toggle="collapse" data-bs-target="#alr-table" aria-controls="alr-table">
                     <i class="bi bi-chevron-up"></i>
                 </button>
             </div>
             <div class="col-11">
-                <p>Available Local Repeats - View Only ({{ pt_data['alr_data']|length }} with remaining repeats)</p>
+                <!-- Use alr-data  -->
+                <p>Available Local Repeats - View Only ({{ pt_data['alr-data']|length }} with remaining repeats)</p>
             </div>
         </div>
         
@@ -180,20 +185,19 @@
                 <th scope="col">Qty</th>
                 <th scope="col">Prescribed</th>
                 <th scope="col">Rpt</th>
-                <!-- Remaining repeats -->
                 <th scope="col">Remaining</th>
                 <th scope="col">Paperless</th>
                 </tr>
             </thead>
             <tbody>
-                {% for alr in pt_data['alr_data'] %}
+               
+                {% for alr in pt_data['alr-data'] %}
                 <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
                     <td class="alr-date">{{ alr['dispensed-date'] }}</td>
                     <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
                     <td class="alr-qty">{{ alr['dose-qty'] }}</td>
                     <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
                     <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
-                    <!-- Show remaining repeats -->
                     <td class="alr-remaining">{{ alr.get('remaining-repeats', 'N/A') }}</td>
                     <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
                 </tr>

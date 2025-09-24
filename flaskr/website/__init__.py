@@ -1,50 +1,42 @@
-# Import db for use in create_database
-from .models import db
-from flask import Flask 
-from flask_sqlalchemy import SQLAlchemy
+from flask import Flask
 from flask_login import LoginManager
-from os import path
-import os 
-
-DB_NAME = "database.bd"
+from flask_wtf.csrf import CSRFProtect
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = 'temporary'
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
-        'DATABASE_URL', f'sqlite:///{DB_NAME}'
-    )
+    app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'  # Change this in production!
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///asl_simulation.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
+    # Session configuration for better security
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    app.config['PERMANENT_SESSION_LIFETIME'] = 3600  # 1 hour session timeout
+    
+    # CSRF Protection
+    csrf = CSRFProtect(app)
+    
     # import the database
-    from .models import db
-
+    from .models import db, User
     db.init_app(app)
+    
+    # Initialize Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message = 'Please log in to access this page.'
+    login_manager.login_message_category = 'info'
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        return User.query.get(int(user_id))
 
     from .views import views
     from .auth import auth
 
-    # for view/auth.py routes
+    # Register blueprints
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/') 
 
 
-    login_manager = LoginManager()
-    login_manager.login_view = 'auth.login'
-    login_manager.init_app(app)
 
-    from .models import User
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return User.query.get(int(user_id))
-      
-    create_database(app) 
-       
-    return app
-
-def create_database(app): 
-    # checks if db exists
-    if not path.exists('website/' + DB_NAME):
-            with app.app_context():
-                db.create_all()
