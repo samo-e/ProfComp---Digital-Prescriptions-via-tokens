@@ -12,7 +12,7 @@ class BasicDetailsSubForm(FlaskForm):
         ("rev", "Rev"), ("dr", "Dr"), ("honorable", "Honorable")
     ])
     sex = SelectField("Sex", choices=[DEFAULT_CHOICE, ("male", "Male"), ("female", "Female")])
-    dob = DateField("Date of Birth", format="%d-%m-%Y")
+    dob = DateField("Date of Birth", format="%Y-%m-%d")
     ptNumber = StringField("Patient No.")
 
     # Contact
@@ -52,10 +52,10 @@ class BasicDetailsSubForm(FlaskForm):
 
     # Concession
     concessionNumber = StringField("Concession No.")
-    concessionValidTo = DateField("Valid To", format="%d-%m-%Y")
+    concessionValidTo = DateField("Valid To", format="%Y-%m-%d")
     safetyNetNumber = StringField("Safety Net No.")
     repatriationNumber = StringField("Repatriation No.")
-    repatriationValidTo = DateField("Valid To", format="%d-%m-%Y")
+    repatriationValidTo = DateField("Valid To", format="%Y-%m-%d")
     repatriationType = StringField("Repatriation Type")
     ndssNumber = StringField("NDSS No.")
 
@@ -134,8 +134,8 @@ class AccountsSubForm(FlaskForm):
     room = StringField("Room No")
     bed = StringField("Bed No")
     ptCat = SelectField("Patient Category", choices=[DEFAULT_CHOICE])
-    chartStart = DateField("Chart Start", format="%d-%m-%Y")
-    chartEnd = DateField("Chart End", format="%d-%m-%Y")
+    chartStart = DateField("Chart Start", format="%Y-%m-%d")
+    chartEnd = DateField("Chart End", format="%Y-%m-%d")
     chartDuration = SelectField("Chart Duration", choices=[DEFAULT_CHOICE])
 
     # Debtor Account Details
