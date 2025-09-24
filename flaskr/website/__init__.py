@@ -33,12 +33,15 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+
     from .views import views
     from .auth import auth
+    from .admin import admin
 
     # Register blueprints
     app.register_blueprint(views, url_prefix='/')
     app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(admin, url_prefix='/')
 
     # Check and initialize database if needed
     initialize_database(app)

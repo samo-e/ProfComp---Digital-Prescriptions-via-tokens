@@ -17,6 +17,7 @@ def index():
             return redirect(url_for('views.student_dashboard'))
     return redirect(url_for('auth.login'))
 
+
 # Helper decorator to require teacher role
 def teacher_required(f):
     """Decorator to require teacher role"""

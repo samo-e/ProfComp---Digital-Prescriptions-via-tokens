@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Admin Dashboard</title>
+	<style>
+		.container {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			width: 100%;
+			min-height: 80vh;
+			gap: 2rem;
+		}
+		.column {
+			flex: 1;
+			background: #f8f8f8;
+			border-radius: 8px;
+			padding: 1.5rem;
+			box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+			overflow-y: auto;
+			min-width: 0;
+		}
+		h2 {
+			margin-top: 0;
+		}
+		ul {
+			list-style: none;
+			padding: 0;
+		}
+		li {
+			margin-bottom: 1rem;
+			padding: 0.75rem;
+			background: #fff;
+			border-radius: 6px;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+		}
+	</style>
+</head>
+<body>
+	<h1>Admin Dashboard</h1>
+	<div class="container">
+		<div class="column">
+			<h2>Teachers</h2>
+			<ul>
+				{# Loop through teachers #}
+				{% for teacher in teachers %}
+				<li>
+					<strong>{{ teacher.name }}</strong><br>
+					Email: {{ teacher.email }}
+				</li>
+				{% else %}
+				<li>No teachers found.</li>
+				{% endfor %}
+			</ul>
+		</div>
+		<div class="column">
+			<h2>Students</h2>
+			<ul>
+				{# Loop through students #}
+				{% for student in students %}
+				<li>
+					<strong>{{ student.name }}</strong><br>
+					Email: {{ student.email }}
+				</li>
+				{% else %}
+				<li>No students found.</li>
+				{% endfor %}
+			</ul>
+		</div>
+	</div>
+</body>
+</html>

@@ -140,17 +140,7 @@ def change_password():
     return redirect(url_for('auth.profile'))
 
 
-# Admin routes (for teachers to manage student accounts)
-@auth.route('/admin/users')
-@login_required
-def admin_users():
-    """Admin page to manage users (teachers only)"""
-    if not current_user.is_teacher():
-        flash('You do not have permission to access this page', 'error')
-        return redirect(url_for('auth.home'))
-    
-    users = User.query.all()
-    return render_template("auth/admin_users.html", users=users)
+
 
 
 @auth.route('/admin/toggle-user-status/<int:user_id>', methods=['POST'])

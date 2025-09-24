@@ -27,6 +27,7 @@ class ASLStatus(Enum):
 class UserRole(Enum):
     TEACHER = "teacher"
     STUDENT = "student"
+    ADMIN   = "admin" 
 
 class User(db.Model, UserMixin):
     """User model for authentication - supports both teachers and students"""
