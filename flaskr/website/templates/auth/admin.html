@@ -47,7 +47,9 @@
 				{# Loop through teachers #}
 				{% for teacher in teachers %}
 				<li>
-					<strong>{{ teacher.name }}</strong><br>
+					<a href="{{ url_for('admin.user_profile', user_id=teacher.id) }}">
+						<strong>{{ teacher.get_full_name() if teacher.get_full_name else teacher.email }}</strong>
+					</a><br>
 					Email: {{ teacher.email }}
 				</li>
 				{% else %}
@@ -61,7 +63,9 @@
 				{# Loop through students #}
 				{% for student in students %}
 				<li>
-					<strong>{{ student.name }}</strong><br>
+					<a href="{{ url_for('admin.user_profile', user_id=student.id) }}">
+						<strong>{{ student.get_full_name() if student.get_full_name else student.email }}</strong>
+					</a><br>
 					Email: {{ student.email }}
 				</li>
 				{% else %}

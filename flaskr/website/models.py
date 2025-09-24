@@ -48,6 +48,14 @@ class User(db.Model, UserMixin):
                                        foreign_keys='Scenario.teacher_id')
     assigned_scenarios = db.relationship('Scenario', secondary='student_scenarios', 
                                         backref='assigned_students', lazy=True)
+
+    # Assignment: Each student has one teacher, each teacher can have many students
+    teacher_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', name='fk_user_teacher_id'),
+        nullable=True
+    )
+    students = db.relationship('User', backref=db.backref('teacher', remote_side='User.id'), lazy='dynamic')
     
     def set_password(self, password):
         """Hash and set the user's password"""
@@ -189,4 +197,4 @@ class Prescription(db.Model):
     
     def get_status(self):
         return PrescriptionStatus(self.status)
-      
+

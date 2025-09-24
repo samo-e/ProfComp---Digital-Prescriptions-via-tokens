@@ -1,8 +1,10 @@
 
 import os
 from flask import Flask
+
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 
 def create_app():
     app = Flask(__name__)
@@ -19,8 +21,11 @@ def create_app():
     csrf = CSRFProtect(app)
     
     # import the database
+
     from .models import db, User
     db.init_app(app)
+    # Set up Flask-Migrate
+    migrate = Migrate(app, db)
     
     # Initialize Flask-Login
     login_manager = LoginManager()
