@@ -1,9 +1,12 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
 from flask_login import login_required, current_user
-from functools import wraps
-from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, Scenario, User
+from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User
+from .forms import PatientForm, ASLForm
 from sqlalchemy import or_
 from datetime import datetime
+from functools import wraps
+import requests
 
 views = Blueprint('views', __name__)
 
@@ -51,7 +54,6 @@ def teacher_dashboard():
         total_students=total_students
     )
 
-# Student Dashboard
 @views.route('/student/dashboard')
 @login_required
 def student_dashboard():
@@ -67,9 +69,84 @@ def student_dashboard():
         scenarios=assigned_scenarios
     )
 
-# Original ASL route with authentication
-@views.route('/asl/<int:pt>')
-@login_required
+@views.route('/edit-pt/<int:scenario_id>', methods=["GET", "POST"])
+def edit_pt(scenario_id):
+    patient = Patient.query.first()  # later filter by scenario_id
+    form = PatientForm(obj=patient)
+
+    if form.validate_on_submit():
+        # if patient exists, update it; else, create new
+        if not patient:
+            patient = Patient()
+
+        # Basic details
+        patient.last_name   = form.basic.lastName.data
+        patient.given_name  = form.basic.givenName.data
+        patient.title       = form.basic.title.data
+        patient.sex         = form.basic.sex.data
+        patient.dob         = form.basic.dob.data.strftime("%d/%m/%Y") if form.basic.dob.data else None
+        patient.pt_number   = form.basic.ptNumber.data
+
+        # Contact
+        patient.address     = request.form.get("basic-address")  # since address is raw input in HTML
+        patient.suburb      = form.basic.suburb.data
+        patient.state       = form.basic.state.data
+        patient.postcode    = form.basic.postcode.data
+        patient.phone       = form.basic.phone.data
+        patient.mobile      = form.basic.mobile.data
+        patient.licence     = form.basic.licence.data
+        patient.sms_repeats = form.basic.smsRepeats.data
+        patient.sms_owing   = form.basic.smsOwing.data
+        patient.email       = form.basic.email.data
+
+        # Medicare
+        patient.medicare         = form.basic.medicare.data
+        patient.medicare_issue   = form.basic.medicareIssue.data
+        patient.medicare_valid_to= form.basic.medicareValidTo.data
+        patient.medicare_surname = form.basic.medicareSurname.data
+        patient.medicare_given_name = form.basic.medicareGivenName.data
+
+        # Concession
+        patient.concession_number = form.basic.concessionNumber.data
+        patient.concession_valid_to= form.basic.concessionValidTo.data.strftime("%d/%m/%Y") if form.basic.concessionValidTo.data else None
+        patient.safety_net_number = form.basic.safetyNetNumber.data
+        patient.repatriation_number = form.basic.repatriationNumber.data
+        patient.repatriation_valid_to= form.basic.repatriationValidTo.data.strftime("%d/%m/%Y") if form.basic.repatriationValidTo.data else None
+        patient.repatriation_type = form.basic.repatriationType.data
+        patient.ndss_number = form.basic.ndssNumber.data
+
+        # MyHR
+        patient.ihi_number = form.basic.ihiNumber.data
+        patient.ihi_status = form.basic.ihiStatus.data
+        patient.ihi_record_status = form.basic.ihiRecordStatus.data
+
+        # Doctor + flags
+        patient.doctor       = form.basic.doctor.data
+        patient.ctg_registered = form.basic.ctgRegistered.data
+        patient.generics_only  = form.basic.genericsOnly.data
+        patient.repeats_held   = form.basic.repeatsHeld.data
+        patient.pt_deceased    = form.basic.ptDeceased.data
+
+        db.session.add(patient)
+        db.session.commit()
+
+        flash("Patient saved successfully!", "success")
+        return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+    else:
+        print(form.errors)
+
+    return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id,patient=patient)
+
+@views.route('/show-users')
+def show_users():
+    from .models import User
+    users = User.query.all()
+    return '<br>'.join([
+        f'ID: {u.id} | Username: {u.username} | Email: {u.email} | Password: {u.password} | Role: {u.role}'
+        for u in users
+    ])
+  
+@views.route('/asl/<int:pt>') 
 def asl(pt: int):
     """ASL page - now requires login"""
     try:
@@ -434,3 +511,63 @@ def print_selected_prescriptions():
 def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
+
+@views.route('/patient/<int:patient_id>/asl', methods=["GET", "POST"])
+def patient_asl_form(patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+
+    # Load or create ASL record for this patient
+    asl = ASL.query.filter_by(patient_id=patient.id).first()
+    if not asl:
+        asl = ASL(patient_id=patient.id)
+
+    form = ASLForm(obj=asl)
+
+    if form.validate_on_submit():
+        # Save ASL-specific fields
+        asl.carer_name = form.carer_name.data
+        asl.carer_relationship = form.carer_relationship.data
+        asl.carer_mobile = form.carer_mobile.data
+        asl.carer_email = form.carer_email.data
+        asl.notes = form.notes.data
+        asl.consent_status = int(form.consent_status.data)
+
+        # Update patient’s preferred contact (lives in Patient model)
+        patient.preferred_contact = form.preferred_contact.data
+
+        db.session.add(asl)
+        db.session.commit()
+
+        flash(f"ASL record saved for {patient.given_name or patient.name}!", "success")
+
+    return render_template(
+        "views/patientasl.html",
+        form=form,
+        patient=patient,
+    )
+
+
+
+
+@views.route('/ac') # Maybe '/api/ac'
+def ac():
+    text = request.args.get("text")
+    if not text:
+        return jsonify({"error": "Missing required parameter: text"}), 400
+    
+    api_key = "704bfce1792e462e9c9f537ffbc6cc6d"
+    url = "https://api.geoapify.com/v1/geocode/autocomplete"
+    
+    # Call Geoapify
+    params = {
+        "text": text,
+        "apiKey": api_key,
+        "lang": "en",
+        "limit": 5,
+        "filter": "countrycode:au",
+        "format": "json"
+    }
+
+    resp = requests.get(url, params=params)
+
+    return resp.json()['results']

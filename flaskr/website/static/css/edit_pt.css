@@ -2,12 +2,38 @@
     border-radius: 1rem;
 }
 
-.nav-link.disabled {
+.nav-link.disabled,
+.dropdown-item.disabled {
     text-decoration: line-through;
+}
+
+.nav-link {
+    color: var(--bs-body-color);
 }
 
 #generatePtDetails {
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+}
+
+#address-suggestions {
+    width: calc(100%  - 16px);
+}
+#address-suggestions .dropdown-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Remove up/down arrows for number inputs */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
 }
