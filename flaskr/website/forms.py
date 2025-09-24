@@ -41,7 +41,7 @@ class BasicDetailsSubForm(FlaskForm):
     "Medicare No.",
     validators=[
         DataRequired(),
-        length(min=10, max=10, message="Medicare number must be 10 digits"),
+        length(min=9, max=9, message="Medicare number must be 9 digits"),
         Regexp("^[0-9]*$", message="Medicare number must contain only digits")
     ]
 )

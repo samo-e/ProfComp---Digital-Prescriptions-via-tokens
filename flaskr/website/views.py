@@ -120,6 +120,8 @@ def edit_pt(scenario_id):
 
         flash("Patient saved successfully!", "success")
         return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+    else:
+        print(form.errors)
 
     return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id)
 

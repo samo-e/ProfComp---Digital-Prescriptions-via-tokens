@@ -6,6 +6,9 @@ from flask_login import LoginManager
 from os import path
 import os 
 
+from flask_wtf.csrf import CSRFProtect
+csrf = CSRFProtect()
+
 DB_NAME = "database.bd"
 
 def create_app():
@@ -20,7 +23,7 @@ def create_app():
     from .models import db
 
     db.init_app(app)
-
+    csrf.init_app(app)
     from .views import views
     from .auth import auth
 
