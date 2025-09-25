@@ -251,3 +251,6 @@ class ASLForm(FlaskForm):
 
 class DeleteForm(FlaskForm):
     submit = SubmitField("Delete")
+
+class EmptyForm(FlaskForm):
+    pass

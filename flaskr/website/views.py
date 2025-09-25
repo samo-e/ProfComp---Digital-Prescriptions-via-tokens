@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User
-from .forms import PatientForm, ASLForm,DeleteForm
+from .forms import PatientForm, ASLForm,DeleteForm,EmptyForm
 from sqlalchemy import or_
 from datetime import datetime
 from functools import wraps
@@ -36,6 +36,8 @@ def teacher_required(f):
 @views.route('/teacher/dashboard')
 @teacher_required
 def teacher_dashboard():
+    scenarios = Scenario.query.all()
+    form = EmptyForm()
     """Teacher dashboard showing all scenarios"""
     # Get teacher's scenarios
     scenarios = Scenario.query.filter_by(
@@ -51,7 +53,8 @@ def teacher_dashboard():
         "views/teacher_dash.html",
         scenarios=scenarios,
         total_scenarios=total_scenarios,
-        total_students=total_students
+        total_students=total_students,
+        form=form
     )
 
 @views.route('/student/dashboard')
@@ -675,25 +678,6 @@ def ac():
 
     return resp.json()['results']
 
-@views.route("/scenario-demo")
-def scenario_demo():
-    # Just grab all patients from DB
-    patients = Patient.query.all()
-
-    # Fake scenario info (since you don’t have Scenario model yet)
-    scenario = {
-        "id": 1,
-        "name": "Demo Scenario",
-        "description": "Showing all patients loaded from the DB."
-    }
-
-    return render_template(
-        "views/scenario_dash.html",
-        scenario=scenario,
-        patients=patients
-    )
-
-
 @views.route("/assign")
 @login_required
 def assign_dashboard():
@@ -721,3 +705,29 @@ def delete_patient(patient_id):
     else:
         flash("CSRF check failed!", "danger")
     return redirect(url_for("views.patient_dashboard"))
+
+@views.route("/scenarios/<int:scenario_id>")
+@login_required
+def scenario_dashboard(scenario_id):
+    scenario = Scenario.query.get_or_404(scenario_id)
+    return render_template("views/scenario_dash.html", scenario=scenario)
+
+@views.route("/scenarios/create", methods=["POST"])
+@teacher_required
+def create_scenario():
+    """Create a new blank scenario and redirect back to dashboard"""
+    form = EmptyForm()
+    if form.validate_on_submit():
+        new_scenario = Scenario(
+            name=f"Sample Scenario {Scenario.query.count() + 1}",   # auto-number
+            description="Basic ASL workflow practice",
+            teacher_id=current_user.id,
+            version=1
+        )
+        db.session.add(new_scenario)
+        db.session.commit()
+        flash("New scenario created!", "success")
+    else:
+        flash("Invalid CSRF token. Please try again.", "error")
+
+    return redirect(url_for("views.teacher_dashboard"))
