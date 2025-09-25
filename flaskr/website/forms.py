@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField
+from wtforms import StringField, SelectField, BooleanField, DateField, TelField, EmailField, IntegerField, DecimalField, TextAreaField, FieldList, FormField,SubmitField
 from wtforms.validators import length, Email, NumberRange,DataRequired,Regexp,Optional
 
 DEFAULT_CHOICE = ("", "")
@@ -246,3 +246,8 @@ class ASLForm(FlaskForm):
 
     # Notes
     notes = TextAreaField("Notes", validators=[Optional()])
+
+
+
+class DeleteForm(FlaskForm):
+    submit = SubmitField("Delete")

@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User
-from .forms import PatientForm, ASLForm
+from .forms import PatientForm, ASLForm,DeleteForm
 from sqlalchemy import or_
 from datetime import datetime
 from functools import wraps
@@ -619,12 +619,6 @@ def scenario_demo():
         patients=patients
     )
 
-@views.route("/patients")
-@login_required
-def patient_dashboard():
-    # Query all patients from DB
-    patients = Patient.query.all()
-    return render_template("views/patient_dash.html", patients=patients)
 
 @views.route("/assign")
 @login_required
@@ -632,3 +626,24 @@ def assign_dashboard():
     # Later you can fetch scenario + students from DB
     # For now, just render the HTML mockup
     return render_template("views/assign.html")
+
+@views.route("/patients", methods=["GET"])
+@login_required
+def patient_dashboard():
+    patients = Patient.query.all()
+    delete_form = DeleteForm()  # one form instance reused
+    return render_template("views/patient_dash.html", patients=patients, delete_form=delete_form)
+
+
+@views.route("/patients/delete/<int:patient_id>", methods=["POST"])
+@login_required
+def delete_patient(patient_id):
+    form = DeleteForm()
+    if form.validate_on_submit():  # ✅ checks CSRF
+        patient = Patient.query.get_or_404(patient_id)
+        db.session.delete(patient)
+        db.session.commit()
+        flash("Patient deleted successfully!", "success")
+    else:
+        flash("CSRF check failed!", "danger")
+    return redirect(url_for("views.patient_dashboard"))
