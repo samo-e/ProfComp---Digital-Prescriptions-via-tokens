@@ -571,3 +571,28 @@ def ac():
     resp = requests.get(url, params=params)
 
     return resp.json()['results']
+
+@views.route("/scenario-demo")
+def scenario_demo():
+    # Just grab all patients from DB
+    patients = Patient.query.all()
+
+    # Fake scenario info (since you don’t have Scenario model yet)
+    scenario = {
+        "id": 1,
+        "name": "Demo Scenario",
+        "description": "Showing all patients loaded from the DB."
+    }
+
+    return render_template(
+        "views/scenario_dash.html",
+        scenario=scenario,
+        patients=patients
+    )
+
+@views.route("/patients")
+@login_required
+def patient_dashboard():
+    # Query all patients from DB
+    patients = Patient.query.all()
+    return render_template("views/patient_dash.html", patients=patients)
