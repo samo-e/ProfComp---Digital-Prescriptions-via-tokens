@@ -98,7 +98,6 @@ def create_patient():
 
         # Medicare
         patient.medicare         = form.basic.medicare.data
-        patient.medicare_issue   = form.basic.medicareIssue.data
         patient.medicare_valid_to= form.basic.medicareValidTo.data
         patient.medicare_surname = form.basic.medicareSurname.data
         patient.medicare_given_name = form.basic.medicareGivenName.data
@@ -133,12 +132,59 @@ def create_patient():
     return render_template("views/edit_pt.html", form=form, patient=None)
 
 @views.route('/patients/edit/<int:patient_id>', methods=["GET", "POST"])
+@login_required
 def edit_pt(patient_id):
     patient = Patient.query.get_or_404(patient_id)
-    form = PatientForm(obj=patient)
+    form = PatientForm()
 
+    # --- Prefill form values on GET ---
+    if request.method == "GET":
+        form.basic.lastName.data = patient.last_name
+        form.basic.givenName.data = patient.given_name
+        form.basic.title.data = patient.title
+        form.basic.sex.data = patient.sex
+        form.basic.dob.data = (
+            datetime.strptime(patient.dob, "%d/%m/%Y") if patient.dob else None
+        )
+        form.basic.ptNumber.data = patient.pt_number
+
+        form.basic.suburb.data = patient.suburb
+        form.basic.state.data = patient.state
+        form.basic.postcode.data = patient.postcode
+        form.basic.phone.data = patient.phone
+        form.basic.mobile.data = patient.mobile
+        form.basic.licence.data = patient.licence
+        form.basic.smsRepeats.data = patient.sms_repeats
+        form.basic.smsOwing.data = patient.sms_owing
+        form.basic.email.data = patient.email
+
+        form.basic.medicare.data = patient.medicare
+        form.basic.medicareValidTo.data = patient.medicare_valid_to
+        form.basic.medicareSurname.data = patient.medicare_surname
+        form.basic.medicareGivenName.data = patient.medicare_given_name
+
+        form.basic.concessionNumber.data = patient.concession_number
+        if patient.concession_valid_to:
+            form.basic.concessionValidTo.data = datetime.strptime(patient.concession_valid_to, "%d/%m/%Y")
+        form.basic.safetyNetNumber.data = patient.safety_net_number
+        form.basic.repatriationNumber.data = patient.repatriation_number
+        if patient.repatriation_valid_to:
+            form.basic.repatriationValidTo.data = datetime.strptime(patient.repatriation_valid_to, "%d/%m/%Y")
+        form.basic.repatriationType.data = patient.repatriation_type
+        form.basic.ndssNumber.data = patient.ndss_number
+
+        form.basic.ihiNumber.data = patient.ihi_number
+        form.basic.ihiStatus.data = patient.ihi_status
+        form.basic.ihiRecordStatus.data = patient.ihi_record_status
+
+        form.basic.doctor.data = patient.doctor
+        form.basic.ctgRegistered.data = patient.ctg_registered
+        form.basic.genericsOnly.data = patient.generics_only
+        form.basic.repeatsHeld.data = patient.repeats_held
+        form.basic.ptDeceased.data = patient.pt_deceased
+
+    # --- Save updates on POST ---
     if form.validate_on_submit():
-        # update fields (same as create_patient)
         patient.last_name   = form.basic.lastName.data
         patient.given_name  = form.basic.givenName.data
         patient.title       = form.basic.title.data
@@ -157,14 +203,42 @@ def edit_pt(patient_id):
         patient.sms_owing   = form.basic.smsOwing.data
         patient.email       = form.basic.email.data
 
-        # (same blocks for Medicare, Concession, MyHR, Doctor, etc…)
+        patient.medicare            = form.basic.medicare.data
+        patient.medicare_issue      = form.basic.medicareIssue.data
+        patient.medicare_valid_to   = form.basic.medicareValidTo.data
+        patient.medicare_surname    = form.basic.medicareSurname.data
+        patient.medicare_given_name = form.basic.medicareGivenName.data
+
+        patient.concession_number   = form.basic.concessionNumber.data
+        patient.concession_valid_to = (
+            form.basic.concessionValidTo.data.strftime("%d/%m/%Y")
+            if form.basic.concessionValidTo.data else None
+        )
+        patient.safety_net_number   = form.basic.safetyNetNumber.data
+        patient.repatriation_number = form.basic.repatriationNumber.data
+        patient.repatriation_valid_to = (
+            form.basic.repatriationValidTo.data.strftime("%d/%m/%Y")
+            if form.basic.repatriationValidTo.data else None
+        )
+        patient.repatriation_type   = form.basic.repatriationType.data
+        patient.ndss_number         = form.basic.ndssNumber.data
+
+        patient.ihi_number        = form.basic.ihiNumber.data
+        patient.ihi_status        = form.basic.ihiStatus.data
+        patient.ihi_record_status = form.basic.ihiRecordStatus.data
+
+        patient.doctor        = form.basic.doctor.data
+        patient.ctg_registered = form.basic.ctgRegistered.data
+        patient.generics_only  = form.basic.genericsOnly.data
+        patient.repeats_held   = form.basic.repeatsHeld.data
+        patient.pt_deceased    = form.basic.ptDeceased.data
 
         db.session.commit()
-
         flash("Patient updated successfully!", "success")
         return redirect(url_for("views.patient_dashboard"))
 
     return render_template("views/edit_pt.html", form=form, patient=patient)
+    
 
 @views.route('/show-users')
 def show_users():
