@@ -148,8 +148,7 @@
                   id="address"
                   name="basic-address"
                   class="form-control form-control-sm"
-                  value="{{ patient.address or '' }}"
-                  required
+                  value="{{ patient.address if patient else '' }}"
                 />
                 <ul id="address-suggestions" class="dropdown-menu"></ul>
               </div>

@@ -69,15 +69,12 @@ def student_dashboard():
         scenarios=assigned_scenarios
     )
 
-@views.route('/edit-pt/<int:scenario_id>', methods=["GET", "POST"])
-def edit_pt(scenario_id):
-    patient = Patient.query.first()  # later filter by scenario_id
-    form = PatientForm(obj=patient)
+@views.route('/patients/create', methods=["GET", "POST"])
+def create_patient():
+    form = PatientForm()
 
     if form.validate_on_submit():
-        # if patient exists, update it; else, create new
-        if not patient:
-            patient = Patient()
+        patient = Patient()
 
         # Basic details
         patient.last_name   = form.basic.lastName.data
@@ -88,7 +85,7 @@ def edit_pt(scenario_id):
         patient.pt_number   = form.basic.ptNumber.data
 
         # Contact
-        patient.address     = request.form.get("basic-address")  # since address is raw input in HTML
+        patient.address     = request.form.get("basic-address")
         patient.suburb      = form.basic.suburb.data
         patient.state       = form.basic.state.data
         patient.postcode    = form.basic.postcode.data
@@ -130,12 +127,44 @@ def edit_pt(scenario_id):
         db.session.add(patient)
         db.session.commit()
 
-        flash("Patient saved successfully!", "success")
-        return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
-    else:
-        print(form.errors)
+        flash("Patient created successfully!", "success")
+        return redirect(url_for("views.patient_dashboard"))
 
-    return render_template("views/edit_pt.html", form=form, scenario_id=scenario_id,patient=patient)
+    return render_template("views/edit_pt.html", form=form, patient=None)
+
+@views.route('/patients/edit/<int:patient_id>', methods=["GET", "POST"])
+def edit_pt(patient_id):
+    patient = Patient.query.get_or_404(patient_id)
+    form = PatientForm(obj=patient)
+
+    if form.validate_on_submit():
+        # update fields (same as create_patient)
+        patient.last_name   = form.basic.lastName.data
+        patient.given_name  = form.basic.givenName.data
+        patient.title       = form.basic.title.data
+        patient.sex         = form.basic.sex.data
+        patient.dob         = form.basic.dob.data.strftime("%d/%m/%Y") if form.basic.dob.data else None
+        patient.pt_number   = form.basic.ptNumber.data
+
+        patient.address     = request.form.get("basic-address")
+        patient.suburb      = form.basic.suburb.data
+        patient.state       = form.basic.state.data
+        patient.postcode    = form.basic.postcode.data
+        patient.phone       = form.basic.phone.data
+        patient.mobile      = form.basic.mobile.data
+        patient.licence     = form.basic.licence.data
+        patient.sms_repeats = form.basic.smsRepeats.data
+        patient.sms_owing   = form.basic.smsOwing.data
+        patient.email       = form.basic.email.data
+
+        # (same blocks for Medicare, Concession, MyHR, Doctor, etc…)
+
+        db.session.commit()
+
+        flash("Patient updated successfully!", "success")
+        return redirect(url_for("views.patient_dashboard"))
+
+    return render_template("views/edit_pt.html", form=form, patient=patient)
 
 @views.route('/show-users')
 def show_users():
@@ -596,3 +625,10 @@ def patient_dashboard():
     # Query all patients from DB
     patients = Patient.query.all()
     return render_template("views/patient_dash.html", patients=patients)
+
+@views.route("/assign")
+@login_required
+def assign_dashboard():
+    # Later you can fetch scenario + students from DB
+    # For now, just render the HTML mockup
+    return render_template("views/assign.html")

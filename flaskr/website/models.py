@@ -130,8 +130,7 @@ class Patient(db.Model):
     name = db.Column(db.String(100))
     dob = db.Column(db.String(10))  # format is DD/MM/YYYY
     preferred_contact = db.Column(db.String(20))
-    address_1 = db.Column(db.String(100))
-    address_2 = db.Column(db.String(100))
+    address = db.Column(db.String(200))
     script_date = db.Column(db.String(10))
     pbs = db.Column(db.String(50), nullable=True)
     rpbs = db.Column(db.String(50), nullable=True)
