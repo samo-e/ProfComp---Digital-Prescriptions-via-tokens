@@ -219,36 +219,53 @@
 
 <script>
     // Select all checkbox functionality
-    document.getElementById('select-all')?.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
+    if (document.getElementById('select-all')) {
+        document.getElementById('select-all').addEventListener('change', function() {
+            var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            var selectAll = this;
+            checkboxes.forEach(function(cb) {
+                cb.checked = selectAll.checked;
+            });
+        });
+    }
 
     // Bulk actions functionality
-    document.getElementById('bulk-delete')?.addEventListener('click', function() {
-        const selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
-        if (selected.length === 0) {
-            alert('Please select scenarios to archive');
-            return;
-        }
-        
-        if (confirm(`Are you sure you want to archive ${selected.length} selected scenario(s)?`)) {
-            // Implement bulk delete functionality
-            console.log('Bulk archive:', Array.from(selected).map(cb => cb.value));
-            alert('Bulk archive functionality to be implemented');
-        }
-    });
+    if (document.getElementById('bulk-delete')) {
+        document.getElementById('bulk-delete').addEventListener('click', function() {
+            var selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+            if (selected.length === 0) {
+                alert('Please select scenarios to archive');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to archive ' + selected.length + ' selected scenario(s)?')) {
+                // Implement bulk delete functionality
+                var selectedIds = [];
+                selected.forEach(function(cb) {
+                    selectedIds.push(cb.value);
+                });
+                console.log('Bulk archive:', selectedIds);
+                alert('Bulk archive functionality to be implemented');
+            }
+        });
+    }
 
-    document.getElementById('bulk-export')?.addEventListener('click', function() {
-        const selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
-        if (selected.length === 0) {
-            alert('Please select scenarios to export');
-            return;
-        }
-        
-        // Implement bulk export functionality
-        console.log('Bulk export:', Array.from(selected).map(cb => cb.value));
-        alert('Bulk export functionality to be implemented');
-    });
+    if (document.getElementById('bulk-export')) {
+        document.getElementById('bulk-export').addEventListener('click', function() {
+            var selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+            if (selected.length === 0) {
+                alert('Please select scenarios to export');
+                return;
+            }
+            
+            // Implement bulk export functionality
+            var selectedIds = [];
+            selected.forEach(function(cb) {
+                selectedIds.push(cb.value);
+            });
+            console.log('Bulk export:', selectedIds);
+            alert('Bulk export functionality to be implemented');
+        });
+    }
 </script>
 {% endblock %}
