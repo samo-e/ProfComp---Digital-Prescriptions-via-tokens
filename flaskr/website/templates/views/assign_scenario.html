@@ -274,95 +274,92 @@
     </div>
 </div>
 
-<script type="text/javascript">
-// Simple JavaScript without modern features
+<script>
 function toggleStudent(studentId) {
-    var checkbox = document.querySelector('input[value="' + studentId + '"]');
-    var card = checkbox.parentNode.parentNode;
-    
-    if (checkbox.checked) {
-        card.className = card.className.replace(' selected', '');
-        checkbox.checked = false;
-    } else {
-        card.className += ' selected';
-        checkbox.checked = true;
+    var checkbox = document.getElementById('student_' + studentId);
+    if (!checkbox) {
+        var inputs = document.getElementsByName('student_ids');
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].value == studentId) {
+                checkbox = inputs[i];
+                break;
+            }
+        }
     }
-    updateCount();
+    
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateCount();
+    }
 }
 
 function updateCount() {
-    var checked = document.querySelectorAll('input[name="student_ids"]:checked');
-    var summary = document.getElementById('selectionSummary');
-    var count = document.getElementById('selectedCount');
-    var btn = document.getElementById('assignBtn');
+    var checkboxes = document.getElementsByName('student_ids');
+    var count = 0;
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            count++;
+        }
+    }
     
-    count.innerHTML = checked.length;
+    var countElement = document.getElementById('selectedCount');
+    var summaryElement = document.getElementById('selectionSummary');
+    var btnElement = document.getElementById('assignBtn');
     
-    if (checked.length > 0) {
-        summary.style.display = 'block';
-        btn.disabled = false;
-    } else {
-        summary.style.display = 'none';
-        btn.disabled = true;
+    if (countElement) countElement.innerHTML = count;
+    
+    if (summaryElement) {
+        summaryElement.style.display = count > 0 ? 'block' : 'none';
+    }
+    
+    if (btnElement) {
+        btnElement.disabled = count === 0;
     }
 }
 
 function selectAll() {
-    var checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    var checkboxes = document.getElementsByName('student_ids');
     for (var i = 0; i < checkboxes.length; i++) {
-        var item = checkboxes[i].closest('.student-item');
-        if (!item || item.style.display !== 'none') {
-            checkboxes[i].checked = true;
-            var card = checkboxes[i].parentNode.parentNode;
-            if (card.className.indexOf('selected') === -1) {
-                card.className += ' selected';
-            }
-        }
+        checkboxes[i].checked = true;
     }
     updateCount();
 }
 
 function selectNone() {
-    var checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    var checkboxes = document.getElementsByName('student_ids');
     for (var i = 0; i < checkboxes.length; i++) {
         checkboxes[i].checked = false;
-        var card = checkboxes[i].parentNode.parentNode;
-        card.className = card.className.replace(' selected', '');
     }
     updateCount();
 }
 
 function selectNew() {
-    var checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    var checkboxes = document.getElementsByName('student_ids');
     for (var i = 0; i < checkboxes.length; i++) {
-        var card = checkboxes[i].parentNode.parentNode;
-        var item = checkboxes[i].closest('.student-item');
-        
-        if ((!item || item.style.display !== 'none') && card.className.indexOf('already-assigned') === -1) {
+        var card = checkboxes[i].parentNode;
+        while (card && card.className.indexOf('student-card') === -1) {
+            card = card.parentNode;
+        }
+        if (card && card.className.indexOf('already-assigned') === -1) {
             checkboxes[i].checked = true;
-            if (card.className.indexOf('selected') === -1) {
-                card.className += ' selected';
-            }
         } else {
             checkboxes[i].checked = false;
-            card.className = card.className.replace(' selected', '');
         }
     }
     updateCount();
 }
 
-// Simple search function
 function searchStudents() {
-    var input = document.getElementById('searchBox');
-    var searchTerm = input.value.toLowerCase();
-    var items = document.querySelectorAll('.student-item');
+    var searchBox = document.getElementById('searchBox');
+    var searchValue = searchBox ? searchBox.value.toLowerCase() : '';
+    var items = document.getElementsByClassName('student-item');
     var visibleCount = 0;
     
     for (var i = 0; i < items.length; i++) {
         var name = items[i].getAttribute('data-name') || '';
         var email = items[i].getAttribute('data-email') || '';
         
-        if (name.indexOf(searchTerm) > -1 || email.indexOf(searchTerm) > -1) {
+        if (name.indexOf(searchValue) > -1 || email.indexOf(searchValue) > -1 || searchValue === '') {
             items[i].style.display = '';
             visibleCount++;
         } else {
@@ -371,32 +368,17 @@ function searchStudents() {
     }
     
     var noResults = document.getElementById('noResults');
-    if (visibleCount === 0 && searchTerm.length > 0) {
-        noResults.style.display = 'block';
-    } else {
-        noResults.style.display = 'none';
+    if (noResults) {
+        noResults.style.display = (visibleCount === 0 && searchValue !== '') ? 'block' : 'none';
     }
 }
 
-// Initialize when page loads
 window.onload = function() {
-    // Set up search
     var searchBox = document.getElementById('searchBox');
-    if (searchBox) {
+    if (searchBox && searchBox.addEventListener) {
+        searchBox.addEventListener('keyup', searchStudents);
+    } else if (searchBox) {
         searchBox.onkeyup = searchStudents;
-    }
-    
-    // Initialize already assigned students
-    var assignedIds = {{ assigned_student_ids|safe }};
-    for (var i = 0; i < assignedIds.length; i++) {
-        var checkbox = document.querySelector('input[value="' + assignedIds[i] + '"]');
-        if (checkbox) {
-            checkbox.checked = true;
-            var card = checkbox.parentNode.parentNode;
-            if (card.className.indexOf('selected') === -1) {
-                card.className += ' selected';
-            }
-        }
     }
     
     updateCount();
