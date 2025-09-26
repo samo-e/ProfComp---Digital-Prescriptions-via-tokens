@@ -17,6 +17,14 @@
         .stats-card:hover {
             transform: translateY(-5px);
         }
+        .scenario-name a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .scenario-name a:hover {
+            color: #007bff;
+            text-decoration: underline;
+        }
     </style>
 {% endblock %}
 
@@ -95,76 +103,66 @@
                     </th>
                     <th scope="col">Scenario Name</th>
                     <th scope="col" class="text-center">Students</th>
+                    <th scope="col" class="text-center">Patients</th>
                     <th scope="col" class="text-center">Actions</th>
                 </tr>
             </thead>
-<tbody>
-    <!-- Dynamic scenarios -->
-    {% for scenario in scenarios %}
-    <tr>
-        <td class="scenario-check text-center">
-            <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
-        </td>
+            <tbody>
+                <!-- Dynamic scenarios -->
+                {% if scenarios and scenarios|length > 0 %}
+                    {% for scenario in scenarios %}
+                    <tr>
+                        <td class="scenario-check text-center">
+                            <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
+                        </td>
 
-        <!-- Scenario name + description -->
-        <td class="scenario-name">
-            <a href="#Scenario-{{ scenario.id }}">{{ scenario.name }}</a>
-            <br><small class="text-muted">{{ scenario.description }}</small>
-        </td>
+                        <!-- Scenario name + description -->
+                        <td class="scenario-name">
+                            <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}">
+                                {{ scenario.name }}
+                                {% if scenario.version > 1 %}
+                                    <span class="badge bg-secondary ms-1">v{{ scenario.version }}</span>
+                                {% endif %}
+                                {% if scenario.password %}
+                                    <span class="badge bg-warning text-dark ms-1">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <br><small class="text-muted">{{ scenario.description or 'No description provided' }}</small>
+                            <br><small class="text-muted">
+                                Created: {{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
+                                {% if scenario.updated_at and scenario.updated_at != scenario.created_at %}
+                                    | Updated: {{ scenario.updated_at.strftime('%d/%m/%Y') }}
+                                {% endif %}
+                            </small>
+                        </td>
 
-        <!-- Students count -->
-        <td class="scenario-qty text-center">
-            {{ scenario.assigned_students|length if scenario.assigned_students else 0 }}
-        </td>
+                        <!-- Students count -->
+                        <td class="scenario-qty text-center">
+                            <span class="badge bg-primary">
+                                {{ scenario.assigned_students|length if scenario.assigned_students else 0 }}
+                            </span>
+                        </td>
 
-        <!-- Actions -->
-        <td class="text-center">
-            <div class="btn-group" role="group">
-                <button class="btn btn-sm btn-info" title="Edit scenario">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
-                <button class="btn btn-sm btn-success" title="Assign students">
-                    <i class="bi bi-person-plus"></i>
-                </button>
-                <button class="btn btn-sm btn-secondary" title="Export data">
-                    <i class="bi bi-download"></i>
-                </button>
-                <button class="btn btn-sm btn-danger" title="Delete scenario">
-                    <i class="bi bi-trash3-fill"></i>
-                </button>
-            </div>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
-        </table>
-    </div>
+                        <!-- Patients count -->
+                        <td class="text-center">
+                            <span class="badge bg-success">
+                                {{ scenario.patient_data|length if scenario.patient_data else 0 }}
+                            </span>
+                        </td>
 
-    <!-- Bulk Actions -->
-    <div class="row mt-3">
-        <div class="col-12 d-flex justify-content-between">
-            <div>
-                <button class="btn btn-outline-secondary" id="bulk-export">
-                    <i class="bi bi-download"></i> Export Selected
-                </button>
-                <button class="btn btn-outline-danger ms-2" id="bulk-delete">
-                    <i class="bi bi-trash"></i> Delete Selected
-                </button>
-            </div>
-            <div>
-                <button class="btn btn-success">
-                    <i class="bi bi-people"></i> Manage Students
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    // Select all checkbox functionality
-    document.getElementById('select-all')?.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
-</script>
-{% endblock %}
+                        <!-- Actions -->
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="View scenario">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('views.edit_scenario', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-info" title="Edit scenario">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-success" title="Assign students">
+                                    <i class="bi bi-person
