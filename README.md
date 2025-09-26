@@ -19,3 +19,34 @@ An electronic prescription is a digital version of a paper prescription. Since t
 | Zi Hao Chan   |  24116757  |
 | David Pang    |  24128968  |
 | Zachary Wang  |  24648002  |
+
+### Getting Started
+#### Prerequisites
+- Python 3.13.7
+#### Installation
+_Below is an example of how you can instruct your audience on installing and setting up your app. This template doesn't rely on any external dependencies or services._
+
+1. Clone the repo
+   ```sh
+   git clone https://github.com/yourusername/your-repo.git
+   cd your-repo
+   ```
+2. Install dependencies
+   ```sh
+   pip install -r requirements.txt
+   ```
+3. Setup environment variables
+    Linux / Mac
+    ```sh
+    export SECRET_KEY='your_secret_key_here'
+    ```
+    Windows (Powershell)
+    ```sh
+    setx SECRET_KEY "your_secret_key_here"
+    ```
+4. Run the application
+   ```sh
+   flask run
+   ```
+
+### Licence
