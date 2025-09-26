@@ -274,147 +274,132 @@
     </div>
 </div>
 
-<script>
-var selectedStudents = [];
-var assignedStudents = {{ assigned_student_ids|tojson|safe }};
-
-// Initialize with already assigned students
-for (var i = 0; i < assignedStudents.length; i++) {
-    selectedStudents.push(assignedStudents[i]);
-}
-
-function isSelected(studentId) {
-    return selectedStudents.indexOf(studentId) !== -1;
-}
-
-function addStudent(studentId) {
-    if (!isSelected(studentId)) {
-        selectedStudents.push(studentId);
-    }
-}
-
-function removeStudent(studentId) {
-    var index = selectedStudents.indexOf(studentId);
-    if (index !== -1) {
-        selectedStudents.splice(index, 1);
-    }
-}
-
+<script type="text/javascript">
+// Simple JavaScript without modern features
 function toggleStudent(studentId) {
-    var inputs = document.querySelectorAll('input[name="student_ids"]');
-    var card = null;
-    var checkbox = null;
+    var checkbox = document.querySelector('input[value="' + studentId + '"]');
+    var card = checkbox.parentNode.parentNode;
     
-    for (var i = 0; i < inputs.length; i++) {
-        if (parseInt(inputs[i].value) === studentId) {
-            checkbox = inputs[i];
-            card = checkbox.closest('.student-card');
-            break;
-        }
-    }
-    
-    if (isSelected(studentId)) {
-        removeStudent(studentId);
-        card.classList.remove('selected');
+    if (checkbox.checked) {
+        card.className = card.className.replace(' selected', '');
         checkbox.checked = false;
     } else {
-        addStudent(studentId);
-        card.classList.add('selected');
+        card.className += ' selected';
         checkbox.checked = true;
     }
-    
-    updateSelectionSummary();
+    updateCount();
 }
 
-function updateSelectionSummary() {
+function updateCount() {
+    var checked = document.querySelectorAll('input[name="student_ids"]:checked');
     var summary = document.getElementById('selectionSummary');
     var count = document.getElementById('selectedCount');
-    var assignBtn = document.getElementById('assignBtn');
+    var btn = document.getElementById('assignBtn');
     
-    count.textContent = selectedStudents.length;
+    count.innerHTML = checked.length;
     
-    if (selectedStudents.length > 0) {
+    if (checked.length > 0) {
         summary.style.display = 'block';
-        assignBtn.disabled = false;
+        btn.disabled = false;
     } else {
         summary.style.display = 'none';
-        assignBtn.disabled = true;
+        btn.disabled = true;
     }
 }
 
 function selectAll() {
-    var visibleCheckboxes = document.querySelectorAll('.student-item input[name="student_ids"]');
-    for (var i = 0; i < visibleCheckboxes.length; i++) {
-        var item = visibleCheckboxes[i].closest('.student-item');
-        if (item.style.display !== 'none') {
-            var studentId = parseInt(visibleCheckboxes[i].value);
-            addStudent(studentId);
-            visibleCheckboxes[i].checked = true;
-            visibleCheckboxes[i].closest('.student-card').classList.add('selected');
+    var checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var item = checkboxes[i].closest('.student-item');
+        if (!item || item.style.display !== 'none') {
+            checkboxes[i].checked = true;
+            var card = checkboxes[i].parentNode.parentNode;
+            if (card.className.indexOf('selected') === -1) {
+                card.className += ' selected';
+            }
         }
     }
-    updateSelectionSummary();
+    updateCount();
 }
 
 function selectNone() {
-    selectedStudents = [];
     var checkboxes = document.querySelectorAll('input[name="student_ids"]');
     for (var i = 0; i < checkboxes.length; i++) {
         checkboxes[i].checked = false;
-        checkboxes[i].closest('.student-card').classList.remove('selected');
+        var card = checkboxes[i].parentNode.parentNode;
+        card.className = card.className.replace(' selected', '');
     }
-    updateSelectionSummary();
+    updateCount();
 }
 
 function selectNew() {
-    selectNone();
-    var cards = document.querySelectorAll('.student-card:not(.already-assigned)');
-    for (var i = 0; i < cards.length; i++) {
-        var item = cards[i].closest('.student-item');
-        if (item.style.display !== 'none') {
-            var checkbox = cards[i].querySelector('input');
-            var studentId = parseInt(checkbox.value);
-            addStudent(studentId);
-            cards[i].classList.add('selected');
-            checkbox.checked = true;
+    var checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var card = checkboxes[i].parentNode.parentNode;
+        var item = checkboxes[i].closest('.student-item');
+        
+        if ((!item || item.style.display !== 'none') && card.className.indexOf('already-assigned') === -1) {
+            checkboxes[i].checked = true;
+            if (card.className.indexOf('selected') === -1) {
+                card.className += ' selected';
+            }
+        } else {
+            checkboxes[i].checked = false;
+            card.className = card.className.replace(' selected', '');
         }
     }
-    updateSelectionSummary();
+    updateCount();
 }
 
-// Search functionality
-document.addEventListener('DOMContentLoaded', function() {
-    var searchBox = document.getElementById('searchBox');
-    if (searchBox) {
-        searchBox.addEventListener('input', function() {
-            var searchTerm = this.value.toLowerCase();
-            var studentItems = document.querySelectorAll('.student-item');
-            var visibleCount = 0;
-            
-            for (var i = 0; i < studentItems.length; i++) {
-                var item = studentItems[i];
-                var name = item.getAttribute('data-name') || '';
-                var email = item.getAttribute('data-email') || '';
-                
-                if (name.indexOf(searchTerm) !== -1 || email.indexOf(searchTerm) !== -1) {
-                    item.style.display = '';
-                    visibleCount++;
-                } else {
-                    item.style.display = 'none';
-                }
-            }
-            
-            var noResults = document.getElementById('noResults');
-            if (visibleCount === 0 && searchTerm.length > 0) {
-                noResults.style.display = 'block';
-            } else {
-                noResults.style.display = 'none';
-            }
-        });
+// Simple search function
+function searchStudents() {
+    var input = document.getElementById('searchBox');
+    var searchTerm = input.value.toLowerCase();
+    var items = document.querySelectorAll('.student-item');
+    var visibleCount = 0;
+    
+    for (var i = 0; i < items.length; i++) {
+        var name = items[i].getAttribute('data-name') || '';
+        var email = items[i].getAttribute('data-email') || '';
+        
+        if (name.indexOf(searchTerm) > -1 || email.indexOf(searchTerm) > -1) {
+            items[i].style.display = '';
+            visibleCount++;
+        } else {
+            items[i].style.display = 'none';
+        }
     }
     
-    // Initialize the selection summary
-    updateSelectionSummary();
-});
+    var noResults = document.getElementById('noResults');
+    if (visibleCount === 0 && searchTerm.length > 0) {
+        noResults.style.display = 'block';
+    } else {
+        noResults.style.display = 'none';
+    }
+}
+
+// Initialize when page loads
+window.onload = function() {
+    // Set up search
+    var searchBox = document.getElementById('searchBox');
+    if (searchBox) {
+        searchBox.onkeyup = searchStudents;
+    }
+    
+    // Initialize already assigned students
+    var assignedIds = {{ assigned_student_ids|safe }};
+    for (var i = 0; i < assignedIds.length; i++) {
+        var checkbox = document.querySelector('input[value="' + assignedIds[i] + '"]');
+        if (checkbox) {
+            checkbox.checked = true;
+            var card = checkbox.parentNode.parentNode;
+            if (card.className.indexOf('selected') === -1) {
+                card.className += ' selected';
+            }
+        }
+    }
+    
+    updateCount();
+};
 </script>
 {% endblock %}
