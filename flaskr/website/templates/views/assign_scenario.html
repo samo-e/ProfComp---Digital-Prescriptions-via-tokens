@@ -181,9 +181,9 @@
                 </div>
                 <div class="col-md-4">
                     <div class="bulk-actions">
-                        <button type="button" onclick="selectAll()">Select All</button>
-                        <button type="button" onclick="selectNone()">Select None</button>
-                        <button type="button" onclick="selectNew()">Select Unassigned</button>
+                        <button type="button" id="selectAllBtn">Select All</button>
+                        <button type="button" id="selectNoneBtn">Select None</button>
+                        <button type="button" id="selectNewBtn">Select Unassigned</button>
                     </div>
                 </div>
             </div>
@@ -212,7 +212,7 @@
                          data-name="{{ student.get_full_name()|lower }}" 
                          data-email="{{ student.email|lower }}">
                         <div class="student-card {% if student.id in assigned_student_ids %}already-assigned{% endif %}" 
-                             onclick="toggleStudent({{ student.id }})">
+                             id="card_{{ student.id }}">
                             <div class="student-info">
                                 <div class="student-details">
                                     <h6>{{ student.get_full_name() }}</h6>
@@ -238,6 +238,7 @@
                             <input type="checkbox" 
                                    name="student_ids" 
                                    value="{{ student.id }}" 
+                                   id="student_{{ student.id }}"
                                    {% if student.id in assigned_student_ids %}checked{% endif %}
                                    style="display: none;">
                         </div>
@@ -320,7 +321,13 @@ function updateCount() {
 function selectAll() {
     var checkboxes = document.getElementsByName('student_ids');
     for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = true;
+        var studentItem = checkboxes[i].parentNode;
+        while (studentItem && studentItem.className.indexOf('student-item') === -1) {
+            studentItem = studentItem.parentNode;
+        }
+        if (!studentItem || studentItem.style.display !== 'none') {
+            checkboxes[i].checked = true;
+        }
     }
     updateCount();
 }
@@ -340,7 +347,13 @@ function selectNew() {
         while (card && card.className.indexOf('student-card') === -1) {
             card = card.parentNode;
         }
-        if (card && card.className.indexOf('already-assigned') === -1) {
+        
+        var studentItem = checkboxes[i].parentNode;
+        while (studentItem && studentItem.className.indexOf('student-item') === -1) {
+            studentItem = studentItem.parentNode;
+        }
+        
+        if (card && card.className.indexOf('already-assigned') === -1 && (!studentItem || studentItem.style.display !== 'none')) {
             checkboxes[i].checked = true;
         } else {
             checkboxes[i].checked = false;
@@ -374,11 +387,45 @@ function searchStudents() {
 }
 
 window.onload = function() {
+    // Set up button event handlers
+    var selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) {
+        selectAllBtn.onclick = selectAll;
+    }
+    
+    var selectNoneBtn = document.getElementById('selectNoneBtn');
+    if (selectNoneBtn) {
+        selectNoneBtn.onclick = selectNone;
+    }
+    
+    var selectNewBtn = document.getElementById('selectNewBtn');
+    if (selectNewBtn) {
+        selectNewBtn.onclick = selectNew;
+    }
+    
+    // Set up click handlers for student cards
+    var studentCards = document.getElementsByClassName('student-card');
+    for (var i = 0; i < studentCards.length; i++) {
+        var card = studentCards[i];
+        var checkbox = card.getElementsByTagName('input')[0];
+        if (checkbox) {
+            card.onclick = function() {
+                var cardCheckbox = this.getElementsByTagName('input')[0];
+                if (cardCheckbox) {
+                    cardCheckbox.checked = !cardCheckbox.checked;
+                    updateCount();
+                }
+            };
+        }
+    }
+    
     var searchBox = document.getElementById('searchBox');
-    if (searchBox && searchBox.addEventListener) {
-        searchBox.addEventListener('keyup', searchStudents);
-    } else if (searchBox) {
-        searchBox.onkeyup = searchStudents;
+    if (searchBox) {
+        if (searchBox.addEventListener) {
+            searchBox.addEventListener('keyup', searchStudents);
+        } else {
+            searchBox.onkeyup = searchStudents;
+        }
     }
     
     updateCount();
