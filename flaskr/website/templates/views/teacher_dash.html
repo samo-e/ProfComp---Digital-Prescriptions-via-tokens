@@ -175,9 +175,10 @@
                                     </button>
                                 </form>
                                 <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" 
-                                      class="d-inline" onsubmit="return confirm('Are you sure you want to archive this scenario?')">
+                                      class="d-inline" id="delete-form-{{ scenario.id }}">
                                     {{ form.hidden_tag() }}
-                                    <button type="submit" class="btn btn-sm btn-danger" title="Archive scenario">
+                                    <button type="button" class="btn btn-sm btn-danger delete-btn" 
+                                            title="Archive scenario" data-scenario-id="{{ scenario.id }}">
                                         <i class="bi bi-archive"></i>
                                     </button>
                                 </form>
@@ -189,7 +190,7 @@
                     <tr>
                         <td colspan="5" class="text-center py-4 text-muted">
                             <i class="bi bi-journal-x fs-1 mb-2"></i>
-                            <p>No scenarios created yet. <a href="#" onclick="document.querySelector('form[action=\"{{ url_for('views.create_scenario') }}\"] button').click()">Create your first scenario</a> to get started!</p>
+                            <p>No scenarios created yet. <a href="#" id="create-first-scenario">Create your first scenario</a> to get started!</p>
                         </td>
                     </tr>
                 {% endif %}
@@ -218,54 +219,107 @@
 </div>
 
 <script>
-    // Select all checkbox functionality
-    if (document.getElementById('select-all')) {
-        document.getElementById('select-all').addEventListener('change', function() {
-            var checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-            var selectAll = this;
-            checkboxes.forEach(function(cb) {
-                cb.checked = selectAll.checked;
-            });
-        });
+function selectAllToggle() {
+    var selectAll = document.getElementById('select-all');
+    var checkboxes = document.getElementsByTagName('input');
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0) {
+            checkboxes[i].checked = selectAll.checked;
+        }
     }
+}
 
-    // Bulk actions functionality
-    if (document.getElementById('bulk-delete')) {
-        document.getElementById('bulk-delete').addEventListener('click', function() {
-            var selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
-            if (selected.length === 0) {
-                alert('Please select scenarios to archive');
-                return;
-            }
-            
-            if (confirm('Are you sure you want to archive ' + selected.length + ' selected scenario(s)?')) {
-                // Implement bulk delete functionality
-                var selectedIds = [];
-                selected.forEach(function(cb) {
-                    selectedIds.push(cb.value);
-                });
-                console.log('Bulk archive:', selectedIds);
-                alert('Bulk archive functionality to be implemented');
-            }
-        });
+function bulkArchive() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
     }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to archive');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to archive ' + selected + ' selected scenario(s)?')) {
+        alert('Bulk archive functionality to be implemented');
+    }
+}
 
-    if (document.getElementById('bulk-export')) {
-        document.getElementById('bulk-export').addEventListener('click', function() {
-            var selected = document.querySelectorAll('tbody input[type="checkbox"]:checked');
-            if (selected.length === 0) {
-                alert('Please select scenarios to export');
-                return;
-            }
-            
-            // Implement bulk export functionality
-            var selectedIds = [];
-            selected.forEach(function(cb) {
-                selectedIds.push(cb.value);
-            });
-            console.log('Bulk export:', selectedIds);
-            alert('Bulk export functionality to be implemented');
-        });
+function bulkExport() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
     }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to export');
+        return;
+    }
+    
+    alert('Bulk export functionality to be implemented');
+}
+
+function confirmDelete(scenarioId) {
+    if (confirm('Are you sure you want to archive this scenario?')) {
+        var form = document.getElementById('delete-form-' + scenarioId);
+        if (form) {
+            form.submit();
+        }
+    }
+}
+
+window.onload = function() {
+    // Set up select all checkbox
+    var selectAllBox = document.getElementById('select-all');
+    if (selectAllBox) {
+        selectAllBox.onchange = selectAllToggle;
+    }
+    
+    // Set up bulk action buttons
+    var deleteBtn = document.getElementById('bulk-delete');
+    if (deleteBtn) {
+        deleteBtn.onclick = bulkArchive;
+    }
+    
+    var exportBtn = document.getElementById('bulk-export');
+    if (exportBtn) {
+        exportBtn.onclick = bulkExport;
+    }
+    
+    // Set up individual delete buttons
+    var deleteBtns = document.getElementsByClassName('delete-btn');
+    for (var i = 0; i < deleteBtns.length; i++) {
+        (function(btn) {
+            btn.onclick = function() {
+                var scenarioId = btn.getAttribute('data-scenario-id');
+                confirmDelete(scenarioId);
+            };
+        })(deleteBtns[i]);
+    }
+    
+    // Set up create first scenario link
+    var createLink = document.getElementById('create-first-scenario');
+    if (createLink) {
+        createLink.onclick = function(e) {
+            e.preventDefault();
+            var form = document.querySelector('form[action="{{ url_for("views.create_scenario") }}"]');
+            if (form) {
+                var button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.click();
+                }
+            }
+        };
+    }
+};
 </script>
 {% endblock %}
