@@ -111,15 +111,15 @@
                                 
                                 <!-- Action Buttons -->
                                 <div class="d-grid gap-2">
-                                    {% if scenario.patient_data and scenario.patient_data|length > 0 %}
-                                        <a href="{{ url_for('views.asl', pt=scenario.patient_data[0].patient_id) }}" 
-                                           class="btn btn-primary">
-                                            <i class="bi bi-play-circle"></i> Start Scenario
+                                    <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                                       class="btn btn-primary">
+                                        <i class="bi bi-play-circle"></i> View Scenario
+                                    </a>
+                                    {% if scenario.active_patient %}
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" 
+                                           class="btn btn-success btn-sm">
+                                            <i class="bi bi-list-ul"></i> View Patient ASL
                                         </a>
-                                    {% else %}
-                                        <button class="btn btn-secondary" disabled>
-                                            <i class="bi bi-exclamation-triangle"></i> No Patient Data
-                                        </button>
                                     {% endif %}
                                 </div>
                             </div>

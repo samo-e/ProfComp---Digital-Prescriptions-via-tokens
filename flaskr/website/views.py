@@ -714,6 +714,65 @@ def assign_dashboard():
     
     return render_template("views/assign.html", scenario=scenario, students=unassigned_students, available_patients=available_patients)
 
+@views.route("/scenarios/<int:scenario_id>/assign-students", methods=["POST"])
+@teacher_required
+def assign_students_to_scenario(scenario_id):
+    """Assign students to scenario via AJAX"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        return jsonify({'success': False, 'message': 'You can only assign students to scenarios you created.'})
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        try:
+            assignments_data = []
+            # Parse the assignments from form data
+            index = 0
+            while f'assignments[{index}][student_id]' in request.form:
+                student_id = request.form[f'assignments[{index}][student_id]']
+                patient_id = request.form[f'assignments[{index}][patient_id]']
+                assignments_data.append({
+                    'student_id': int(student_id),
+                    'patient_id': int(patient_id)
+                })
+                index += 1
+            
+            if not assignments_data:
+                return jsonify({'success': False, 'message': 'No assignments provided.'})
+            
+            # Create the assignments
+            assignments_created = 0
+            for assignment_data in assignments_data:
+                # Check if student is already assigned to this scenario
+                existing = StudentScenario.query.filter_by(
+                    scenario_id=scenario_id,
+                    student_id=assignment_data['student_id']
+                ).first()
+                
+                if not existing:
+                    assignment = StudentScenario(
+                        scenario_id=scenario_id,
+                        student_id=assignment_data['student_id']
+                    )
+                    db.session.add(assignment)
+                    assignments_created += 1
+            
+            db.session.commit()
+            
+            return jsonify({
+                'success': True, 
+                'count': assignments_created,
+                'message': f'Successfully assigned {assignments_created} students to {scenario.name}!'
+            })
+            
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': 'Error creating student assignments.'})
+    
+    return jsonify({'success': False, 'message': 'Invalid form submission.'})
+
 @views.route("/patients", methods=["GET"])
 @login_required
 def patient_dashboard():
