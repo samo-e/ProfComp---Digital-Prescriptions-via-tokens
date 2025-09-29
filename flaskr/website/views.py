@@ -697,7 +697,12 @@ def assign_dashboard():
     # Get all students for assignment
     students = User.query.filter_by(role='student').all()
     
-    return render_template("views/assign.html", scenario=scenario, students=students)
+    # Get all patients excluding the active patient for this scenario
+    available_patients = Patient.query.all()
+    if scenario and scenario.active_patient_id:
+        available_patients = [p for p in available_patients if p.id != scenario.active_patient_id]
+    
+    return render_template("views/assign.html", scenario=scenario, students=students, available_patients=available_patients)
 
 @views.route("/patients", methods=["GET"])
 @login_required
@@ -745,11 +750,15 @@ def scenario_dashboard(scenario_id):
     # Get scenario patients if any
     scenario_patients = scenario.patient_data
     
+    # Get all available patients for selection
+    all_patients = Patient.query.all()
+    
     return render_template(
         "views/scenario_dash.html", 
         scenario=scenario,
         assigned_students=assigned_students,
-        scenario_patients=scenario_patients
+        scenario_patients=scenario_patients,
+        all_patients=all_patients
     )
 
 @views.route("/scenarios/<int:scenario_id>/question", methods=["POST"])
@@ -774,6 +783,88 @@ def update_scenario_question(scenario_id):
         except Exception as e:
             db.session.rollback()
             flash("Error updating scenario questions.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+@views.route("/scenarios/<int:scenario_id>/description", methods=["POST"])
+@teacher_required
+def update_scenario_description(scenario_id):
+    """Update the description for a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only edit scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        description = request.form.get('description', '').strip()
+        scenario.description = description if description else None
+        
+        try:
+            db.session.commit()
+            flash("Scenario description updated successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error updating scenario description.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+@views.route("/scenarios/<int:scenario_id>/set-patient", methods=["POST"])
+@teacher_required
+def set_active_patient(scenario_id):
+    """Set the active patient for a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only edit scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        patient_id = request.form.get('patient_id')
+        if patient_id:
+            patient = Patient.query.get_or_404(int(patient_id))
+            scenario.active_patient_id = patient.id
+            
+            try:
+                db.session.commit()
+                flash(f"Successfully set {patient.first_name} {patient.last_name} as the active patient for this scenario.", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash("Error setting active patient.", "error")
+        else:
+            flash("Please select a patient.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+@views.route("/scenarios/<int:scenario_id>/remove-patient", methods=["POST"])
+@teacher_required
+def remove_active_patient(scenario_id):
+    """Remove the active patient from a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only edit scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        if scenario.active_patient:
+            patient_name = f"{scenario.active_patient.first_name} {scenario.active_patient.last_name}"
+            scenario.active_patient_id = None
+            
+            try:
+                db.session.commit()
+                flash(f"Successfully removed {patient_name} as the active patient.", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash("Error removing active patient.", "error")
+        else:
+            flash("No active patient to remove.", "warning")
     
     return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
 

@@ -83,6 +83,7 @@ class Scenario(db.Model):
     description = db.Column(db.Text)
     question_text = db.Column(db.Text)  # Long string for questions/instructions
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    active_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
     password = db.Column(db.String(50))  # Optional password protection
     version = db.Column(db.Integer, default=1)
     parent_scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'))
@@ -93,6 +94,9 @@ class Scenario(db.Model):
     # Patient data for this scenario
     patient_data = db.relationship('ScenarioPatient', backref='scenario', 
                                   cascade='all, delete-orphan', lazy=True)
+    
+    # Active patient relationship
+    active_patient = db.relationship('Patient', foreign_keys=[active_patient_id])
     
     def __repr__(self):
         return f'<Scenario {self.name} v{self.version}>'
