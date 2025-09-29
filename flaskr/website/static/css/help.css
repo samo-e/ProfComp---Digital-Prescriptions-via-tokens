@@ -1,0 +1,8 @@
+main img {
+    max-width: 100%;
+    border: solid black 1px;
+}
+
+main table {
+    margin-bottom: 1em;
+}

@@ -434,3 +434,16 @@ def print_selected_prescriptions():
 def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
+
+from markdown_it import MarkdownIt
+from pathlib import Path
+md = MarkdownIt("commonmark").enable("table")
+
+@views.route("/help")
+def readme():
+    readme_path = Path(__file__).resolve().parents[2] / "README.md"
+    content = readme_path.read_text(encoding="utf-8")
+    html = md.render(content)
+    print(html)
+    # Use render_template if you want a full template
+    return render_template("views/help.html", html=html)
