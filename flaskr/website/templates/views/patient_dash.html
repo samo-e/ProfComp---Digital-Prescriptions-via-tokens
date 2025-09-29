@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container mt-4">
+    <h2>Patient Dashboard</h2>
+    <p class="text-muted">Manage all patients in the system and view their Active Script Lists (ASLs).</p>
+
+    <!-- Info Banner -->
+    <div class="alert alert-info py-2">
+        <i class="bi bi-people-fill"></i>
+        Each patient has exactly <strong>one ASL</strong>.  
+        Students can only dispense medicines; repeats auto-decrement.
+    </div>
+
+    <!-- Patients Table -->
+    <div class="card mt-3">
+        <div class="card-header">All Patients & Their ASLs</div>
+        <div class="card-body p-2">
+            <table class="table table-sm table-bordered table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Patient Name</th>
+                        <th>DOB</th>
+                        <th>ASL Status</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                        <tr>
+                            <td>{{ patient.id }}</td>
+                            <td>{{ patient.given_name }} {{ patient.last_name }}</td>
+                            <td>{{ patient.dob or "—" }}</td>
+                            <td>
+                                {% if patient.get_asl_status() == 1 %}
+                                    <span class="text-success">Granted</span>
+                                {% else %}
+                                    <span class="text-muted">No ASL found</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('views.patient_asl_form', patient_id=patient.id) }}" 
+                                    class="btn btn-success">View ASL</a>
+                                    <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
+                                    class="btn btn-secondary">Edit</a>
+                                    <form method="POST"
+                                        action="{{ url_for('views.delete_patient', patient_id=patient.id) }}"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Are you sure you want to delete {{ patient.given_name }} {{ patient.last_name }}?');">
+                                        {{ delete_form.hidden_tag() }}
+                                        <button type="submit" class="btn btn-danger">Delete</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No patients found.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
