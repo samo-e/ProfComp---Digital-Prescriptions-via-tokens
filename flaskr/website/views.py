@@ -684,9 +684,20 @@ def ac():
 @views.route("/assign")
 @login_required
 def assign_dashboard():
-    # Later you can fetch scenario + students from DB
-    # For now, just render the HTML mockup
-    return render_template("views/assign.html")
+    scenario_id = request.args.get('scenario_id')
+    scenario = None
+    
+    if scenario_id:
+        scenario = Scenario.query.get_or_404(int(scenario_id))
+        # Check if user has permission to view this scenario
+        if current_user.is_teacher() and scenario.teacher_id != current_user.id:
+            flash("You can only assign students to scenarios you created.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+    
+    # Get all students for assignment
+    students = User.query.filter_by(role='student').all()
+    
+    return render_template("views/assign.html", scenario=scenario, students=students)
 
 @views.route("/patients", methods=["GET"])
 @login_required
