@@ -108,7 +108,7 @@
 
         <!-- Scenario name + description -->
         <td class="scenario-name">
-            <a href="#Scenario-{{ scenario.id }}">{{ scenario.name }}</a>
+            <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}">{{ scenario.name }}</a>
             <br><small class="text-muted">{{ scenario.description }}</small>
         </td>
 

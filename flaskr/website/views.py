@@ -1,7 +1,7 @@
 
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
 from flask_login import login_required, current_user
-from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User
+from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User,StudentScenario
 from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
 from sqlalchemy import or_
 from datetime import datetime
@@ -713,7 +713,33 @@ def delete_patient(patient_id):
 @login_required
 def scenario_dashboard(scenario_id):
     scenario = Scenario.query.get_or_404(scenario_id)
-    return render_template("views/scenario_dash.html", scenario=scenario)
+    
+    # Check if user has permission to view this scenario
+    if current_user.is_teacher():
+        # Teachers can only view their own scenarios
+        if scenario.teacher_id != current_user.id:
+            flash("You can only view scenarios you created.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+    else:
+        # Students can only view scenarios they're assigned to
+        if scenario not in current_user.assigned_scenarios:
+            flash("You can only view scenarios you're assigned to.", "error")
+            return redirect(url_for("views.student_dashboard"))
+    
+    # Get assigned students for this scenario
+    assigned_students = User.query.join(StudentScenario).filter(
+        StudentScenario.scenario_id == scenario_id
+    ).all()
+    
+    # Get scenario patients if any
+    scenario_patients = scenario.patient_data
+    
+    return render_template(
+        "views/scenario_dash.html", 
+        scenario=scenario,
+        assigned_students=assigned_students,
+        scenario_patients=scenario_patients
+    )
 
 @views.route("/scenarios/create", methods=["POST"])
 @teacher_required
