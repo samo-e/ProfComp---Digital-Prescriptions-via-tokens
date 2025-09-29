@@ -773,6 +773,71 @@ def assign_students_to_scenario(scenario_id):
     
     return jsonify({'success': False, 'message': 'Invalid form submission.'})
 
+@views.route("/scenarios/<int:scenario_id>/unassign/<int:student_id>", methods=["POST"])
+@teacher_required
+def unassign_student_from_scenario(scenario_id, student_id):
+    """Remove a single student from a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    student = User.query.get_or_404(student_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only unassign students from scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        assignment = StudentScenario.query.filter_by(
+            scenario_id=scenario_id,
+            student_id=student_id
+        ).first()
+        
+        if assignment:
+            try:
+                db.session.delete(assignment)
+                db.session.commit()
+                flash(f"Successfully removed {student.first_name} {student.last_name} from {scenario.name}.", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash("Error removing student from scenario.", "error")
+        else:
+            flash(f"{student.first_name} {student.last_name} is not assigned to this scenario.", "warning")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
+@views.route("/scenarios/<int:scenario_id>/unassign-all", methods=["POST"])
+@teacher_required
+def unassign_all_students(scenario_id):
+    """Remove all students from a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only unassign students from scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        try:
+            assignments = StudentScenario.query.filter_by(scenario_id=scenario_id).all()
+            student_count = len(assignments)
+            
+            for assignment in assignments:
+                db.session.delete(assignment)
+            
+            db.session.commit()
+            
+            if student_count > 0:
+                flash(f"Successfully removed all {student_count} students from {scenario.name}.", "success")
+            else:
+                flash("No students were assigned to this scenario.", "info")
+                
+        except Exception as e:
+            db.session.rollback()
+            flash("Error removing students from scenario.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
 @views.route("/patients", methods=["GET"])
 @login_required
 def patient_dashboard():
