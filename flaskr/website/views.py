@@ -748,7 +748,7 @@ def create_scenario():
     form = EmptyForm()
     if form.validate_on_submit():
         new_scenario = Scenario(
-            name=f"Sample Scenario {Scenario.query.count() + 1}",   # auto-number
+            name=f"Scenario {Scenario.query.count() + 1}",   # auto-number
             description="Basic ASL workflow practice",
             teacher_id=current_user.id,
             version=1
