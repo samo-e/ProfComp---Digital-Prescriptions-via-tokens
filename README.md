@@ -57,14 +57,23 @@ An electronic prescription is a digital version of a paper prescription. Since t
 <!-- TEACHER_ONLY_START -->
 - #### I am a *Teacher*:
 When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
-![Screenshot of app](static/images/screenshot-teacher-dashboard.png)
+
+![Screenshot of Teacher Dashboard](static/images/screenshot-teacher-dashboard.png)
+
 Here, you will find a list of scenarios, and you can find data TODO FILL THIS
 From the teacher dashboard
 
 
 <!-- TEACHER_ONLY_END -->
 - #### I am a *Student*:
+When you log in as a student, you'll be greeted by the Student Dashboard:
 
+![Screenshot of Student Dashboard](static/images/screenshot-student-dashboard.png)
+
+From here, you can see the scenarios that have been assigned to you, or you can work on one of the practice patients.
+We will attempt _Practice Patient 1: Draga Diaz_:
+After clicking on Draga Diaz, you will be redirected to the Active Script List for her:
+![Screenshot of Draga Diaz's Active Script List](static/images/screenshot-asl-draga-diaz.png)
 
 
 ### Licence

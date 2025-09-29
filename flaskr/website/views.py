@@ -441,21 +441,27 @@ def prescription():
 md = MarkdownIt("commonmark").enable("table")
 
 @views.route("/help")
+@login_required
 def readme():
+    """
+    Renders README.md as a html page
+    """
     readme_path = Path(__file__).resolve().parents[2] / "README.md"
     content = readme_path.read_text(encoding="utf-8")
     html = md.render(content)
-    """
-    Removes certain flags from the html by checking
-        <!-- {flag}_START -->(.*?)<!-- {flag}_END -->'
-    Flags include
-    MD_ONLY : Does not display on website at all
-    TEACHER_ONLY_START : Only displays if the user is logged in and a teacher
-    """
+
     def strip_flag(html: str, flag: str):
+        """
+        Removes certain flags from the html by checking
+            <!-- {flag}_START -->(.*?)<!-- {flag}_END -->'
+        Flags include
+        MD_ONLY : Does not display on website at all
+        TEACHER_ONLY_START : Only displays if the user is logged in and a teacher
+        """
         return re.sub(rf'<!-- {flag}_START -->(.*?)<!-- {flag}_END -->', '', html, flags=re.DOTALL)
+
     if not current_user.is_teacher():
         html = strip_flag(html, "TEACHER_ONLY")
     html = strip_flag(html, "MD_ONLY")
-    # Use render_template if you want a full template
+
     return render_template("views/help.html", html=html)
