@@ -10,8 +10,9 @@
     <p>{{ user.get_full_name() }}</p>
 
     {% if user.is_teacher() %}
+
     <h2>Assigned Students</h2>
-    <ul>
+    <ul id="assigned-students-list">
     {% for student in user.students %}
         <li>
             {{ student.get_full_name() }} ({{ student.email }})
@@ -36,13 +37,14 @@
             <h2>Assign Students</h2>
             <ul>
             {% for student in students %}
-                <li>
-                    {{ student.get_full_name() }} ({{ student.email }})
-                    <form method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                {% set is_assigned = student in user.students %}
+                <li style="opacity: {{ '0.5' if is_assigned else '1' }};">
+                    <span class="student-name">{{ student.get_full_name() }} ({{ student.email }})</span>
+                    <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
                         {{ form.csrf_token }}
                         <input type="hidden" name="teacher_id" value="{{ user.id }}">
                         <input type="hidden" name="student_id" value="{{ student.id }}">
-                        <button type="submit">Assign</button>
+                        <button type="submit" {% if is_assigned %}disabled style="opacity:0.5"{% endif %}>Assign</button>
                     </form>
                 </li>
             {% else %}
@@ -96,8 +98,32 @@
             window.onclick = function(event) {
                 if (event.target == modal) { modal.style.display = 'none'; }
             }
+
+            // AJAX assignment
+            document.querySelectorAll('.assign-student-form').forEach(function(form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    var formData = new FormData(form);
+                    var button = form.querySelector('button[type="submit"]');
+                    fetch(form.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Gray out and disable the button, but keep the student visible
+                            button.disabled = true;
+                            button.style.opacity = '0.5';
+                        }
+                        // No alert on assignment
+                    });
+                });
+            });
         });
     </script>
     {% endif %}
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
 </body>
 </html>

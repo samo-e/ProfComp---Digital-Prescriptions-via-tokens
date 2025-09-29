@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+</head>
+<body>
+    <h1>Student Profile</h1>
+    <p>{{ user.get_full_name() }}</p>
+
+    <h2>Assigned Teacher</h2>
+    {% if user.teacher %}
+        <p>{{ user.teacher.get_full_name() }} ({{ user.teacher.email }})</p>
+    {% else %}
+        <p>No teacher assigned.</p>
+    {% endif %}
+
+    <!-- Add more student-specific info here -->
+</body>
+</html>

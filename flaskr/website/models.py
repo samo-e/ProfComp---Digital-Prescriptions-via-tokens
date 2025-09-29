@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -7,9 +8,9 @@ from datetime import datetime
 from enum import Enum
 import enum
 
-db = SQLAlchemy()
-
-# Enums stored as integers (0,1,2,3), we can add more in the future if needed
+db = SQLAlchemy() 
+ 
+# Enums stored as integers (0,1,2,3), we can add more in the future if needed 
 class PrescriptionStatus(Enum): 
     PENDING = 0
     AVAILABLE = 1
@@ -28,6 +29,7 @@ class UserRole(Enum):
     TEACHER = "teacher"
     STUDENT = "student"
     ADMIN   = "admin" 
+
 
 class User(db.Model, UserMixin):
     """User model for authentication - supports both teachers and students"""
@@ -48,15 +50,20 @@ class User(db.Model, UserMixin):
                                        foreign_keys='Scenario.teacher_id')
     assigned_scenarios = db.relationship('Scenario', secondary='student_scenarios', 
                                         backref='assigned_students', lazy=True)
-
-    # Assignment: Each student has one teacher, each teacher can have many students
-    teacher_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', name='fk_user_teacher_id'),
-        nullable=True
+    # Association table for many-to-many teacher-student relationship
+    teacher_students = db.Table(
+        'teacher_students',
+        db.Column('teacher_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+        db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+        db.Column('assigned_at', db.DateTime, default=datetime.now)
     )
-    students = db.relationship('User', backref=db.backref('teacher', remote_side='User.id'), lazy='dynamic')
-    
+    students = db.relationship(
+        'User', secondary=teacher_students,
+        primaryjoin='User.id==teacher_students.c.teacher_id',
+        secondaryjoin='User.id==teacher_students.c.student_id',
+        backref=db.backref('teachers', lazy='dynamic'),
+        lazy='dynamic')
+
     def set_password(self, password):
         """Hash and set the user's password"""
         self.password_hash = generate_password_hash(password)
