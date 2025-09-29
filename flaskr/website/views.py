@@ -695,14 +695,24 @@ def assign_dashboard():
             return redirect(url_for("views.teacher_dashboard"))
     
     # Get all students for assignment
-    students = User.query.filter_by(role='student').all()
+    all_students = User.query.filter_by(role='student').all()
+    
+    # Filter out students already assigned to this scenario
+    unassigned_students = all_students
+    if scenario:
+        # Get currently assigned student IDs for this scenario
+        assigned_student_ids = [s.id for s in User.query.join(StudentScenario).filter(
+            StudentScenario.scenario_id == scenario.id
+        ).all()]
+        # Filter out already assigned students
+        unassigned_students = [s for s in all_students if s.id not in assigned_student_ids]
     
     # Get all patients excluding the active patient for this scenario
     available_patients = Patient.query.all()
     if scenario and scenario.active_patient_id:
         available_patients = [p for p in available_patients if p.id != scenario.active_patient_id]
     
-    return render_template("views/assign.html", scenario=scenario, students=students, available_patients=available_patients)
+    return render_template("views/assign.html", scenario=scenario, students=unassigned_students, available_patients=available_patients)
 
 @views.route("/patients", methods=["GET"])
 @login_required
