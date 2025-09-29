@@ -457,11 +457,14 @@ def readme():
         Flags include
         MD_ONLY : Does not display on website at all
         TEACHER_ONLY_START : Only displays if the user is logged in and a teacher
+        STUDENT_ONLY_START : Only displays if the user is logged in and a student
         """
         return re.sub(rf'<!-- {flag}_START -->(.*?)<!-- {flag}_END -->', '', html, flags=re.DOTALL)
 
     if not current_user.is_teacher():
         html = strip_flag(html, "TEACHER_ONLY")
+    else:
+        html = strip_flag(html, "STUDENT_ONLY")
     html = strip_flag(html, "MD_ONLY")
 
     return render_template("views/help.html", html=html)
