@@ -42,6 +42,14 @@ def create_app():
 
     # Check and initialize database if needed
     initialize_database(app)
+    
+    # Add custom template filters
+    @app.template_filter('nl2br')
+    def nl2br_filter(text):
+        """Convert newlines to HTML breaks"""
+        if not text:
+            return text
+        return text.replace('\n', '<br>')
 
     return app
 

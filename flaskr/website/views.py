@@ -741,6 +741,31 @@ def scenario_dashboard(scenario_id):
         scenario_patients=scenario_patients
     )
 
+@views.route("/scenarios/<int:scenario_id>/question", methods=["POST"])
+@teacher_required
+def update_scenario_question(scenario_id):
+    """Update the question text for a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only edit scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        question_text = request.form.get('question_text', '').strip()
+        scenario.question_text = question_text if question_text else None
+        
+        try:
+            db.session.commit()
+            flash("Scenario questions updated successfully!", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("Error updating scenario questions.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
 @views.route("/scenarios/create", methods=["POST"])
 @teacher_required
 def create_scenario():

@@ -81,6 +81,7 @@ class Scenario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    question_text = db.Column(db.Text)  # Long string for questions/instructions
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     password = db.Column(db.String(50))  # Optional password protection
     version = db.Column(db.Integer, default=1)
@@ -95,6 +96,31 @@ class Scenario(db.Model):
     
     def __repr__(self):
         return f'<Scenario {self.name} v{self.version}>'
+
+
+class StudentScenario(db.Model):
+    """Association table for student-scenario assignments"""
+    __tablename__ = 'student_scenarios'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    assigned_at = db.Column(db.DateTime, default=datetime.now)
+    completed_at = db.Column(db.DateTime)
+    score = db.Column(db.Float)
+    
+
+
+
+class ScenarioPatient(db.Model):
+    """Patient data specific to a scenario"""
+    __tablename__ = 'scenario_patients'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    # Any scenario-specific overrides for patient data can go here
+    
 
 class Patient(db.Model):
     __tablename__ = 'patients'
@@ -211,100 +237,7 @@ class ASL(db.Model):
     carer_mobile = db.Column(db.String(30))       # NEW
     carer_email = db.Column(db.String(120))       # NEW
     notes = db.Column(db.Text)
-
-class ScenarioPatient(db.Model):
-    """Links patients to scenarios as templates"""
-    __tablename__ = 'scenario_patients'
     
-    id = db.Column(db.Integer, primary_key=True)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    is_template = db.Column(db.Boolean, default=True)  # template for cloning
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    
-    # Relationships
-    patient = db.relationship('Patient', backref='scenario_links')
-    
-    def __repr__(self):
-        return f'<ScenarioPatient {self.scenario_id} -> {self.patient_id}>'
-
-class StudentScenario(db.Model):
-    """Association table for student-scenario assignments"""
-    __tablename__ = 'student_scenarios'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    assigned_at = db.Column(db.DateTime, default=datetime.now)
-    completed_at = db.Column(db.DateTime)
-    score = db.Column(db.Float)
-    
-    def __repr__(self):
-        return f'<StudentScenario {self.student_id} -> {self.scenario_id}>'
-
-class ScenarioQuestion(db.Model):
-    """Questions associated with scenarios"""
-    __tablename__ = 'scenario_questions'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    question_text = db.Column(db.Text, nullable=False)
-    question_type = db.Column(db.String(50), default='text')  # 'multiple_choice', 'text', 'boolean'
-    correct_answer = db.Column(db.Text)  # for grading
-    order = db.Column(db.Integer, default=1)  # question order in scenario
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    
-    # Relationships
-    scenario = db.relationship('Scenario', backref='questions')
-    
-    def __repr__(self):
-        return f'<ScenarioQuestion {self.id}: {self.question_text[:50]}...>'
-
-class PatientInstance(db.Model):
-    """Unique patient copy for each student assignment"""
-    __tablename__ = 'patient_instances'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    original_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    
-    # Patient data that can be modified by student
-    patient_data = db.Column(db.JSON)  # stores patient info as JSON
-    asl_data = db.Column(db.JSON)     # stores ASL that student can modify
-    created_at = db.Column(db.DateTime, default=datetime.now)
-    last_modified = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    
-    # Relationships
-    original_patient = db.relationship('Patient', backref='instances')
-    student = db.relationship('User', backref='patient_instances')
-    scenario = db.relationship('Scenario', backref='patient_instances')
-    
-    def __repr__(self):
-        return f'<PatientInstance {self.id} for Student {self.student_id}>'
-
-
-
-class StudentAnswer(db.Model):
-    """Student answers to scenario questions"""
-    __tablename__ = 'student_answers'
-    
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    question_id = db.Column(db.Integer, db.ForeignKey('scenario_questions.id'), nullable=False)
-    answer_text = db.Column(db.Text)
-    is_correct = db.Column(db.Boolean)  # calculated after submission
-    submitted_at = db.Column(db.DateTime, default=datetime.now)
-    updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
-    
-    # Relationships
-    student = db.relationship('User', backref='answers')
-    scenario = db.relationship('Scenario', backref='student_answers')
-    question = db.relationship('ScenarioQuestion', backref='answers')
-    
-    def __repr__(self):
-        return f'<StudentAnswer {self.student_id} -> Q{self.question_id}>'
 
 
 
