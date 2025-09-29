@@ -2,7 +2,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, jsonify,request
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User
-from .forms import PatientForm, ASLForm,DeleteForm,EmptyForm
+from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
 from sqlalchemy import or_
 from datetime import datetime
 from functools import wraps
@@ -36,8 +36,6 @@ def teacher_required(f):
 @views.route('/teacher/dashboard')
 @teacher_required
 def teacher_dashboard():
-    scenarios = Scenario.query.all()
-    form = EmptyForm()
     """Teacher dashboard showing all scenarios"""
     # Get teacher's scenarios
     scenarios = Scenario.query.filter_by(
@@ -49,12 +47,17 @@ def teacher_dashboard():
     total_scenarios = len(scenarios)
     total_students = User.query.filter_by(role='student').count()
     
+    # Create forms
+    form = EmptyForm()
+    delete_form = DeleteForm()
+    
     return render_template(
         "views/teacher_dash.html",
         scenarios=scenarios,
         total_scenarios=total_scenarios,
         total_students=total_students,
-        form=form
+        form=form,
+        delete_form=delete_form
     )
 
 @views.route('/student/dashboard')
@@ -730,4 +733,71 @@ def create_scenario():
     else:
         flash("Invalid CSRF token. Please try again.", "error")
 
+    return redirect(url_for("views.teacher_dashboard"))
+
+@views.route("/scenarios/<int:scenario_id>/delete", methods=["POST"])
+@teacher_required
+def delete_scenario(scenario_id):
+    """Delete a scenario (only the teacher who created it can delete)"""
+    form = DeleteForm()
+    if form.validate_on_submit():
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        # Ensure only the teacher who created the scenario can delete it
+        if scenario.teacher_id != current_user.id:
+            flash("You can only delete scenarios you created.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        try:
+            # Delete the scenario (cascade will handle related data)
+            db.session.delete(scenario)
+            db.session.commit()
+            flash(f"Scenario '{scenario.name}' has been deleted successfully.", "success")
+        except Exception as e:
+            db.session.rollback()
+            flash("An error occurred while deleting the scenario. Please try again.", "error")
+    else:
+        flash("Invalid request. Please try again.", "error")
+    
+    return redirect(url_for("views.teacher_dashboard"))
+
+@views.route("/scenarios/bulk-delete", methods=["POST"])
+@teacher_required
+def bulk_delete_scenarios():
+    """Delete multiple scenarios at once"""
+    scenario_ids = request.form.getlist('scenario_ids')
+    
+    if not scenario_ids:
+        flash("No scenarios selected for deletion.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    try:
+        # Convert to integers and validate
+        scenario_ids = [int(id) for id in scenario_ids]
+        
+        # Get scenarios and verify ownership
+        scenarios = Scenario.query.filter(
+            Scenario.id.in_(scenario_ids),
+            Scenario.teacher_id == current_user.id
+        ).all()
+        
+        if len(scenarios) != len(scenario_ids):
+            flash("Some scenarios could not be found or you don't have permission to delete them.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        # Delete all scenarios
+        deleted_count = 0
+        for scenario in scenarios:
+            db.session.delete(scenario)
+            deleted_count += 1
+        
+        db.session.commit()
+        flash(f"Successfully deleted {deleted_count} scenario(s).", "success")
+        
+    except ValueError:
+        flash("Invalid scenario IDs provided.", "error")
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while deleting scenarios. Please try again.", "error")
+    
     return redirect(url_for("views.teacher_dashboard"))

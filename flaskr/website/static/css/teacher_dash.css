@@ -29,3 +29,32 @@ body > .container {
   overflow: hidden;
   position: absolute;
 }
+
+/* Delete button styling */
+.delete-scenario-btn {
+    transition: all 0.2s ease;
+}
+
+.delete-scenario-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+/* Bulk action buttons */
+#bulk-delete {
+    transition: all 0.2s ease;
+}
+
+#bulk-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+}
+
+/* Action button group spacing */
+.btn-group .btn {
+    margin-right: 2px;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
