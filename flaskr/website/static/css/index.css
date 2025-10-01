@@ -2,3 +2,7 @@
 .modal-header {
     border: none;
 }
+
+body {
+  overflow-y: scroll !important;
+}
