@@ -14,19 +14,19 @@
 <div style="position: sticky; top: 10%; height: max-content;">
    <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
       <nav class="nav nav-pills flex-column">
-         <a class="nav-link" href="#background">background</a>
-         <a class="nav-link" href="#created-by">created-by</a>
-         <a class="nav-link" href="#installation">how to installation</a>
+         <a class="nav-link" href="#background">Background</a>  
+         <a class="nav-link" href="#created-by">Created By</a>  
+         <a class="nav-link" href="#installation">How to Install</a>  
          <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#prerequisites">prerequisites</a>
-            <a class="nav-link ms-3 my-1" href="#install">install</a>
+            <a class="nav-link ms-3 my-1" href="#prerequisites">Prerequisites</a>  
+            <a class="nav-link ms-3 my-1" href="#install">Install</a>  
          </nav>
-         <a class="nav-link" href="#usage">usage</a>
+         <a class="nav-link" href="#usage">Usage</a>  
          <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#usage-teacher">usage-teacher</a>
-            <a class="nav-link ms-3 my-1" href="#usage-student">usage-student</a>
+            <a class="nav-link ms-3 my-1" href="#usage-teacher">For Teachers</a>  
+            <a class="nav-link ms-3 my-1" href="#usage-student">For Students</a>  
          </nav>
-         <a class="nav-link" href="#licence">licence</a>
+         <a class="nav-link" href="#licence">Licence</a>  
    </nav>
 </div>
 
