@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block title %}Edit Scenario - {{ scenario.name }}{% endblock %}
+
+{% block styles %}
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #495057;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        transition: border-color 0.2s;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .btn-custom {
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-save:hover {
+        background: linear-gradient(135deg, #218838, #1abc96);
+        transform: translateY(-1px);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+    }
+    
+    .password-toggle {
+        position: relative;
+    }
+    
+    .password-toggle .form-control {
+        padding-right: 3rem;
+    }
+    
+    .password-toggle .toggle-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #6c757d;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="form-container">
+        <div class="form-header text-center">
+            <h2><i class="bi bi-pencil-square me-2"></i>Edit Scenario</h2>
+            <p class="mb-0 opacity-90">Update scenario details and settings</p>
+        </div>
+
+        <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <div class="form-group">
+                <label for="name" class="form-label">
+                    <i class="bi bi-journal-text me-2"></i>Scenario Name
+                </label>
+                <input type="text" 
+                       id="name" 
+                       name="name" 
+                       class="form-control" 
+                       value="{{ scenario.name }}" 
+                       required 
+                       placeholder="Enter scenario name">
+            </div>
+
+            <div class="form-group">
+                <label for="description" class="form-label">
+                    <i class="bi bi-card-text me-2"></i>Description
+                </label>
+                <textarea id="description" 
+                          name="description" 
+                          class="form-control" 
+                          rows="4" 
+                          placeholder="Describe the learning objectives and context for students">{{ scenario.description or '' }}</textarea>
+                <small class="text-muted">This description will help students understand the scenario's purpose and learning goals.</small>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">
+                    <i class="bi bi-lock me-2"></i>Password Protection (Optional)
+                </label>
+                <div class="password-toggle">
+                    <input type="password" 
+                           id="password" 
+                           name="password" 
+                           class="form-control" 
+                           value="{{ scenario.password or '' }}" 
+                           placeholder="Leave blank for no password protection">
+                    <button type="button" class="toggle-btn" onclick="togglePassword()">
+                        <i class="bi bi-eye" id="password-icon"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Set a password to restrict access to this scenario. Students will need this password to view the scenario.</small>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-calendar me-2"></i>Created
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               value="{{ scenario.created_at.strftime('%d/%m/%Y at %I:%M %p') if scenario.created_at else 'Unknown' }}" 
+                               readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-arrow-repeat me-2"></i>Last Updated
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               value="{{ scenario.updated_at.strftime('%d/%m/%Y at %I:%M %p') if scenario.updated_at else 'Never' }}" 
+                               readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-hash me-2"></i>Version
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               value="v{{ scenario.version }}" 
+                               readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="bi bi-people me-2"></i>Assigned Students
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               value="{{ scenario.assigned_students|length if scenario.assigned_students else 0 }} students" 
+                               readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                   class="btn btn-custom btn-cancel">
+                    <i class="bi bi-arrow-left me-2"></i>Cancel
+                </a>
+                
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('views.assign_patient_to_scenario', scenario_id=scenario.id) }}" 
+                       class="btn btn-outline-info">
+                        <i class="bi bi-person-plus me-2"></i>Assign Patient
+                    </a>
+                    <button type="submit" class="btn btn-custom btn-save">
+                        <i class="bi bi-check-lg me-2"></i>Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function togglePassword() {
+    const passwordField = document.getElementById('password');
+    const passwordIcon = document.getElementById('password-icon');
+    
+    if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        passwordIcon.className = 'bi bi-eye-slash';
+    } else {
+        passwordField.type = 'password';
+        passwordIcon.className = 'bi bi-eye';
+    }
+}
+</script>
+{% endblock %}

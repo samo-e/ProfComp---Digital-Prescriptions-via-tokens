@@ -1,0 +1,434 @@
+{% extends "base.html" %}
+{% block title %}Assign Students - {{ scenario.name }}{% endblock %}
+
+{% block styles %}
+<style>
+    .assign-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        background: white;
+        padding: 2rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .assign-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .student-card {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        transition: all 0.2s;
+        cursor: pointer;
+    }
+    
+    .student-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+    }
+    
+    .student-card.selected {
+        border-color: #28a745;
+        background-color: #d4edda;
+    }
+    
+    .student-card.already-assigned {
+        border-color: #ffc107;
+        background-color: #fff3cd;
+    }
+    
+    .student-info {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .student-details h6 {
+        margin: 0;
+        color: #212529;
+        font-weight: 600;
+    }
+    
+    .student-details small {
+        color: #6c757d;
+    }
+    
+    .student-status {
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    
+    .status-new {
+        color: #28a745;
+    }
+    
+    .status-assigned {
+        color: #ffc107;
+    }
+    
+    .selection-summary {
+        background: #e7f3ff;
+        border: 1px solid #b8daff;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .btn-custom {
+        padding: 0.75rem 2rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .btn-assign {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .btn-assign:hover {
+        background: linear-gradient(135deg, #218838, #1abc96);
+        transform: translateY(-1px);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-1px);
+    }
+    
+    .search-box {
+        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 0.5rem;
+        width: 100%;
+    }
+    
+    .search-box:focus {
+        border-color: #667eea;
+        outline: none;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .bulk-actions {
+        margin-bottom: 1rem;
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+    
+    .bulk-actions button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #dee2e6;
+        background: white;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .bulk-actions button:hover {
+        background: #f8f9fa;
+        border-color: #adb5bd;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="assign-container">
+        <div class="assign-header text-center">
+            <h2><i class="bi bi-people me-2"></i>Assign Students to Scenario</h2>
+            <h4 class="mb-0 opacity-90">{{ scenario.name }}</h4>
+        </div>
+
+        <form method="POST" id="assignForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            
+            <!-- Search and Bulk Actions -->
+            <div class="row mb-3">
+                <div class="col-md-8">
+                    <input type="text" 
+                           id="searchBox" 
+                           class="search-box" 
+                           placeholder="Search students by name or email...">
+                </div>
+                <div class="col-md-4">
+                    <div class="bulk-actions">
+                        <button type="button" id="selectAllBtn">Select All</button>
+                        <button type="button" id="selectNoneBtn">Select None</button>
+                        <button type="button" id="selectNewBtn">Select Unassigned</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clear existing assignments option -->
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" name="clear_existing" id="clear_existing">
+                <label class="form-check-label" for="clear_existing">
+                    <strong>Clear existing assignments first</strong> (unassign all currently assigned students before assigning selected ones)
+                </label>
+            </div>
+
+            <!-- Selection Summary -->
+            <div class="selection-summary" id="selectionSummary" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-check-square me-2"></i><span id="selectedCount">0</span> students selected</span>
+                    <small class="text-muted">Currently assigned: {{ assigned_student_ids|length }}</small>
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="row" id="studentsList">
+                {% if students and students|length > 0 %}
+                    {% for student in students %}
+                    <div class="col-md-6 student-item" 
+                         data-name="{{ student.get_full_name()|lower }}" 
+                         data-email="{{ student.email|lower }}">
+                        <div class="student-card {% if student.id in assigned_student_ids %}already-assigned{% endif %}" 
+                             id="card_{{ student.id }}">
+                            <div class="student-info">
+                                <div class="student-details">
+                                    <h6>{{ student.get_full_name() }}</h6>
+                                    <small>{{ student.email }}</small>
+                                    {% if student.last_login %}
+                                    <br><small class="text-muted">Last login: {{ student.last_login.strftime('%d/%m/%Y') }}</small>
+                                    {% else %}
+                                    <br><small class="text-muted">Never logged in</small>
+                                    {% endif %}
+                                </div>
+                                <div class="student-status">
+                                    {% if student.id in assigned_student_ids %}
+                                    <span class="status-assigned">
+                                        <i class="bi bi-check-circle-fill"></i> Assigned
+                                    </span>
+                                    {% else %}
+                                    <span class="status-new">
+                                        <i class="bi bi-circle"></i> Available
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <input type="checkbox" 
+                                   name="student_ids" 
+                                   value="{{ student.id }}" 
+                                   id="student_{{ student.id }}"
+                                   {% if student.id in assigned_student_ids %}checked{% endif %}
+                                   style="display: none;">
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12 text-center py-4">
+                    <i class="bi bi-people fs-1 text-muted mb-3"></i>
+                    <h5 class="text-muted">No students found</h5>
+                    <p class="text-muted">There are no active student accounts in the system.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- No results message -->
+            <div id="noResults" class="text-center py-4" style="display: none;">
+                <i class="bi bi-search fs-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No students match your search</h5>
+                <p class="text-muted">Try adjusting your search terms.</p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                   class="btn btn-custom btn-cancel">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Scenario
+                </a>
+                
+                <button type="submit" class="btn btn-custom btn-assign" id="assignBtn" disabled>
+                    <i class="bi bi-check-lg me-2"></i>Assign Selected Students
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleStudent(studentId) {
+    var checkbox = document.getElementById('student_' + studentId);
+    if (!checkbox) {
+        var inputs = document.getElementsByName('student_ids');
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].value == studentId) {
+                checkbox = inputs[i];
+                break;
+            }
+        }
+    }
+    
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateCount();
+    }
+}
+
+function updateCount() {
+    var checkboxes = document.getElementsByName('student_ids');
+    var count = 0;
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            count++;
+        }
+    }
+    
+    var countElement = document.getElementById('selectedCount');
+    var summaryElement = document.getElementById('selectionSummary');
+    var btnElement = document.getElementById('assignBtn');
+    
+    if (countElement) countElement.innerHTML = count;
+    
+    if (summaryElement) {
+        summaryElement.style.display = count > 0 ? 'block' : 'none';
+    }
+    
+    if (btnElement) {
+        btnElement.disabled = count === 0;
+    }
+}
+
+function selectAll() {
+    var checkboxes = document.getElementsByName('student_ids');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var studentItem = checkboxes[i].parentNode;
+        while (studentItem && studentItem.className.indexOf('student-item') === -1) {
+            studentItem = studentItem.parentNode;
+        }
+        if (!studentItem || studentItem.style.display !== 'none') {
+            checkboxes[i].checked = true;
+        }
+    }
+    updateCount();
+}
+
+function selectNone() {
+    var checkboxes = document.getElementsByName('student_ids');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+    }
+    updateCount();
+}
+
+function selectNew() {
+    var checkboxes = document.getElementsByName('student_ids');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var card = checkboxes[i].parentNode;
+        while (card && card.className.indexOf('student-card') === -1) {
+            card = card.parentNode;
+        }
+        
+        var studentItem = checkboxes[i].parentNode;
+        while (studentItem && studentItem.className.indexOf('student-item') === -1) {
+            studentItem = studentItem.parentNode;
+        }
+        
+        if (card && card.className.indexOf('already-assigned') === -1 && (!studentItem || studentItem.style.display !== 'none')) {
+            checkboxes[i].checked = true;
+        } else {
+            checkboxes[i].checked = false;
+        }
+    }
+    updateCount();
+}
+
+function searchStudents() {
+    var searchBox = document.getElementById('searchBox');
+    var searchValue = searchBox ? searchBox.value.toLowerCase() : '';
+    var items = document.getElementsByClassName('student-item');
+    var visibleCount = 0;
+    
+    for (var i = 0; i < items.length; i++) {
+        var name = items[i].getAttribute('data-name') || '';
+        var email = items[i].getAttribute('data-email') || '';
+        
+        if (name.indexOf(searchValue) > -1 || email.indexOf(searchValue) > -1 || searchValue === '') {
+            items[i].style.display = '';
+            visibleCount++;
+        } else {
+            items[i].style.display = 'none';
+        }
+    }
+    
+    var noResults = document.getElementById('noResults');
+    if (noResults) {
+        noResults.style.display = (visibleCount === 0 && searchValue !== '') ? 'block' : 'none';
+    }
+}
+
+window.onload = function() {
+    // Set up button event handlers
+    var selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) {
+        selectAllBtn.onclick = selectAll;
+    }
+    
+    var selectNoneBtn = document.getElementById('selectNoneBtn');
+    if (selectNoneBtn) {
+        selectNoneBtn.onclick = selectNone;
+    }
+    
+    var selectNewBtn = document.getElementById('selectNewBtn');
+    if (selectNewBtn) {
+        selectNewBtn.onclick = selectNew;
+    }
+    
+    // Set up click handlers for student cards
+    var studentCards = document.getElementsByClassName('student-card');
+    for (var i = 0; i < studentCards.length; i++) {
+        var card = studentCards[i];
+        var checkbox = card.getElementsByTagName('input')[0];
+        if (checkbox) {
+            card.onclick = function() {
+                var cardCheckbox = this.getElementsByTagName('input')[0];
+                if (cardCheckbox) {
+                    cardCheckbox.checked = !cardCheckbox.checked;
+                    updateCount();
+                }
+            };
+        }
+    }
+    
+    var searchBox = document.getElementById('searchBox');
+    if (searchBox) {
+        if (searchBox.addEventListener) {
+            searchBox.addEventListener('keyup', searchStudents);
+        } else {
+            searchBox.onkeyup = searchStudents;
+        }
+    }
+    
+    updateCount();
+};
+</script>
+{% endblock %}
