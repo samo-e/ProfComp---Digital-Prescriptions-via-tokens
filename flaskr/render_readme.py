@@ -1,4 +1,7 @@
 """
+Whenever an update is made to the readme file, the render_readme function needs
+to be called to ensure that the changes are reflected on the website.
+
 Takes readme.md and renders it to two files
     help-student.html
     help-teacher.html
