@@ -55,7 +55,7 @@ def scenario_dashboard(scenario_id):
     all_patients = Patient.query.all()
     
     return render_template(
-        "views/scenario_dash.html", 
+        "views/scenario_dashboard.html", 
         scenario=scenario,
         assigned_students=assigned_students,
         scenario_patients=scenario_patients,
@@ -310,7 +310,6 @@ def student_dashboard():
     return render_template(
         "views/student_dash.html",
         scenarios=assigned_scenarios
-<<<<<<< HEAD
     )
 
 @views.route('/patients/create', methods=["GET", "POST"])
@@ -1097,42 +1096,6 @@ def delete_patient(patient_id):
         flash("CSRF check failed!", "danger")
     return redirect(url_for("views.patient_dashboard"))
 
-@views.route("/scenarios/<int:scenario_id>")
-@login_required
-def scenario_dashboard(scenario_id):
-    scenario = Scenario.query.get_or_404(scenario_id)
-    
-    # Check if user has permission to view this scenario
-    if current_user.is_teacher():
-        # Teachers can only view their own scenarios
-        if scenario.teacher_id != current_user.id:
-            flash("You can only view scenarios you created.", "error")
-            return redirect(url_for("views.teacher_dashboard"))
-    else:
-        # Students can only view scenarios they're assigned to
-        if scenario not in current_user.assigned_scenarios:
-            flash("You can only view scenarios you're assigned to.", "error")
-            return redirect(url_for("views.student_dashboard"))
-    
-    # Get assigned students for this scenario
-    assigned_students = User.query.join(StudentScenario).filter(
-        StudentScenario.scenario_id == scenario_id
-    ).all()
-    
-    # Get scenario patients if any
-    scenario_patients = scenario.patient_data
-    
-    # Get all available patients for selection
-    all_patients = Patient.query.all()
-    
-    return render_template(
-        "views/scenario_dash.html", 
-        scenario=scenario,
-        assigned_students=assigned_students,
-        scenario_patients=scenario_patients,
-        all_patients=all_patients
-    )
-
 @views.route("/scenarios/<int:scenario_id>/question", methods=["POST"])
 @teacher_required
 def update_scenario_question(scenario_id):
@@ -1260,32 +1223,6 @@ def create_scenario():
 
     return redirect(url_for("views.teacher_dashboard"))
 
-@views.route("/scenarios/<int:scenario_id>/delete", methods=["POST"])
-@teacher_required
-def delete_scenario(scenario_id):
-    """Delete a scenario (only the teacher who created it can delete)"""
-    form = DeleteForm()
-    if form.validate_on_submit():
-        scenario = Scenario.query.get_or_404(scenario_id)
-        
-        # Ensure only the teacher who created the scenario can delete it
-        if scenario.teacher_id != current_user.id:
-            flash("You can only delete scenarios you created.", "error")
-            return redirect(url_for("views.teacher_dashboard"))
-        
-        try:
-            # Delete the scenario (cascade will handle related data)
-            db.session.delete(scenario)
-            db.session.commit()
-            flash(f"Scenario '{scenario.name}' has been deleted successfully.", "success")
-        except Exception as e:
-            db.session.rollback()
-            flash("An error occurred while deleting the scenario. Please try again.", "error")
-    else:
-        flash("Invalid request. Please try again.", "error")
-    
-    return redirect(url_for("views.teacher_dashboard"))
-
 @views.route("/scenarios/bulk-delete", methods=["POST"])
 @teacher_required
 def bulk_delete_scenarios():
@@ -1326,6 +1263,3 @@ def bulk_delete_scenarios():
         flash("An error occurred while deleting scenarios. Please try again.", "error")
     
     return redirect(url_for("views.teacher_dashboard"))
-=======
-    )
->>>>>>> fake_scenario_patient_dashboard
