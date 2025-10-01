@@ -7,17 +7,9 @@
 </p>
 <!-- MD_ONLY_END -->
 
-### Jump To
-- [Background](#background)
-- [Created By](#created-by)<!-- TEACHER_ONLY_START -->
-- [Installation](#installation)<!-- TEACHER_ONLY_END -->
-- [Usage](#usage)<!-- TEACHER_ONLY_START -->
-  - [Guide for Teachers](#usage-teacher)<!-- TEACHER_ONLY_END -->
-  - [Guide for Students](#usage-student)
-- [Licence](#licence)
+<main class="container-fluid"><div class="row">
 
 
-<a name="background"></a>
 ### Background
 An electronic prescription is a digital version of a paper prescription. Since the introduction of this process in May 2020, the Australian healthcare system has seen an uptake with over 189 million electronic prescriptions issued, more than 80,000 prescribers adopting electronic prescribing and at least 98% of all PBS-approved pharmacies having dispensed medications from electronic prescriptions. With efforts underway to expand electronic prescribing in hospitals and aged care settings, the next generation of healthcare requires proficient education and training in this area.  
 For further information about how to get an Electronic prescription, please view [this link](https://www.digitalhealth.gov.au/initiatives-and-programs/electronic-prescriptions).  
@@ -28,7 +20,12 @@ We will require the simulation program to be editable by the Pharmacy Department
 
 **IP:** Open to further discussion about best IP options. 
 
-<a name="created-by"></a>
+</div>
+
+<hr>
+
+<div id="created-by">
+
 ##### This web app was created by the following students as part of the Professional Computing (CITS3200) assignment.
 | Student       | Student No |
 |---------------|-----------:|
@@ -39,9 +36,18 @@ We will require the simulation program to be editable by the Pharmacy Department
 | David Pang    |  24128968  |
 | Zachary Wang  |  24648002  |
 
+<hr>
+
+</div>
+
 <!-- TEACHER_ONLY_START -->
-<a name="installation"></a>
+
+<div id="installation">
+
 ### How to Install
+
+<div id="prerequisites">
+
 #### Prerequisites
 - Python 3.13.7
 - Python modules found in requirements.txt:
@@ -56,6 +62,9 @@ We will require the simulation program to be editable by the Pharmacy Department
 | WTForms          |    3.0.1 |
 | SQLAlchemy       |   2.0.20 |
 | markdown-it-py   |    4.0.0 |
+
+</div>
+<div id="install">
 
 #### Installation
 
@@ -81,11 +90,18 @@ We will require the simulation program to be editable by the Pharmacy Department
    ```sh
    flask run
    ```
+
+</div>
+</div>
+<hr>
+
 <!-- TEACHER_ONLY_END -->
-<a name="usage"></a>
+<div id="usage">
+
 ### Usage
 <!-- TEACHER_ONLY_START -->
-<a name="usage-teacher"></a>
+<div id="usage-teacher">
+
 #### I am a *Teacher*:
 When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
@@ -93,14 +109,23 @@ When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
 Here, you will find a list of scenarios and some data regarding your cohort.  
 From the teacher dashboard, you can
- - Create a new scenario // TODO - run through creation of new scenario
- - Edit or Delete old scenarios
- - Create and Edit patients // TODO - run through creation of patient
- - Assign students to scenarios // TODO - run through this
- - Manage students // TODO - show how to manage students
+ - Create a new scenario  
+To create a new scenario, click the blue button labelled "New Scenario".  
+This will add a new scenario to your list of scenarios.  
+ - Edit or Delete scenarios  
+You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
+To delete a scenario, click the red trash icon. This will open a popup asking you to confirm. *Please note, after deleting a scenario, it cannot be recovered.  
 
+![Screenshot of Editing a Scenario](static/images/screenshot-scenario.png)
+
+ - Create and Edit patients  // TODO - run through creation of patient  
+ - Assign students to scenarios  // TODO - run through this  
+ - Manage students  // TODO - show how to manage students  
+</div>
+<hr>
 <!-- TEACHER_ONLY_END -->
-<a name="usage-student"></a>
+<div id="usage-student">
+
 #### I am a *Student*:
 When you log in as a student, you'll be greeted by the Student Dashboard:
 
@@ -119,5 +144,14 @@ Here, you can
 Requesting or refreshing follows a cycle from <i>No Consent</i> → <i style="color: orange;">Pending</i> → <i style="color: green;">Granted</i>. Click [here](https://help.zsoftware.com.au/hc/en-us/articles/4408453843853-Active-Script-List-ASL) for more info regarding how ASL consent works.
  - Comment on changes that have been made
 
-<a name="licence"></a>
+</div>
+</div>
+<hr>
+
+<div id="licence">
+
 ### Licence
+
+</div>
+</div>
+</section></div></main>

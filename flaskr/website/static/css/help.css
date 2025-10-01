@@ -1,20 +1,20 @@
-main {
+section {
     max-width: 60%;
     margin: 20px auto;
 }
 
-main > * {
+section > * {
     max-width: 85ch;
     margin: 10px 0px;
 }
 
-main img {
+section img {
     max-width: 100%;
     max-height: 30rem;
     border: solid black 1px;
 }
 
-main table {
+section table {
     margin-bottom: 1em;
     width: auto !important;
 }
