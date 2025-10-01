@@ -86,44 +86,6 @@ def edit_scenario(scenario_id):
     
     return render_template("views/edit_scenario.html", scenario=scenario)
 
-
-@views.route("/scenarios/<int:scenario_id>/duplicate", methods=["POST"])
-@teacher_required
-def duplicate_scenario(scenario_id):
-    """Duplicate a scenario - teachers only"""
-    original_scenario = Scenario.query.get_or_404(scenario_id)
-    
-    # Ensure teacher can only duplicate their own scenarios
-    if original_scenario.teacher_id != current_user.id:
-        flash('You can only duplicate scenarios you created', 'error')
-        return redirect(url_for('views.teacher_dashboard'))
-    
-    # Create new scenario
-    new_scenario = Scenario(
-        name=f"{original_scenario.name} (Copy)",
-        description=original_scenario.description,
-        teacher_id=current_user.id,
-        password=original_scenario.password,
-        version=1,
-        parent_scenario_id=original_scenario.id
-    )
-    
-    db.session.add(new_scenario)
-    db.session.flush()  # Get the ID
-    
-    # Copy patient data associations
-    for patient_data in original_scenario.patient_data:
-        new_patient_data = ScenarioPatient(
-            scenario_id=new_scenario.id,
-            patient_id=patient_data.patient_id
-        )
-        db.session.add(new_patient_data)
-    
-    db.session.commit()
-    flash('Scenario duplicated successfully!', 'success')
-    return redirect(url_for('views.scenario_dashboard', scenario_id=new_scenario.id))
-
-
 @views.route("/scenarios/<int:scenario_id>/delete", methods=["POST"])
 @teacher_required
 def delete_scenario(scenario_id):
