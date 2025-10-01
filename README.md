@@ -7,6 +7,7 @@
 </p>
 <!-- MD_ONLY_END -->
 
+### Jump To
 - [Background](#background)
 - [Created By](#created-by)<!-- TEACHER_ONLY_START -->
 - [Installation](#installation)<!-- TEACHER_ONLY_END -->
@@ -28,7 +29,7 @@ We will require the simulation program to be editable by the Pharmacy Department
 **IP:** Open to further discussion about best IP options. 
 
 <a name="created-by"></a>
-##### This website was created by the following students as part of the Professional Computing (CITS3200) assignment.
+##### This web app was created by the following students as part of the Professional Computing (CITS3200) assignment.
 | Student       | Student No |
 |---------------|-----------:|
 | Samuel Lewis  |  23366527  |
@@ -44,16 +45,18 @@ We will require the simulation program to be editable by the Pharmacy Department
 #### Prerequisites
 - Python 3.13.7
 - Python modules found in requirements.txt:
-   | Module           | Vers. No |
-   |------------------|---------:|
-   | Flask            |    2.3.3 |
-   | Flask-SQLAlchemy |    3.0.5 |
-   | Flask-Login      |    0.6.2 |
-   | Flask-WTF        |    1.1.1 |
-   | Werkzeug         |    2.3.7 |
-   | WTForms          |    3.0.1 |
-   | SQLAlchemy       |   2.0.20 |
-   | markdown-it-py   |    4.0.0 |
+
+| Module           | Vers. No |
+|------------------|---------:|
+| Flask            |    2.3.3 |
+| Flask-SQLAlchemy |    3.0.5 |
+| Flask-Login      |    0.6.2 |
+| Flask-WTF        |    1.1.1 |
+| Werkzeug         |    2.3.7 |
+| WTForms          |    3.0.1 |
+| SQLAlchemy       |   2.0.20 |
+| markdown-it-py   |    4.0.0 |
+
 #### Installation
 
 1. Clone the repo
@@ -90,11 +93,11 @@ When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
 Here, you will find a list of scenarios and some data regarding your cohort.  
 From the teacher dashboard, you can
- - Create a new scenario
+ - Create a new scenario // TODO - run through creation of new scenario
  - Edit or Delete old scenarios
- - Create and Edit patients
- - Assign students to scenarios
- - Manage students
+ - Create and Edit patients // TODO - run through creation of patient
+ - Assign students to scenarios // TODO - run through this
+ - Manage students // TODO - show how to manage students
 
 <!-- TEACHER_ONLY_END -->
 <a name="usage-student"></a>

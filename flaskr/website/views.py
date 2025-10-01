@@ -4,9 +4,8 @@ from functools import wraps
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, Scenario, User
 from sqlalchemy import or_
 from datetime import datetime
-from markdown_it import MarkdownIt
+from render_readme import render_readme
 from pathlib import Path
-import re
 
 views = Blueprint('views', __name__)
 
@@ -438,63 +437,18 @@ def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
 
-
-md = MarkdownIt("commonmark").enable("table")
-
-
 @views.route("/help")
 @login_required
 def readme():
     """
     Renders README.md as a html page
     """
-    readme_path = Path(__file__).resolve().parents[2] / "README.md"
-    content = readme_path.read_text(encoding="utf-8")
-
-    def strip_flag(content: str, flag: str, to_strip=True):
-        """
-        Removes certain flags from the html by checking
-            <!-- {flag}_START -->(.*?)<!-- {flag}_END -->'
-        Flags include
-        MD_ONLY : Does not display on website at all
-        TEACHER_ONLY_START : Only displays if the user is logged in and a teacher
-        STUDENT_ONLY_START : Only displays if the user is logged in and a student
-
-        to_strip:
-            if True: remove all the text between,
-            else: remove just the comments
-        """
-        if to_strip:
-            return re.sub(
-                rf"<!-- {flag}_START -->(.*?)<!-- {flag}_END -->",
-                "",
-                content,
-                flags=re.DOTALL,
-            )
-        else:
-            return re.sub(
-                rf"<!-- {flag}_START -->(.*?)<!-- {flag}_END -->",
-                r"\1",
-                content,
-                flags=re.DOTALL,
-            )
-
-    def table_open(tokens, idx, options, env):
-        return '<table class="table table-striped table-bordered">\n'
-
-    def fence(tokens, idx, options, env):
-        token = tokens[idx]
-        lang_class = f"language-{token.info.strip()}" if token.info else ""
-        return f'<pre class="p-3 bg-light border rounded"><code class="{lang_class}">{token.content}</code></pre>\n'
-
-    md.renderer.rules["table_open"] = table_open
-    md.renderer.rules["fence"] = fence
-
-    is_teacher = current_user.is_teacher()
-    content = strip_flag(content, "TEACHER_ONLY", not is_teacher)
-    content = strip_flag(content, "STUDENT_ONLY", is_teacher)
-    content = strip_flag(content, "MD_ONLY")
-
-    # print(html)
-    html = md.render(content)
-    return render_template("views/help.html", html=html)
+    #html_path = None
+    role = "teacher" if current_user.is_teacher() else "student"
+    html_path = Path(__file__).resolve().parents[2] / "flaskr" / "website" / "templates" / "views" / "help" / f"help-{role}.html"
+    
+    if not html_path.exists():
+        render_readme()
+    html_content = html_path.read_text(encoding="utf-8")
+    
+    return render_template("views/help/help.html", html=html_content)
