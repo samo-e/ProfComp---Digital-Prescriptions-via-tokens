@@ -19,10 +19,20 @@ section table {
     width: auto !important;
 }
 
+/* Screens smaller than md */
 h1 {
-    margin: 20px 10% 0px auto;
-    max-width: 60%;
+    margin: 20px 5%;
+    max-width: 100%;
 }
+
+/* Screens larger than md (≥768px) */
+@media (min-width: 768px) {
+    h1 {
+        margin: 20px 14% 0px auto;
+        max-width: 60%;
+    }
+}
+
 
 #navbar-contents {
   position: sticky;

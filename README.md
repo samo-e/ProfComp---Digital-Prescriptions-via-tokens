@@ -11,7 +11,7 @@
 
 <div class="col-md-3">
 
-<div style="position: sticky; top: 10%; height: max-content;">
+<div style="position: sticky; top: 10%; height: max-content;" class="d-none d-md-block">
    <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
       <nav class="nav nav-pills flex-column">
          <a class="nav-link" href="#background">Background</a>  
