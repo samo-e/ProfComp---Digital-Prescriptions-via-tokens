@@ -10,9 +10,17 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/help.css') }}">
 {% endblock %}
 {% block scripts %}{% endblock %}
-
+{% block body_attrs %}{% endblock %}
 {% block body %}
-<main>
 {{ html|safe }}
-</main>
+
+<script>
+window.addEventListener('load', function () {
+    new bootstrap.ScrollSpy(document.body, {
+        target: '#navbar-contents',
+        offset: 100
+    });
+});
+</script>
+
 {% endblock %}
