@@ -3,7 +3,7 @@ main {
     margin: 20px auto;
 }
 
-main p {
+main > * {
     max-width: 85ch;
     margin: 10px 0px;
 }
