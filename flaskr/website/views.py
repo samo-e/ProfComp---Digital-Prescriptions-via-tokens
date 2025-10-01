@@ -1096,6 +1096,34 @@ def delete_patient(patient_id):
         flash("CSRF check failed!", "danger")
     return redirect(url_for("views.patient_dashboard"))
 
+@views.route("/scenarios/<int:scenario_id>/name", methods=["POST"])
+@teacher_required
+def update_scenario_name(scenario_id):
+    """Update the name of a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Check if user owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only edit scenarios you created.", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+    
+    form = EmptyForm()
+    if form.validate_on_submit():
+        scenario_name = request.form.get('scenario_name', '').strip()
+        if scenario_name:
+            scenario.name = scenario_name
+            
+            try:
+                db.session.commit()
+                flash("Scenario name updated successfully!", "success")
+            except Exception as e:
+                db.session.rollback()
+                flash("Error updating scenario name.", "error")
+        else:
+            flash("Scenario name cannot be empty.", "error")
+    
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
+
 @views.route("/scenarios/<int:scenario_id>/question", methods=["POST"])
 @teacher_required
 def update_scenario_question(scenario_id):
