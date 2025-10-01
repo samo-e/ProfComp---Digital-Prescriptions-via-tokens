@@ -117,13 +117,16 @@ class StudentScenario(db.Model):
 
 
 class ScenarioPatient(db.Model):
-    """Patient data specific to a scenario"""
+    """Patient assignments for students within scenarios"""
     __tablename__ = 'scenario_patients'
     
     id = db.Column(db.Integer, primary_key=True)
     scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Make nullable for existing data
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    # Any scenario-specific overrides for patient data can go here
+    assigned_at = db.Column(db.DateTime, default=datetime.now)
+    
+    
     
 
 class Patient(db.Model):

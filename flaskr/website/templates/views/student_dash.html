@@ -2,33 +2,14 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block styles %}
-    <style>
-        body > .container {
-            margin-top: 3%;
-            margin-bottom: 3%;
-        }
-        .scenario-card {
-            transition: transform 0.2s;
-        }
-        .scenario-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        .dashboard-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_dash.css') }}">
 {% endblock %}
 
 {% block body %}
 <div class="container">
     <!-- Dashboard Header -->
     <div class="dashboard-header">
-        <h2><i class="bi bi-person-badge"></i> Student Dashboard</h2>
+        <h2><i class="bi bi-person-workspace"></i> Student Dashboard</h2>
         <p class="mb-0">Welcome back, {{ current_user.get_full_name() }}!</p>
     </div>
 
@@ -44,81 +25,109 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Quick Actions -->
+    <!-- Stats Cards -->
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card stats-card text-center">
                 <div class="card-body">
-                    <i class="bi bi-clipboard-check" style="font-size: 2rem; color: #667eea;"></i>
-                    <h5 class="card-title mt-2">Assigned Scenarios</h5>
-                    <p class="card-text display-6">{{ scenarios|length if scenarios else 0 }}</p>
+                    <i class="fas fa-clipboard-list fa-2x text-primary mb-3"></i>
+                    <h3 class="text-primary">{{ scenarios|length if scenarios else 0 }}</h3>
+                    <p class="text-muted mb-0">Assigned Scenarios</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card stats-card text-center">
                 <div class="card-body">
-                    <i class="bi bi-hourglass-split" style="font-size: 2rem; color: #f59e0b;"></i>
-                    <h5 class="card-title mt-2">In Progress</h5>
-                    <p class="card-text display-6">{{ scenarios|selectattr('completed_at', 'none')|list|length if scenarios else 0 }}</p>
+                    <i class="fas fa-hourglass-half fa-2x text-warning mb-3"></i>
+                    <h3 class="text-warning">{{ scenarios|selectattr('completed_at', 'none')|list|length if scenarios else 0 }}</h3>
+                    <p class="text-muted mb-0">In Progress</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-center">
+            <div class="card stats-card text-center">
                 <div class="card-body">
-                    <i class="bi bi-trophy" style="font-size: 2rem; color: #10b981;"></i>
-                    <h5 class="card-title mt-2">Completed</h5>
-                    <p class="card-text display-6">{{ scenarios|rejectattr('completed_at', 'none')|list|length if scenarios else 0 }}</p>
+                    <i class="fas fa-trophy fa-2x text-success mb-3"></i>
+                    <h3 class="text-success">{{ scenarios|rejectattr('completed_at', 'none')|list|length if scenarios else 0 }}</h3>
+                    <p class="text-muted mb-0">Completed</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Assigned Scenarios Section -->
-    <div class="row">
-        <div class="col-12">
-            <h3 class="mb-3"><i class="bi bi-journal-medical"></i> Your Assigned Scenarios</h3>
-            
+    <div class="card">
+        <div class="card-header bg-light">
+            <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Your Assigned Scenarios</h4>
+        </div>
+        <div class="card-body">
             {% if scenarios and scenarios|length > 0 %}
                 <div class="row">
                     {% for scenario in scenarios %}
-                    <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="col-lg-6 col-xl-4 mb-3">
                         <div class="card scenario-card h-100">
-                            <div class="card-header">
-                                <strong>{{ scenario.name }}</strong>
-                                {% if scenario.version > 1 %}
-                                    <span class="badge bg-info">v{{ scenario.version }}</span>
-                                {% endif %}
-                                {% if scenario.password %}
-                                    <span class="badge bg-warning"><i class="bi bi-lock"></i> Protected</span>
-                                {% endif %}
+                            <div class="scenario-header">
+                                <h6 class="scenario-title">{{ scenario.name }}</h6>
+                                <div class="d-flex gap-2">
+                                    {% if scenario.version > 1 %}
+                                        <span class="badge bg-info">v{{ scenario.version }}</span>
+                                    {% endif %}
+                                    {% if scenario.password %}
+                                        <span class="badge bg-warning"><i class="fas fa-lock"></i> Protected</span>
+                                    {% endif %}
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <p class="card-text">{{ scenario.description|default('No description available', true) }}</p>
+                            <div class="card-body py-2">
+                                <p class="card-text text-muted small">{{ scenario.description|default('No description available', true) }}</p>
+                                
+                                <div class="mb-1">
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i>{{ scenario.creator.get_full_name() if scenario.creator else 'Unknown' }}
+                                    </small>
+                                </div>
                                 
                                 <div class="mb-2">
                                     <small class="text-muted">
-                                        <i class="bi bi-person"></i> Created by: {{ scenario.creator.get_full_name() if scenario.creator else 'Unknown' }}
+                                        <i class="fas fa-calendar me-1"></i>{{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
                                     </small>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar"></i> Assigned: {{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
-                                    </small>
+                                <!-- Assigned Patient Information -->
+                                {% if scenario_patients.get(scenario.id) %}
+                                <div class="patient-info-card">
+                                    <div class="patient-name small">
+                                        <i class="fas fa-user-injured me-1"></i>Your Patient:
+                                    </div>
+                                    <div class="fw-bold text-primary small">
+                                        {{ (scenario_patients[scenario.id].title.upper() + ' ' if scenario_patients[scenario.id].title else '') + 
+                                           (scenario_patients[scenario.id].given_name + ' ' if scenario_patients[scenario.id].given_name else '') + 
+                                           (scenario_patients[scenario.id].last_name if scenario_patients[scenario.id].last_name else 'Unnamed Patient') }}
+                                    </div>
+                                    {% if scenario_patients[scenario.id].dob %}
+                                    <small class="text-muted">DOB: {{ scenario_patients[scenario.id].dob }}</small>
+                                    {% endif %}
+                                    {% if scenario_patients[scenario.id].medicare %}
+                                    <br><small class="text-muted">Medicare: {{ scenario_patients[scenario.id].medicare }}</small>
+                                    {% endif %}
                                 </div>
-                                
-                                <!-- Action Buttons -->
-                                <div class="d-grid gap-2">
+                                {% endif %}
+                            </div>
+                            <div class="card-footer bg-transparent py-2">
+                                <div class="d-grid gap-1">
                                     <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
-                                       class="btn btn-primary">
-                                        <i class="bi bi-play-circle"></i> View Scenario
+                                       class="btn btn-scenario btn-sm">
+                                        <i class="fas fa-play me-2"></i>View Details
                                     </a>
-                                    {% if scenario.active_patient %}
+                                    {% if scenario_patients.get(scenario.id) %}
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario_patients[scenario.id].id) }}" 
+                                           class="btn btn-asl btn-sm">
+                                            <i class="fas fa-hands me-2"></i>View ASL
+                                        </a>
+                                    {% elif scenario.active_patient %}
                                         <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" 
-                                           class="btn btn-success btn-sm">
-                                            <i class="bi bi-list-ul"></i> View Patient ASL
+                                           class="btn btn-asl btn-sm">
+                                            <i class="fas fa-hands me-2"></i>View ASL
                                         </a>
                                     {% endif %}
                                 </div>
@@ -128,57 +137,57 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="alert alert-info" role="alert">
-                    <i class="bi bi-info-circle"></i> No scenarios have been assigned to you yet. 
-                    Please check back later or contact your teacher.
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h5>No Scenarios Assigned</h5>
+                    <p class="text-muted">You don't have any scenarios assigned yet. Please contact your teacher for assignments.</p>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Practice Patients Section (if no scenarios) -->
+    <!-- Practice Section -->
     {% if not scenarios or scenarios|length == 0 %}
-    <div class="row mt-4">
-        <div class="col-12">
-            <h3 class="mb-3"><i class="bi bi-people"></i> Practice Patients</h3>
-            <p class="text-muted">You can practice with these sample patients while waiting for assigned scenarios:</p>
-            
-            <div class="list-group">
-                <a href="{{ url_for('views.asl', pt=1) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Draga Diaz</h5>
-                        <small class="text-muted">Patient ID: 1</small>
-                    </div>
-                    <p class="mb-1">DOB: 26/01/1998 | Medicare: 49502864011</p>
-                    <small class="text-success"><i class="bi bi-check-circle"></i> ASL Access Granted</small>
-                </a>
+    <div class="practice-section">
+        <div class="row">
+            <div class="col-12">
+                <h5 class="mb-3"><i class="fas fa-users me-2"></i>Practice Patients</h5>
+                <p class="text-muted mb-3">You can practice with these sample patients while waiting for assigned scenarios:</p>
                 
-                <a href="{{ url_for('views.asl', pt=2) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">John Smith</h5>
-                        <small class="text-muted">Patient ID: 2</small>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body py-2">
+                                <h6 class="card-title">Draga Diaz</h6>
+                                <p class="card-text">
+                                    <small class="text-muted">DOB: 26/01/1998 | Medicare: 49502864011</small>
+                                </p>
+                                <span class="badge bg-success mb-2"><i class="fas fa-check-circle"></i> ASL Access Granted</span>
+                                <div class="d-grid">
+                                    <a href="{{ url_for('views.asl', pt=1) }}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-hands me-2"></i>Practice ASL
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="mb-1">DOB: 15/03/1985 | Medicare: 12345678901</p>
-                    <small class="text-warning"><i class="bi bi-clock"></i> ASL Pending</small>
-                </a>
-                
-                <a href="{{ url_for('views.asl', pt=3) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Sarah Johnson</h5>
-                        <small class="text-muted">Patient ID: 3</small>
+                    <div class="col-md-6 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body py-2">
+                                <h6 class="card-title">John Smith</h6>
+                                <p class="card-text">
+                                    <small class="text-muted">DOB: 15/03/1985 | Medicare: 12345678901</small>
+                                </p>
+                                <span class="badge bg-warning mb-2"><i class="fas fa-clock"></i> ASL Pending</span>
+                                <div class="d-grid">
+                                    <a href="{{ url_for('views.asl', pt=2) }}" class="btn btn-success btn-sm">
+                                        <i class="fas fa-hands me-2"></i>Practice ASL
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <p class="mb-1">DOB: 10/07/1992 | Medicare: 98765432109</p>
-                    <small class="text-danger"><i class="bi bi-x-circle"></i> ASL Rejected</small>
-                </a>
-                
-                <a href="{{ url_for('views.asl', pt=4) }}" class="list-group-item list-group-item-action">
-                    <div class="d-flex w-100 justify-content-between">
-                        <h5 class="mb-1">Michael Brown</h5>
-                        <small class="text-muted">Patient ID: 4</small>
-                    </div>
-                    <p class="mb-1">DOB: 05/09/1975 | Medicare: 11122233344</p>
-                    <small class="text-secondary"><i class="bi bi-dash-circle"></i> No Consent</small>
-                </a>
+                </div>
             </div>
         </div>
     </div>

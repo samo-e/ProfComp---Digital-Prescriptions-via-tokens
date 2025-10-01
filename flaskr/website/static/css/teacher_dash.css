@@ -3,10 +3,352 @@ body > .container {
     margin-bottom: 3%;
 }
 
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.stats-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    min-height: 120px;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.stats-card .card-body {
+    padding: 1.5rem;
+    height: 100%;
+}
+
+.stats-card .card-title {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    opacity: 0.9;
+}
+
+.stats-card h2 {
+    font-weight: 700;
+    font-size: 2.25rem;
+    margin-bottom: 0;
+    line-height: 1;
+}
+
+.stats-card i {
+    opacity: 0.6;
+}
+
+/* Equal height for all cards */
+.row-cols-md-3 > * {
+    display: flex;
+}
+
+.stats-card.bg-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%) !important;
+}
+
+.stats-card.bg-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%) !important;
+}
+
+.stats-card.bg-success {
+    background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%) !important;
+}
+
+.stats-card.bg-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%) !important;
+}
+
+/* Pretty Action Buttons */
+.action-btn {
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s ease !important;
+    border-radius: 0.75rem !important;
+    padding: 0.75rem 1rem !important;
+    color: #495057 !important;
+    text-transform: uppercase !important;
+    font-size: 0.75rem !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+}
+
+.action-btn:hover {
+    background: white !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2) !important;
+    color: #212529 !important;
+}
+
+.action-btn:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.5) !important;
+}
+
+.action-btn i {
+    font-weight: bold;
+}
+
+/* Enhanced card body layout */
+.stats-card .card-body {
+    padding: 1.75rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Better responsive grid */
+@media (max-width: 1200px) {
+    .col-lg-4 {
+        margin-bottom: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .stats-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    .action-btn {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.7rem !important;
+    }
+}
+
+/* Scenarios Table Card */
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 1.25rem 1.5rem;
+}
+
+.card-header h5 {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.badge {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Table Styling */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dee2e6;
+    padding: 1rem 0.75rem;
+    background: #f8f9fa;
+}
+
+.table td {
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(102, 126, 234, 0.05);
+}
+
+.scenario-name a {
+    text-decoration: none;
+    color: inherit;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.scenario-name a:hover {
+    color: #667eea;
+    text-decoration: none;
+}
+
+/* Action Buttons */
+.btn-group .btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-right: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+    margin-right: 0;
+}
+
+.btn-outline-primary:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    transform: translateY(-1px);
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    transform: translateY(-1px);
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    transform: translateY(-1px);
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    transform: translateY(-1px);
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    transform: translateY(-1px);
+}
+
+/* Checkbox Styling */
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.form-check-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Delete button styling */
+.delete-scenario-btn {
+    transition: all 0.2s ease;
+}
+
+.delete-scenario-btn:hover {
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+}
+
+/* Bulk action buttons */
+#bulk-delete {
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    border-radius: 0.5rem;
+}
+
+#bulk-delete:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(220, 53, 69, 0.3);
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+}
+
+/* Progress bars */
+.progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: 4px;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .dashboard-header {
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .stats-card h2 {
+        font-size: 2rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .btn-group .btn {
+        margin-right: 0;
+    }
+    
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* Loading animations */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stats-card {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.stats-card:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+.stats-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.card {
+    animation: fadeInUp 0.6s ease forwards;
+    animation-delay: 0.3s;
+}
+
+/* Utility classes for consistency */
 .scenario-check * {
     margin: auto;
     display: block;
 }
+
 .scenario-qty,
 .scenario-percent-complete {
     text-align: center;
@@ -18,10 +360,6 @@ body > .container {
     cursor: pointer;
 }
 
-.scenario-name {
-    font-style: u;
-}
-
 .sr-only {
   height: 1px;
   width: 1px;
@@ -30,31 +368,504 @@ body > .container {
   position: absolute;
 }
 
-/* Delete button styling */
-.delete-scenario-btn {
+/* Enhanced card animations */
+.stats-card:hover .card-title {
+    transform: translateX(2px);
+    transition: transform 0.2s ease;
+}
+
+.stats-card:hover h2 {
+    transform: scale(1.05);
+    transition: transform 0.2s ease;
+}
+
+/* Modern Scenarios Grid */
+.scenarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.scenario-item {
+    position: relative;
+}
+
+.scenario-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.scenario-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+.scenario-header {
+    padding: 1.25rem 1.5rem 1rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-bottom: 1px solid #e9ecef;
+}
+
+.scenario-title a {
+    color: #495057;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-decoration: none;
+}
+
+.scenario-title a:hover {
+    color: #667eea;
+}
+
+.scenario-badges {
+    margin-top: 0.5rem;
+}
+
+.scenario-badges .badge {
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+}
+
+.scenario-stats {
+    display: flex;
+    gap: 1rem;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 50px;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #495057;
+    line-height: 1;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.7rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.scenario-body {
+    padding: 1rem 1.5rem;
+}
+
+.scenario-description {
+    color: #6c757d;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.scenario-question {
+    background: #f8f9fa;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    border-left: 3px solid #17a2b8;
+    margin-bottom: 0.5rem;
+}
+
+.scenario-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+}
+
+.scenario-actions {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.scenario-actions .btn {
+    border-radius: 0.5rem;
+    font-weight: 500;
     transition: all 0.2s ease;
 }
 
-.delete-scenario-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+.scenario-actions .btn:hover {
+    transform: translateY(-1px);
 }
 
-/* Bulk action buttons */
-#bulk-delete {
-    transition: all 0.2s ease;
+/* Empty State */
+.empty-state-scenarios {
+    padding: 4rem 2rem;
+    text-align: center;
 }
 
-#bulk-delete:hover {
+.empty-content i {
+    font-size: 4rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+}
+
+.empty-content h5 {
+    color: #495057;
+    margin-bottom: 0.5rem;
+}
+
+.empty-content .btn {
+    margin-top: 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 0.75rem 2rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+}
+
+.empty-content .btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
 }
 
-/* Action button group spacing */
+/* Card Header Gradient */
+.bg-gradient {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .scenarios-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .scenario-stats {
+        gap: 0.5rem;
+    }
+    
+    .stat-item {
+        min-width: 40px;
+    }
+    
+    .stat-number {
+        font-size: 1rem;
+    }
+}
+
+/* Better spacing for action button groups */
 .btn-group .btn {
     margin-right: 2px;
 }
 
 .btn-group .btn:last-child {
     margin-right: 0;
+}
+
+/* Modern Table Styling - Enhanced */
+.table-modern {
+    background: white;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.table-header th {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 0.75rem 0.75rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    border: none;
+}
+
+.table-header th:first-child {
+    border-top-left-radius: 1rem;
+}
+
+.table-header th:last-child {
+    border-top-right-radius: 1rem;
+}
+
+.th-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.th-content i {
+    opacity: 0.9;
+}
+
+.scenario-row {
+    transition: all 0.3s ease;
+    border-bottom: 1px solid #f1f3f4;
+    background: white;
+}
+
+.scenario-row:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.scenario-row:last-child {
+    border-bottom: none;
+}
+
+.scenario-row td {
+    padding: 0.75rem 0.75rem;
+    vertical-align: middle;
+    border: none;
+}
+
+.scenario-icon {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+}
+
+.scenario-name {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.125rem;
+}
+
+.scenario-name a {
+    color: #2d3748;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.scenario-name a:hover {
+    color: #667eea;
+}
+
+.scenario-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.stat-badge {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    min-width: 70px;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-badge::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-badge:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    border-color: #667eea;
+}
+
+.stat-students::before {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.stat-patients::before {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.stat-students .stat-number {
+    color: #28a745;
+}
+
+.stat-patients .stat-number {
+    color: #fd7e14;
+}
+
+.stat-number {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.125rem;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.btn-action {
+    border: 1.5px solid;
+    border-radius: 8px;
+    padding: 0.4rem 0.6rem;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.8rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-action::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-action:hover::before {
+    left: 100%;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-outline-primary:hover {
+    background-color: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.form-check-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Enhanced Empty State */
+.empty-state {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 1rem;
+    margin: 2rem 0;
+    position: relative;
+    overflow: hidden;
+}
+
+.empty-state::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.empty-icon i {
+    font-size: 4rem;
+    opacity: 0.3;
+    color: #667eea;
+}
+
+/* Enhanced responsive design */
+@media (max-width: 992px) {
+    .scenario-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .btn-action {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: 1rem;
+        overflow: hidden;
+    }
+    
+    .scenario-row td {
+        padding: 1rem 0.75rem;
+    }
+    
+    .scenario-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+    }
+    
+    .stat-badge {
+        min-width: 70px;
+        padding: 0.5rem;
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .scenario-name {
+        font-size: 1rem;
+    }
 }

@@ -127,42 +127,109 @@ def assign_scenario(scenario_id):
         return redirect(url_for('views.teacher_dashboard'))
     
     if request.method == 'POST':
-        student_ids = request.form.getlist('student_ids')
+        # Check if we're handling individual patient assignments
+        assignments_data = {}
+        for key, value in request.form.items():
+            if key.startswith('assignments[') and key.endswith('][student_id]'):
+                index = key.split('[')[1].split(']')[0]
+                if index not in assignments_data:
+                    assignments_data[index] = {}
+                assignments_data[index]['student_id'] = value
+            elif key.startswith('assignments[') and key.endswith('][patient_id]'):
+                index = key.split('[')[1].split(']')[0]
+                if index not in assignments_data:
+                    assignments_data[index] = {}
+                assignments_data[index]['patient_id'] = value
         
-        # Clear existing assignments if requested
-        if request.form.get('clear_existing'):
-            # Remove all current assignments
-            StudentScenario.query.filter_by(scenario_id=scenario.id).delete()
-        
-        # Add new assignments
-        for student_id in student_ids:
-            student = User.query.filter_by(id=student_id, role='student').first()
-            if student:
-                # Check if assignment already exists
-                existing = StudentScenario.query.filter_by(
-                    student_id=student_id,
-                    scenario_id=scenario.id
-                ).first()
+        if assignments_data:
+            # Handle individual patient assignments
+            # Clear existing assignments if requested
+            if request.form.get('clear_existing') == 'true':
+                StudentScenario.query.filter_by(scenario_id=scenario.id).delete()
+                ScenarioPatient.query.filter_by(scenario_id=scenario.id).delete()
+            
+            success_count = 0
+            for assignment in assignments_data.values():
+                student_id = assignment.get('student_id')
+                patient_id = assignment.get('patient_id')
                 
-                if not existing:
-                    assignment = StudentScenario(
+                if student_id and patient_id:
+                    student = User.query.filter_by(id=student_id, role='student').first()
+                    patient = Patient.query.get(patient_id)
+                    
+                    if student and patient:
+                        # Check if student assignment already exists
+                        existing_student = StudentScenario.query.filter_by(
+                            student_id=student_id,
+                            scenario_id=scenario.id
+                        ).first()
+                        
+                        if not existing_student:
+                            student_assignment = StudentScenario(
+                                student_id=student_id,
+                                scenario_id=scenario.id
+                            )
+                            db.session.add(student_assignment)
+                        
+                        # Check if patient assignment already exists
+                        existing_patient = ScenarioPatient.query.filter_by(
+                            student_id=student_id,
+                            scenario_id=scenario.id,
+                            patient_id=patient_id
+                        ).first()
+                        
+                        if not existing_patient:
+                            patient_assignment = ScenarioPatient(
+                                student_id=student_id,
+                                scenario_id=scenario.id,
+                                patient_id=patient_id
+                            )
+                            db.session.add(patient_assignment)
+                        
+                        success_count += 1
+            
+            db.session.commit()
+            flash(f'Successfully assigned {success_count} students with their patients!', 'success')
+        else:
+            # Handle simple student assignments (fallback for old method)
+            student_ids = request.form.getlist('student_ids')
+            
+            # Clear existing assignments if requested
+            if request.form.get('clear_existing') == 'true':
+                StudentScenario.query.filter_by(scenario_id=scenario.id).delete()
+            
+            # Add new assignments
+            for student_id in student_ids:
+                student = User.query.filter_by(id=student_id, role='student').first()
+                if student:
+                    # Check if assignment already exists
+                    existing = StudentScenario.query.filter_by(
                         student_id=student_id,
                         scenario_id=scenario.id
-                    )
-                    db.session.add(assignment)
+                    ).first()
+                    
+                    if not existing:
+                        assignment = StudentScenario(
+                            student_id=student_id,
+                            scenario_id=scenario.id
+                        )
+                        db.session.add(assignment)
+            
+            db.session.commit()
+            flash(f'Scenario assigned to {len(student_ids)} students!', 'success')
         
-        db.session.commit()
-        flash(f'Scenario assigned to {len(student_ids)} students!', 'success')
         return redirect(url_for('views.scenario_dashboard', scenario_id=scenario.id))
     
     # GET request - show assignment form
     students = User.query.filter_by(role='student', is_active=True).all()
     assigned_student_ids = [s.id for s in scenario.assigned_students]
+    available_patients = Patient.query.all()  # Get all patients for assignment
     
     return render_template("views/assign_scenario.html", 
                          scenario=scenario, 
                          students=students,
-                         assigned_student_ids=assigned_student_ids)
+                         assigned_student_ids=assigned_student_ids,
+                         available_patients=available_patients)
 
 
 @views.route("/scenarios/<int:scenario_id>/assign-patient", methods=["GET", "POST"])
@@ -283,6 +350,7 @@ def teacher_dashboard():
     # Get some stats
     total_scenarios = len(scenarios)
     total_students = User.query.filter_by(role='student').count()
+    total_patients = Patient.query.count()
     
     # Create forms
     form = EmptyForm()
@@ -293,6 +361,7 @@ def teacher_dashboard():
         scenarios=scenarios,
         total_scenarios=total_scenarios,
         total_students=total_students,
+        total_patients=total_patients,
         form=form,
         delete_form=delete_form
     )
@@ -304,15 +373,57 @@ def student_dashboard():
     if current_user.is_teacher():
         return redirect(url_for('views.teacher_dashboard'))
     
-    # Get student's assigned scenarios
+    # Get student's assigned scenarios with patient information
     assigned_scenarios = current_user.assigned_scenarios
+    
+    # Get patient assignments for each scenario
+    scenario_patients = {}
+    for scenario in assigned_scenarios:
+        # Find patient assigned to this student for this scenario
+        patient_assignment = ScenarioPatient.query.filter_by(
+            scenario_id=scenario.id,
+            student_id=current_user.id
+        ).first()
+        
+        if patient_assignment:
+            scenario_patients[scenario.id] = Patient.query.get(patient_assignment.patient_id)
+        else:
+            # Fallback to scenario's active patient if no individual assignment
+            scenario_patients[scenario.id] = scenario.active_patient
     
     return render_template(
         "views/student_dash.html",
-        scenarios=assigned_scenarios
+        scenarios=assigned_scenarios,
+        scenario_patients=scenario_patients
+    )
+
+@views.route('/students/manage')
+@teacher_required
+def student_management():
+    """Student management dashboard for teachers"""
+    # Get all students
+    students = User.query.filter_by(role='student').all()
+    
+    # Calculate stats
+    active_students = len([s for s in students if s.assigned_scenarios])
+    total_assignments = sum(len(s.assigned_scenarios) for s in students)
+    
+    # Add helper attributes for template
+    for student in students:
+        student.completed_scenarios = [
+            scenario for scenario in student.assigned_scenarios 
+            if hasattr(scenario, 'completed_at') and scenario.completed_at
+        ]
+    
+    return render_template(
+        "views/student_management.html",
+        students=students,
+        active_students=active_students,
+        total_assignments=total_assignments
     )
 
 @views.route('/patients/create', methods=["GET", "POST"])
+@teacher_required
 def create_patient():
     form = PatientForm()
 
@@ -375,7 +486,7 @@ def create_patient():
     return render_template("views/edit_pt.html", form=form, patient=None)
 
 @views.route('/patients/edit/<int:patient_id>', methods=["GET", "POST"])
-@login_required
+@teacher_required
 def edit_pt(patient_id):
     patient = Patient.query.get_or_404(patient_id)
     form = PatientForm()
@@ -1076,7 +1187,7 @@ def unassign_all_students(scenario_id):
     return redirect(url_for("views.scenario_dashboard", scenario_id=scenario_id))
 
 @views.route("/patients", methods=["GET"])
-@login_required
+@teacher_required
 def patient_dashboard():
     patients = Patient.query.all()
     delete_form = DeleteForm()  # one form instance reused

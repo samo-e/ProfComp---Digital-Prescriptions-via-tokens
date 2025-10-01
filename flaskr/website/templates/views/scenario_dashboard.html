@@ -470,9 +470,11 @@
                             <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" class="btn btn-asl">
                                 <i class="bi bi-list-ul"></i> View ASL
                             </a>
+                            {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
                             <a href="{{ url_for('views.edit_pt', patient_id=scenario.active_patient.id) }}" class="btn btn-dashboard">
                                 <i class="bi bi-pencil"></i> Edit Patient
                             </a>
+                            {% endif %}
                             {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
                             <form method="POST" action="{{ url_for('views.remove_active_patient', scenario_id=scenario.id) }}" style="display: inline;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>

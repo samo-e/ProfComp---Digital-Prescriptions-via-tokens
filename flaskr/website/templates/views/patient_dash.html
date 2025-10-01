@@ -1,76 +1,263 @@
 {% extends "base.html" %}
-{% block body %}
-<div class="container mt-4">
-    <h2>Patient Dashboard</h2>
-    <p class="text-muted">Manage all patients in the system and view their Active Script Lists (ASLs).</p>
+{% block title %}Patient Management{% endblock %}
 
-    <!-- Action Buttons -->
-    <div class="mb-3">
-        <a href="{{ url_for('views.create_patient') }}" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Create New Patient
-        </a>
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/patient_management.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="bi bi-people me-3"></i>Patient Management</h2>
+                <p class="mb-0">Manage all patients in the system and view their Active Script Lists (ASLs).</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Total Patients</h5>
+                            <h2 class="mb-0">{{ patients|length if patients else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">ASL Granted</h5>
+                            <h2 class="mb-0">{{ patients|selectattr('get_asl_status', 'equalto', 1)|list|length if patients else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-check-circle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">No ASL</h5>
+                            <h2 class="mb-0">{{ patients|rejectattr('get_asl_status', 'equalto', 1)|list|length if patients else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-exclamation-triangle fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Quick Actions</h5>
+                            <div class="d-grid">
+                                <a href="{{ url_for('views.create_patient') }}" class="btn btn-light btn-sm">
+                                    <i class="bi bi-person-plus"></i> New Patient
+                                </a>
+                            </div>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-lightning fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Info Banner -->
-    <div class="alert alert-info py-2">
-        <i class="bi bi-people-fill"></i>
-        Each patient has exactly <strong>one ASL</strong>.  
-        Students can only dispense medicines; repeats auto-decrement.
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Each patient has exactly <strong>one ASL</strong>. Students can only dispense medicines; repeats auto-decrement.
     </div>
 
     <!-- Patients Table -->
-    <div class="card mt-3">
-        <div class="card-header">All Patients & Their ASLs</div>
-        <div class="card-body p-2">
-            <table class="table table-sm table-bordered table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Patient Name</th>
-                        <th>DOB</th>
-                        <th>ASL Status</th>
-                        <th class="text-center">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for patient in patients %}
-                        <tr>
-                            <td>{{ patient.id }}</td>
-                            <td>{{ patient.given_name }} {{ patient.last_name }}</td>
-                            <td>{{ patient.dob or "—" }}</td>
-                            <td>
-                                {% if patient.get_asl_status() == 1 %}
-                                    <span class="text-success">Granted</span>
-                                {% else %}
-                                    <span class="text-muted">No ASL found</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('views.patient_asl_form', patient_id=patient.id) }}" 
-                                    class="btn btn-success">View ASL</a>
-                                    <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
-                                    class="btn btn-secondary">Edit</a>
-                                    <form method="POST"
-                                        action="{{ url_for('views.delete_patient', patient_id=patient.id) }}"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('Are you sure you want to delete {{ patient.given_name }} {{ patient.last_name }}?');">
-                                        {{ delete_form.hidden_tag() }}
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">
-                                No patients found.
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people"></i> All Patients & Their ASLs
+                        <span class="badge bg-secondary ms-2">{{ patients|length if patients else 0 }}</span>
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" placeholder="Search patients..." id="patientSearch">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
+        <div class="card-body p-0">
+            {% if patients and patients|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="patientsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">
+                                    <input class="form-check-input" type="checkbox" id="select-all">
+                                </th>
+                                <th>Patient Details</th>
+                                <th>Date of Birth</th>
+                                <th>Medicare</th>
+                                <th class="text-center">ASL Status</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in patients %}
+                            <tr>
+                                <td class="text-center">
+                                    <input class="form-check-input patient-checkbox" type="checkbox" value="{{ patient.id }}">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            {{ (patient.given_name[0]|upper if patient.given_name else 'P') }}{{ (patient.last_name[0]|upper if patient.last_name else 'P') }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">
+                                                {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
+                                            </div>
+                                            <small class="text-muted">Patient ID: {{ patient.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ patient.dob if patient.dob else "—" }}</td>
+                                <td>{{ patient.medicare if patient.medicare else "—" }}</td>
+                                <td class="text-center">
+                                    {% if patient.get_asl_status() == 1 %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Granted</span>
+                                    {% else %}
+                                        <span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>No ASL</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-success" title="View ASL">
+                                            <i class="bi bi-clipboard-heart"></i>
+                                        </a>
+                                        <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-primary" title="Edit Patient">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="POST"
+                                            action="{{ url_for('views.delete_patient', patient_id=patient.id) }}"
+                                            style="display:inline;"
+                                            onsubmit="return confirm('Are you sure you want to delete {{ (patient.given_name + ' ' + patient.last_name) if patient.given_name and patient.last_name else 'this patient' }}?');">
+                                            {{ delete_form.hidden_tag() }}
+                                            <button type="submit" class="btn btn-outline-danger" title="Delete Patient">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <h5>No Patients Found</h5>
+                    <p class="text-muted">No patients are currently in the system.</p>
+                    <a href="{{ url_for('views.create_patient') }}" class="btn btn-primary">
+                        <i class="bi bi-person-plus"></i> Add First Patient
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        {% if patients and patients|length > 0 %}
+        <div class="card-footer">
+            <div class="row align-items-center">
+                <div class="col">
+                    <div class="bulk-actions" style="display: none;">
+                        <button class="btn btn-outline-danger btn-sm" id="bulk-delete">
+                            <i class="bi bi-trash"></i> Delete Selected
+                        </button>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <small class="text-muted">{{ patients|length }} patient(s) total</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
+
+<script>
+// Search functionality
+document.getElementById('patientSearch').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#patientsTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Select all functionality
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.patient-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    toggleBulkActions();
+});
+
+// Individual checkbox handling
+document.querySelectorAll('.patient-checkbox').forEach(cb => {
+    cb.addEventListener('change', toggleBulkActions);
+});
+
+function toggleBulkActions() {
+    const checked = document.querySelectorAll('.patient-checkbox:checked');
+    const bulkActions = document.querySelector('.bulk-actions');
+    if (bulkActions) {
+        bulkActions.style.display = checked.length > 0 ? 'block' : 'none';
+    }
+}
+</script>
 {% endblock %}
