@@ -3,10 +3,13 @@ Takes readme.md and renders it to two files
     help-student.html
     help-teacher.html
 """
+
 from markdown_it import MarkdownIt
 from pathlib import Path
 import re
+
 md = MarkdownIt("commonmark").enable("table")
+
 
 def strip_flag(content: str, flag: str, strip_content=True):
     """
@@ -36,8 +39,10 @@ def strip_flag(content: str, flag: str, strip_content=True):
             flags=re.DOTALL,
         )
 
+
 def table_open(tokens, idx, options, env):
     return '<table class="table table-striped table-bordered">\n'
+
 
 def fence(tokens, idx, options, env):
     token = tokens[idx]
@@ -52,17 +57,14 @@ def render_readme():
     readme_path = Path(__file__).resolve().parents[1] / "README.md"
     content = readme_path.read_text(encoding="utf-8")
 
-    
-
     md.renderer.rules["table_open"] = table_open
     md.renderer.rules["fence"] = fence
 
-    outputs = {
-        "teacher": True,
-        "student": False
-    }
+    outputs = {"teacher": True, "student": False}
 
-    templates_dir = Path(__file__).resolve().parents[0] / "website" / "templates" / "views" / "help"
+    templates_dir = (
+        Path(__file__).resolve().parents[0] / "website" / "templates" / "views" / "help"
+    )
     templates_dir.mkdir(parents=True, exist_ok=True)
     for file, is_teacher in outputs.items():
         this_content = strip_flag(content, "TEACHER_ONLY", not is_teacher)
@@ -72,8 +74,3 @@ def render_readme():
 
         output_file = templates_dir / f"help-{file}.html"
         output_file.write_text(html, encoding="utf-8")
-        #print(f"Rendered {output_file}")
-
-
-if __name__ == "__main__":
-    render_readme()

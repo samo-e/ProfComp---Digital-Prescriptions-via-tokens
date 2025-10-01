@@ -111,12 +111,12 @@ We will require the simulation program to be editable by the Pharmacy Department
    ```sh
    pip install -r requirements.txt
    ```
-3. Setup environment variables  
+3. Set up environment variables  
     Linux / Mac
     ```sh
     export SECRET_KEY='your_secret_key_here'
     ```
-    Windows (Powershell)
+    Windows (PowerShell)
     ```sh
     setx SECRET_KEY "your_secret_key_here"
     ```
@@ -154,7 +154,7 @@ This will add a new scenario to your list of scenarios.
 ##### - Edit or Delete scenarios
 
 You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
-To delete a scenario, click the red trash icon. This will open a popup asking you to confirm. *Please note, after deleting a scenario, it cannot be recovered.  
+To delete a scenario, click the red trash icon. This will open a pop-up asking you to confirm. *Please note, that after deleting a scenario, it cannot be recovered.  
 
 ![Screenshot of Editing a Scenario](static/images/screenshot-scenario.png)
 
@@ -162,7 +162,8 @@ To delete a scenario, click the red trash icon. This will open a popup asking yo
 
 ##### - Create and Edit patients
 
-// TODO - run through creation of patient
+On the edit patient page, you can either fill the information in manually or generate it using the Generate Details button in the top right. After using this button, you can still edit the patient's details.
+
 ![Screenshot of Creating a Patient](static/images/screenshot-create-pt.png)
 
 </div><div id="assign-students">
