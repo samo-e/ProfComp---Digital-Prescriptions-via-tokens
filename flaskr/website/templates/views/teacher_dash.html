@@ -17,6 +17,14 @@
         .stats-card:hover {
             transform: translateY(-5px);
         }
+        .scenario-name a {
+            text-decoration: none;
+            color: inherit;
+        }
+        .scenario-name a:hover {
+            color: #007bff;
+            text-decoration: underline;
+        }
     </style>
 {% endblock %}
 
@@ -95,53 +103,98 @@
                     </th>
                     <th scope="col">Scenario Name</th>
                     <th scope="col" class="text-center">Students</th>
+                    <th scope="col" class="text-center">Patients</th>
                     <th scope="col" class="text-center">Actions</th>
                 </tr>
             </thead>
-<tbody>
-    <!-- Dynamic scenarios -->
-    {% for scenario in scenarios %}
-    <tr>
-        <td class="scenario-check text-center">
-            <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
-        </td>
+            <tbody>
+                <!-- Dynamic scenarios -->
+                {% if scenarios and scenarios|length > 0 %}
+                    {% for scenario in scenarios %}
+                    <tr>
+                        <td class="scenario-check text-center">
+                            <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
+                        </td>
 
-        <!-- Scenario name + description -->
-        <td class="scenario-name">
-            <a href="#Scenario-{{ scenario.id }}">{{ scenario.name }}</a>
-            <br><small class="text-muted">{{ scenario.description }}</small>
-        </td>
+                        <!-- Scenario name + description -->
+                        <td class="scenario-name">
+                            <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}">
+                                {{ scenario.name }}
+                                {% if scenario.version > 1 %}
+                                    <span class="badge bg-secondary ms-1">v{{ scenario.version }}</span>
+                                {% endif %}
+                                {% if scenario.password %}
+                                    <span class="badge bg-warning text-dark ms-1">
+                                        <i class="bi bi-lock-fill"></i>
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <br><small class="text-muted">{{ scenario.description or 'No description provided' }}</small>
+                            <br><small class="text-muted">
+                                Created: {{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
+                                {% if scenario.updated_at and scenario.updated_at != scenario.created_at %}
+                                    | Updated: {{ scenario.updated_at.strftime('%d/%m/%Y') }}
+                                {% endif %}
+                            </small>
+                        </td>
 
-        <!-- Students count -->
-        <td class="scenario-qty text-center">
-            {{ scenario.assigned_students|length if scenario.assigned_students else 0 }}
-        </td>
+                        <!-- Students count -->
+                        <td class="scenario-qty text-center">
+                            <span class="badge bg-primary">
+                                {{ scenario.assigned_students|length if scenario.assigned_students else 0 }}
+                            </span>
+                        </td>
 
-        <!-- Actions -->
-        <td class="text-center">
-            <div class="btn-group" role="group">
-                <button class="btn btn-sm btn-info" title="Edit scenario">
-                    <i class="bi bi-pencil-square"></i>
-                </button>
-                <button class="btn btn-sm btn-success" title="Assign students">
-                    <i class="bi bi-person-plus"></i>
-                </button>
-                <button class="btn btn-sm btn-secondary" title="Export data">
-                    <i class="bi bi-download"></i>
-                </button>
-                <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" 
-                      style="display: inline;" class="delete-scenario-form">
-                    {{ delete_form.hidden_tag() }}
-                    <button type="submit" class="btn btn-sm btn-danger delete-scenario-btn" 
-                            title="Delete scenario" data-scenario-name="{{ scenario.name }}">
-                        <i class="bi bi-trash3-fill"></i>
-                    </button>
-                </form>
-            </div>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+                        <!-- Patients count -->
+                        <td class="text-center">
+                            <span class="badge bg-success">
+                                {{ scenario.patient_data|length if scenario.patient_data else 0 }}
+                            </span>
+                        </td>
+
+                        <!-- Actions -->
+                        <td class="text-center">
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-outline-primary" title="View scenario">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('views.edit_scenario', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-info" title="Edit scenario">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" 
+                                   class="btn btn-sm btn-success" title="Assign students">
+                                    <i class="bi bi-person-plus"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}" 
+                                      class="d-inline">
+                                    {{ form.hidden_tag() }}
+                                    <button type="submit" class="btn btn-sm btn-secondary" title="Duplicate scenario">
+                                        <i class="bi bi-copy"></i>
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" 
+                                      class="d-inline" id="delete-form-{{ scenario.id }}">
+                                    {{ form.hidden_tag() }}
+                                    <button type="button" class="btn btn-sm btn-danger delete-btn" 
+                                            title="Archive scenario" data-scenario-id="{{ scenario.id }}">
+                                        <i class="bi bi-archive"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <i class="bi bi-journal-x fs-1 mb-2"></i>
+                            <p>No scenarios created yet. <a href="#" id="create-first-scenario">Create your first scenario</a> to get started!</p>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
         </table>
     </div>
 
@@ -153,80 +206,120 @@
                     <i class="bi bi-download"></i> Export Selected
                 </button>
                 <button class="btn btn-outline-danger ms-2" id="bulk-delete">
-                    <i class="bi bi-trash"></i> Delete Selected
+                    <i class="bi bi-archive"></i> Archive Selected
                 </button>
             </div>
             <div>
-                <button class="btn btn-success">
+                <a href="{{ url_for('auth.admin_users') }}" class="btn btn-success">
                     <i class="bi bi-people"></i> Manage Students
-                </button>
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Select all checkbox functionality
-    document.getElementById('select-all')?.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
-
-    // Delete scenario confirmation
-    document.querySelectorAll('.delete-scenario-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const scenarioName = this.getAttribute('data-scenario-name');
-            const confirmation = confirm(`Are you sure you want to delete the scenario "${scenarioName}"?\n\nThis action cannot be undone and will remove all associated data.`);
-            
-            if (confirmation) {
-                // Submit the form
-                this.closest('form').submit();
-            }
-        });
-    });
-
-    // Bulk delete functionality
-    document.getElementById('bulk-delete')?.addEventListener('click', function() {
-        const selectedCheckboxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
-        
-        if (selectedCheckboxes.length === 0) {
-            alert('Please select at least one scenario to delete.');
-            return;
+function selectAllToggle() {
+    var selectAll = document.getElementById('select-all');
+    var checkboxes = document.getElementsByTagName('input');
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0) {
+            checkboxes[i].checked = selectAll.checked;
         }
-        
-        const scenarioCount = selectedCheckboxes.length;
-        const confirmation = confirm(`Are you sure you want to delete ${scenarioCount} scenario(s)?\n\nThis action cannot be undone and will remove all associated data.`);
-        
-        if (confirmation) {
-            // Get selected scenario IDs
-            const scenarioIds = Array.from(selectedCheckboxes).map(cb => cb.value);
-            
-            // Create and submit bulk delete form
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '{{ url_for("views.bulk_delete_scenarios") }}';
-            
-            // Add CSRF token
-            const csrfToken = document.querySelector('input[name="csrf_token"]').value;
-            const csrfInput = document.createElement('input');
-            csrfInput.type = 'hidden';
-            csrfInput.name = 'csrf_token';
-            csrfInput.value = csrfToken;
-            form.appendChild(csrfInput);
-            
-            // Add scenario IDs
-            scenarioIds.forEach(id => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = 'scenario_ids';
-                input.value = id;
-                form.appendChild(input);
-            });
-            
-            document.body.appendChild(form);
+    }
+}
+
+function bulkArchive() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
+    }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to archive');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to archive ' + selected + ' selected scenario(s)?')) {
+        alert('Bulk archive functionality to be implemented');
+    }
+}
+
+function bulkExport() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
+    }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to export');
+        return;
+    }
+    
+    alert('Bulk export functionality to be implemented');
+}
+
+function confirmDelete(scenarioId) {
+    if (confirm('Are you sure you want to archive this scenario?')) {
+        var form = document.getElementById('delete-form-' + scenarioId);
+        if (form) {
             form.submit();
         }
-    });
+    }
+}
+
+window.onload = function() {
+    // Set up select all checkbox
+    var selectAllBox = document.getElementById('select-all');
+    if (selectAllBox) {
+        selectAllBox.onchange = selectAllToggle;
+    }
+    
+    // Set up bulk action buttons
+    var deleteBtn = document.getElementById('bulk-delete');
+    if (deleteBtn) {
+        deleteBtn.onclick = bulkArchive;
+    }
+    
+    var exportBtn = document.getElementById('bulk-export');
+    if (exportBtn) {
+        exportBtn.onclick = bulkExport;
+    }
+    
+    // Set up individual delete buttons
+    var deleteBtns = document.getElementsByClassName('delete-btn');
+    for (var i = 0; i < deleteBtns.length; i++) {
+        (function(btn) {
+            btn.onclick = function() {
+                var scenarioId = btn.getAttribute('data-scenario-id');
+                confirmDelete(scenarioId);
+            };
+        })(deleteBtns[i]);
+    }
+    
+    // Set up create first scenario link
+    var createLink = document.getElementById('create-first-scenario');
+    if (createLink) {
+        createLink.onclick = function(e) {
+            e.preventDefault();
+            var form = document.querySelector('form[action="{{ url_for("views.create_scenario") }}"]');
+            if (form) {
+                var button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.click();
+                }
+            }
+        };
+    }
+};
 </script>
 {% endblock %}
