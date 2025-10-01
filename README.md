@@ -14,19 +14,26 @@
 <div style="position: sticky; top: 10%; height: max-content;" class="d-none d-md-block">
    <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
       <nav class="nav nav-pills flex-column">
-         <a class="nav-link" href="#background">Background</a>  
-         <a class="nav-link" href="#created-by">Created By</a>  
-         <a class="nav-link" href="#installation">How to Install</a>  
+         <a class="nav-link" href="#background">Background</a>
+         <a class="nav-link" href="#created-by">Created By</a>
+         <a class="nav-link" href="#installation">How to Install</a>
          <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#prerequisites">Prerequisites</a>  
-            <a class="nav-link ms-3 my-1" href="#install">Install</a>  
+            <a class="nav-link ms-3 my-1" href="#prerequisites">Prerequisites</a>
+            <a class="nav-link ms-3 my-1" href="#install">Install</a>
          </nav>
-         <a class="nav-link" href="#usage">Usage</a>  
+         <a class="nav-link" href="#usage">Usage</a>
          <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#usage-teacher">For Teachers</a>  
-            <a class="nav-link ms-3 my-1" href="#usage-student">For Students</a>  
+            <a class="nav-link ms-3 my-1" href="#usage-teacher">For Teachers</a>
+            <nav class="nav nav-pills flex-column">
+               <a class="nav-link ms-5 my-1" href="#create-scenario">Create Scenarios</a>
+               <a class="nav-link ms-5 my-1" href="#edit-scenario">Edit Scenarios</a>
+               <a class="nav-link ms-5 my-1" href="#add-pt">Add new patients</a>
+               <a class="nav-link ms-5 my-1" href="#assign-students">Assigning Students</a>
+               <a class="nav-link ms-5 my-1" href="#manage-students">Managing Students</a>
+            </nav>
+            <a class="nav-link ms-3 my-1" href="#usage-student">For Students</a>
          </nav>
-         <a class="nav-link" href="#licence">Licence</a>  
+         <a class="nav-link" href="#licence">Licence</a>
    </nav>
 </div>
 
@@ -38,7 +45,6 @@
 
 <div id="background">
 
-### Background
 An electronic prescription is a digital version of a paper prescription. Since the introduction of this process in May 2020, the Australian healthcare system has seen an uptake with over 189 million electronic prescriptions issued, more than 80,000 prescribers adopting electronic prescribing and at least 98% of all PBS-approved pharmacies having dispensed medications from electronic prescriptions. With efforts underway to expand electronic prescribing in hospitals and aged care settings, the next generation of healthcare requires proficient education and training in this area.  
 For further information about how to get an Electronic prescription, please view [this link](https://www.digitalhealth.gov.au/initiatives-and-programs/electronic-prescriptions).  
 We, the Pharmacy department at School of Health and Clinical Sciences propose a simulation of part of the dispense process which involves the scanning of a QR code (token presented by patient) thereby transposing patient details into a copy of an electronic prescription (patient's prescription which the doctor has written). These details are then entered into a dispensing system by a pharmacist manually. We have examples of what a screenshot would look like on a patient's phone and the resulting information that would display on the computer once the QR code is scanned.  
@@ -137,18 +143,43 @@ When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
 Here, you will find a list of scenarios and some data regarding your cohort.  
 From the teacher dashboard, you can
- - Create a new scenario  
+<div id="create-scenario">
+
+##### - Create a new scenario
+
 To create a new scenario, click the blue button labelled "New Scenario".  
 This will add a new scenario to your list of scenarios.  
- - Edit or Delete scenarios  
+</div><div id="edit-scenario">
+
+##### - Edit or Delete scenarios
+
 You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
 To delete a scenario, click the red trash icon. This will open a popup asking you to confirm. *Please note, after deleting a scenario, it cannot be recovered.  
 
 ![Screenshot of Editing a Scenario](static/images/screenshot-scenario.png)
 
- - Create and Edit patients  // TODO - run through creation of patient  
- - Assign students to scenarios  // TODO - run through this  
- - Manage students  // TODO - show how to manage students  
+</div><div id="add-pt">
+
+##### - Create and Edit patients
+
+// TODO - run through creation of patient
+![Screenshot of Creating a Patient](static/images/screenshot-create-pt.png)
+
+</div><div id="assign-students">
+
+##### - Assign students to scenarios
+ 
+// TODO - run through this
+![Screenshot of Editing a Scenario](static/images/screenshot-assign-students.png)
+
+</div><div id="manage-students">
+
+##### - Manage students
+ 
+ // TODO - show how to manage students
+![Screenshot of Editing a Scenario](static/images/screenshot-manage-students.png)
+
+</div>
 </div>
 <hr>
 <!-- TEACHER_ONLY_END -->
@@ -165,12 +196,12 @@ After clicking on Draga Diaz, you will be redirected to her Active Script List (
 
 ![Screenshot of Draga Diaz's Active Script List](static/images/screenshot-asl-draga-diaz.png)
 
-Here, you can
- - View Draga's details
- - Print her ASL
- - Request, Delete or Refresh her consent for you to access her ASL  
+Here, you can:
+ - View Draga's details.
+ - Print her ASL.
+ - Request, Delete or Refresh her consent for you to access her ASL.  
 Requesting or refreshing follows a cycle from <i>No Consent</i> → <i style="color: orange;">Pending</i> → <i style="color: green;">Granted</i>. Click [here](https://help.zsoftware.com.au/hc/en-us/articles/4408453843853-Active-Script-List-ASL) for more info regarding how ASL consent works.
- - Comment on changes that have been made
+ - Comment on changes that have been made.
 
 </div>
 </div>
