@@ -14,26 +14,26 @@
 <div style="position: sticky; top: 10%; height: max-content;" class="d-none d-md-block">
    <nav id="navbar-example3" class="h-100 flex-column align-items-stretch pe-4 border-end">
       <nav class="nav nav-pills flex-column">
-         <a class="nav-link" href="#background">Background</a>
-         <a class="nav-link" href="#created-by">Created By</a>
-         <a class="nav-link" href="#installation">How to Install</a>
+         <a class="nav-link mb-1" href="#background">Background</a>
+         <a class="nav-link mb-1" href="#created-by">Created By</a><!-- TEACHER_ONLY_START -->
+         <a class="nav-link mb-1" href="#installation">How to Install</a>
          <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#prerequisites">Prerequisites</a>
-            <a class="nav-link ms-3 my-1" href="#install">Install</a>
-         </nav>
-         <a class="nav-link" href="#usage">Usage</a>
-         <nav class="nav nav-pills flex-column">
-            <a class="nav-link ms-3 my-1" href="#usage-teacher">For Teachers</a>
+            <a class="nav-link ms-3 mb-1" href="#prerequisites">Prerequisites</a>
+            <a class="nav-link ms-3 mb-1" href="#install">Install</a>
+         </nav><!-- TEACHER_ONLY_END -->
+         <a class="nav-link mb-1" href="#usage">Usage</a>
+         <nav class="nav nav-pills flex-column"><!-- TEACHER_ONLY_START -->
+            <a class="nav-link ms-3 mb-1" href="#usage-teacher">For Teachers</a>
             <nav class="nav nav-pills flex-column">
-               <a class="nav-link ms-5 my-1" href="#create-scenario">Create Scenarios</a>
-               <a class="nav-link ms-5 my-1" href="#edit-scenario">Edit Scenarios</a>
-               <a class="nav-link ms-5 my-1" href="#add-pt">Add new patients</a>
-               <a class="nav-link ms-5 my-1" href="#assign-students">Assigning Students</a>
-               <a class="nav-link ms-5 my-1" href="#manage-students">Managing Students</a>
-            </nav>
-            <a class="nav-link ms-3 my-1" href="#usage-student">For Students</a>
+               <a class="nav-link ms-5 mb-1" href="#create-scenario">Create Scenarios</a>
+               <a class="nav-link ms-5 mb-1" href="#edit-scenario">Edit Scenarios</a>
+               <a class="nav-link ms-5 mb-1" href="#add-pt">Add new patients</a>
+               <a class="nav-link ms-5 mb-1" href="#assign-students">Assigning Students</a>
+               <a class="nav-link ms-5 mb-1" href="#manage-students">Managing Students</a>
+            </nav><!-- TEACHER_ONLY_END -->
+            <a class="nav-link ms-3 mb-1" href="#usage-student">For Students</a>
          </nav>
-         <a class="nav-link" href="#licence">Licence</a>
+         <a class="nav-link mb-1" href="#licence">Licence</a>
    </nav>
 </div>
 

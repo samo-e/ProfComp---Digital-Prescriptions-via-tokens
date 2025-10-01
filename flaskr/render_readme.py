@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 md = MarkdownIt("commonmark").enable("table")
 
-def strip_flag(content: str, flag: str, to_strip=True):
+def strip_flag(content: str, flag: str, strip_content=True):
     """
     Removes certain flags from the html by checking
         <!-- {flag}_START -->(.*?)<!-- {flag}_END -->'
@@ -17,11 +17,11 @@ def strip_flag(content: str, flag: str, to_strip=True):
     TEACHER_ONLY_START : Only displays if the user is logged in and a teacher
     STUDENT_ONLY_START : Only displays if the user is logged in and a student
 
-    to_strip:
+    strip_content:
         if True: remove all the text between,
         else: remove just the comments
     """
-    if to_strip:
+    if strip_content:
         return re.sub(
             rf"<!-- {flag}_START -->(.*?)<!-- {flag}_END -->",
             "",
@@ -65,15 +65,14 @@ def render_readme():
     templates_dir = Path(__file__).resolve().parents[0] / "website" / "templates" / "views" / "help"
     templates_dir.mkdir(parents=True, exist_ok=True)
     for file, is_teacher in outputs.items():
-        content = strip_flag(content, "TEACHER_ONLY", not is_teacher)
-        content = strip_flag(content, "STUDENT_ONLY", is_teacher)
-        content = strip_flag(content, "MD_ONLY")
+        this_content = strip_flag(content, "TEACHER_ONLY", not is_teacher)
+        this_content = strip_flag(this_content, "MD_ONLY")
 
-        html = md.render(content)
+        html = md.render(this_content)
 
         output_file = templates_dir / f"help-{file}.html"
         output_file.write_text(html, encoding="utf-8")
-        print(f"Rendered {output_file}")
+        #print(f"Rendered {output_file}")
 
 
 if __name__ == "__main__":
