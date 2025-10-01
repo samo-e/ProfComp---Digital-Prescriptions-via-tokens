@@ -10,7 +10,7 @@
 - [Background](#background)
 - [Created By](#created-by)<!-- TEACHER_ONLY_START -->
 - [Installation](#installation)<!-- TEACHER_ONLY_END -->
-- [Usage](#usage)
+- [Usage](#usage)  
   <!-- TEACHER_ONLY_START -->- [Guide for Teachers](#usage-teacher)<!-- TEACHER_ONLY_END -->
   - [Guide for Students](#usage-student)
 - [Licence](#licence)
@@ -54,7 +54,7 @@ We will require the simulation program to be editable by the Pharmacy Department
    ```sh
    pip install -r requirements.txt
    ```
-3. Setup environment variables
+3. Setup environment variables  
     Linux / Mac
     ```sh
     export SECRET_KEY='your_secret_key_here'
@@ -72,18 +72,22 @@ We will require the simulation program to be editable by the Pharmacy Department
 ### Usage
 <!-- TEACHER_ONLY_START -->
 <a name="usage-teacher"></a>
-- #### I am a *Teacher*:
+#### I am a *Teacher*:
 When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
 ![Screenshot of Teacher Dashboard](static/images/screenshot-teacher-dashboard.png)
 
-Here, you will find a list of scenarios, and you can find data TODO FILL THIS
-From the teacher dashboard
-
+Here, you will find a list of scenarios and some data regarding your cohort.  
+From the teacher dashboard, you can
+ - Create a new scenario
+ - Edit or Delete old scenarios
+ - Create and Edit patients
+ - Assign students to scenarios
+ - Manage students
 
 <!-- TEACHER_ONLY_END -->
 <a name="usage-student"></a>
-- #### I am a *Student*:
+#### I am a *Student*:
 When you log in as a student, you'll be greeted by the Student Dashboard:
 
 ![Screenshot of Student Dashboard](static/images/screenshot-student-dashboard.png)
@@ -97,7 +101,9 @@ After clicking on Draga Diaz, you will be redirected to her Active Script List (
 Here, you can
  - View Draga's details
  - Print her ASL
- - Delete or Refresh her consent for you to access her ASL
+ - Request, Delete or Refresh her consent for you to access her ASL  
+Requesting or refreshing follows a cycle from <i>No Consent</i> → <i style="color: orange;">Pending</i> → <i style="color: green;">Granted</i>. Click [here](https://help.zsoftware.com.au/hc/en-us/articles/4408453843853-Active-Script-List-ASL) for more info regarding how ASL consent works.
+ - Comment on changes that have been made
 
 <a name="licence"></a>
 ### Licence

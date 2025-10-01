@@ -1,6 +1,6 @@
 main {
     max-width: 60%;
-    margin: 10px auto;
+    margin: 20px auto;
 }
 
 main p {
@@ -16,4 +16,5 @@ main img {
 
 main table {
     margin-bottom: 1em;
+    width: auto !important;
 }
