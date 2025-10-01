@@ -437,18 +437,26 @@ def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
 
+
 @views.route("/help")
 @login_required
 def readme():
     """
     Renders README.md as a html page
     """
-    #html_path = None
     role = "teacher" if current_user.is_teacher() else "student"
-    html_path = Path(__file__).resolve().parents[2] / "flaskr" / "website" / "templates" / "views" / "help" / f"help-{role}.html"
-    
+    html_path = (
+        Path(__file__).resolve().parents[2]
+        / "flaskr"
+        / "website"
+        / "templates"
+        / "views"
+        / "help"
+        / f"help-{role}.html"
+    )
+
     if not html_path.exists():
         render_readme()
     html_content = html_path.read_text(encoding="utf-8")
-    
+
     return render_template("views/help/help.html", html=html_content)
