@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 import re
 
-from models import (
+from .models import (
     db,
     Patient,
     Prescriber,
