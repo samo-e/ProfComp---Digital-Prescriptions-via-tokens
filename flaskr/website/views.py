@@ -5,6 +5,8 @@ from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, A
 from sqlalchemy import or_
 from .converters import ingest_pt_data_contract
 from datetime import datetime
+from render_readme import render_readme
+from pathlib import Path
 
 views = Blueprint('views', __name__)
 
@@ -429,11 +431,13 @@ def print_selected_prescriptions():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+
 @views.route('/prescription')
 @login_required
 def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
+
 
 @views.route("/asl/ingest", methods=["POST"])
 def asl_ingest():
@@ -457,3 +461,28 @@ def asl_ingest():
 @views.route("/asl/form", methods=["GET"])
 def asl_form():
     return render_template("asl_form.html")
+
+
+@views.route("/help")
+@login_required
+def readme():
+    """
+    Renders README.md as a html page
+    """
+    role = "teacher" if current_user.is_teacher() else "student"
+    html_path = (
+        Path(__file__).resolve().parents[2]
+        / "flaskr"
+        / "website"
+        / "templates"
+        / "views"
+        / "help"
+        / f"help-{role}.html"
+    )
+
+    if not html_path.exists():
+        render_readme()
+    html_content = html_path.read_text(encoding="utf-8")
+
+    return render_template("views/help/help.html", html=html_content)
+

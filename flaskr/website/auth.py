@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, request, flash
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
 from datetime import datetime
 
@@ -16,6 +16,7 @@ def home():
         return redirect(url_for('views.teacher_dashboard'))
     else:
         return redirect(url_for('views.student_dashboard'))
+
 
 
 @auth.route('/login', methods=['GET', 'POST'])
@@ -92,84 +93,6 @@ def login():
             return redirect(url_for('views.student_dashboard'))
     
     return render_template("auth/login.html")
-
-
-@auth.route('/signup', methods=['GET', 'POST'])
-def signup():
-    """Handle user registration"""
-    # Redirect if already logged in
-    if current_user.is_authenticated:
-        return redirect(url_for('auth.home'))
-    
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        role = request.form.get('role')  # 'Teacher' or 'Student'
-        first_name = request.form.get('first_name')
-        last_name = request.form.get('last_name')
-        
-        # Validate input
-        errors = []
-        
-        if not email or not password or not role:
-            errors.append('Please fill in all required fields')
-        
-        if password and len(password) < 8:
-            errors.append('Password must be at least 8 characters long')
-        
-        if password != confirm_password:
-            errors.append('Passwords do not match')
-        
-        # Check if email already exists
-        if email and User.query.filter_by(email=email).first():
-            errors.append('An account with this email already exists')
-        
-        # Validate email format
-        if email and '@' not in email:
-            errors.append('Please enter a valid email address')
-        
-        # Convert role to lowercase
-        role_value = 'teacher' if role == 'Teacher' else 'student'
-        
-        if errors:
-            for error in errors:
-                flash(error, 'error')
-            return render_template("auth/signup.html")
-        
-        # Create new user
-        new_user = User(
-            email=email,
-            role=role_value,
-            first_name=first_name,
-            last_name=last_name
-        )
-        new_user.set_password(password)
-        
-        # Add to database
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            
-            # Log the user in automatically
-            login_user(new_user)
-            
-            flash(f'Account created successfully! Welcome, {new_user.get_full_name()}!', 'success')
-            
-            # Redirect based on role
-            if new_user.is_teacher():
-                return redirect(url_for('views.teacher_dashboard'))
-            else:
-                return redirect(url_for('views.student_dashboard'))
-                
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred while creating your account. Please try again.', 'error')
-            print(f"Signup error: {str(e)}")  # For debugging
-            return render_template("auth/signup.html")
-    
-    return render_template("auth/signup.html")
-
 
 @auth.route('/logout')
 @login_required

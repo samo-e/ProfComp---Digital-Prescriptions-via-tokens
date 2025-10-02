@@ -1,8 +1,11 @@
+from flask_login import UserMixin
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from enum import Enum
+import enum
 
 db = SQLAlchemy()
 
@@ -185,3 +188,4 @@ class Prescription(db.Model):
     
     def get_status(self):
         return PrescriptionStatus(self.status)
+      
