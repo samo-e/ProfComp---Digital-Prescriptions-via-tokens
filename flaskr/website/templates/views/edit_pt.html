@@ -12,6 +12,7 @@
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/edit_pt.js') }}"></script>
+<script type="module" src="{{ url_for('static', filename='js/generate_pt_details.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -20,7 +21,9 @@
         <div class="card shadow-lg p-4 col-12 col-lg-10 mx-auto">
             <div class="position-relative mb-4">
                 <h3 class="text-center">Patient Details</h3>
-                <button id="generatePtDetails" class="btn btn-secondary position-absolute d-none d-md-flex">
+                <button
+                    id="generatePtDetails"
+                    class="btn btn-secondary position-absolute d-none d-md-flex">
                     Generate Details
                 </button>
             </div>
@@ -46,7 +49,9 @@
                             Basic Details
                         </a>
                     </div>
-                    <button id="generatePtDetails" class="btn btn-secondary position-absolute">
+                    <button
+                        id="generatePtDetails"
+                        class="btn btn-secondary position-absolute">
                         Generate Details
                     </button>
                 </div>

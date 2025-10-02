@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request, send_from_directory
 from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User, StudentScenario, ScenarioPatient
 from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
@@ -421,6 +421,12 @@ def student_management():
         active_students=active_students,
         total_assignments=total_assignments
     )
+
+
+@views.route("/static/js/<path:filename>")
+def js_module(filename):
+    return send_from_directory("static/js", filename, mimetype="application/javascript")
+
 
 @views.route('/patients/create', methods=["GET", "POST"])
 @teacher_required
