@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from functools import wraps
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus, Scenario, User
 from sqlalchemy import or_
+from .converters import ingest_pt_data_contract
 from datetime import datetime
 
 views = Blueprint('views', __name__)
@@ -433,3 +434,26 @@ def print_selected_prescriptions():
 def prescription():
     """Printing pdf - requires login"""
     return render_template("views/prescription/prescription.html")
+
+@views.route("/asl/ingest", methods=["POST"])
+def asl_ingest():
+    pt_data = request.get_json(force=True)
+    print("DEBUG pt_data:", pt_data)
+    try:
+        pt_data = request.get_json(force=True)
+        result = ingest_pt_data_contract(pt_data, db.session, commit=True)
+        return jsonify({
+            "status": "success",
+            "patient_id": result.patient.id,
+            "created_prescriptions": result.created_prescriptions,
+            "is_new_patient": result.is_new_patient
+        }), 201
+    except Exception as e:
+        import traceback
+        print("Error in asl_ingest:", str(e))
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 400
+    
+@views.route("/asl/form", methods=["GET"])
+def asl_form():
+    return render_template("asl_form.html")
