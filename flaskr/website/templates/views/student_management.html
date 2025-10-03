@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+{% block title %}Student Management{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student_management.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="bi bi-mortarboard me-3"></i>Student Management</h2>
+                <p class="mb-0">Manage students, their assignments, and monitor their progress.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-light">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Total Students</h5>
+                            <h2 class="mb-0">{{ students|length if students else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Active Students</h5>
+                            <h2 class="mb-0">{{ active_students if active_students else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stats-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Assignments</h5>
+                            <h2 class="mb-0">{{ total_assignments if total_assignments else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clipboard-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Students Table -->
+    <div class="card">
+        <div class="card-header">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0">
+                        <i class="bi bi-people"></i> All Students
+                        <span class="badge bg-secondary ms-2">{{ students|length if students else 0 }}</span>
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control" placeholder="Search students..." id="studentSearch">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if students and students|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0" id="studentsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center">
+                                    <input class="form-check-input" type="checkbox" id="select-all">
+                                </th>
+                                <th>Student Name</th>
+                                <th>Email</th>
+                                <th class="text-center">Assigned Scenarios</th>
+                                <th class="text-center">Completed</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td class="text-center">
+                                    <input class="form-check-input student-checkbox" type="checkbox" value="{{ student.id }}">
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-circle me-2">
+                                            {{ student.first_name[0]|upper }}{{ student.last_name[0]|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-medium">{{ student.get_full_name() }}</div>
+                                            <small class="text-muted">Student ID: {{ student.id }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ student.email }}</td>
+                                <td class="text-center">
+                                    <div class="stat-badge stat-assigned">
+                                        <span class="stat-number">{{ student.assigned_scenarios|length if student.assigned_scenarios else 0 }}</span>
+                                        <small class="stat-label">Scenarios</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="stat-badge stat-completed">
+                                        <span class="stat-number">{{ student.completed_scenarios|length if student.completed_scenarios else 0 }}</span>
+                                        <small class="stat-label">Completed</small>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm">
+                                        <button class="btn btn-outline-primary" title="View Details" onclick="viewStudent({{ student.id }})">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button class="btn btn-outline-success" title="Assign Scenario" onclick="assignScenario({{ student.id }})">
+                                            <i class="bi bi-plus-circle"></i>
+                                        </button>
+                                        <button class="btn btn-outline-warning" title="Edit Student" onclick="editStudent({{ student.id }})">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger" title="Remove Student" onclick="removeStudent({{ student.id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-people"></i>
+                    <h5>No Students Found</h5>
+                    <p class="text-muted">No students are currently registered in the system.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                        <i class="bi bi-person-plus"></i> Add First Student
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        {% if students and students|length > 0 %}
+        <div class="card-footer">
+            <div class="row align-items-center">
+                <div class="col">
+                    <div class="bulk-actions" style="display: none;">
+                        <button class="btn btn-outline-danger btn-sm" id="bulk-remove">
+                            <i class="bi bi-trash"></i> Remove Selected
+                        </button>
+                        <button class="btn btn-outline-primary btn-sm" id="bulk-assign">
+                            <i class="bi bi-plus-circle"></i> Bulk Assign
+                        </button>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <small class="text-muted">{{ students|length }} student(s) total</small>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Student Modal -->
+<div class="modal fade" id="addStudentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Assign New Student</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm">
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="password" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addStudent()">Assign Student</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('studentSearch').addEventListener('input', function() {
+    const searchTerm = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#studentsTable tbody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+
+// Select all functionality
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    checkboxes.forEach(cb => cb.checked = this.checked);
+    toggleBulkActions();
+});
+
+// Individual checkbox handling
+document.querySelectorAll('.student-checkbox').forEach(cb => {
+    cb.addEventListener('change', toggleBulkActions);
+});
+
+function toggleBulkActions() {
+    const checked = document.querySelectorAll('.student-checkbox:checked');
+    const bulkActions = document.querySelector('.bulk-actions');
+    bulkActions.style.display = checked.length > 0 ? 'block' : 'none';
+}
+
+// Action functions
+function viewStudent(id) {
+    // Implement view student details
+    console.log('View student:', id);
+}
+
+function assignScenario(id) {
+    // Implement assign scenario
+    console.log('Assign scenario to student:', id);
+}
+
+function editStudent(id) {
+    // Implement edit student
+    console.log('Edit student:', id);
+}
+
+function removeStudent(id) {
+    // Implement remove student
+    if (confirm('Are you sure you want to remove this student?')) {
+        console.log('Remove student:', id);
+    }
+}
+
+function addStudent() {
+    // Implement add student
+    const form = document.getElementById('addStudentForm');
+    if (form.checkValidity()) {
+        console.log('Add new student');
+        // Close modal after success
+        bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
+    }
+}
+</script>
+{% endblock %}
