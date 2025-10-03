@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Submissions - {{ scenario.name }}{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="card-title mb-0">Submissions: {{ scenario.name }}</h4>
+                        <small class="text-muted">{{ scenario.description or 'No description' }}</small>
+                    </div>
+                    <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Scenario
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if submissions_data %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Status</th>
+                                    <th>Submitted</th>
+                                    <th>Score</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for data in submissions_data %}
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>{{ data.student.get_full_name() }}</strong>
+                                            <br><small class="text-muted">{{ data.student.email }}</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if data.student_scenario.status == 'assigned' %}
+                                            <span class="badge bg-secondary">Not Submitted</span>
+                                        {% elif data.student_scenario.status == 'submitted' %}
+                                            <span class="badge bg-warning">Pending Grade</span>
+                                        {% elif data.student_scenario.status == 'graded' %}
+                                            <span class="badge bg-success">Graded</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if data.student_scenario.submitted_at %}
+                                            {{ data.student_scenario.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                        {% else %}
+                                            <span class="text-muted">Not submitted</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if data.student_scenario.score %}
+                                            <strong>{{ data.student_scenario.score }}</strong>
+                                        {% else %}
+                                            <span class="text-muted">No score</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if data.submissions %}
+                                            {% for submission in data.submissions %}
+                                            <div class="btn-group btn-group-sm" role="group">
+                                                <a href="{{ url_for('views.grade_submission', submission_id=submission.id) }}" 
+                                                   class="btn btn-outline-primary">
+                                                    <i class="fas fa-grade"></i> 
+                                                    {% if data.student_scenario.status == 'graded' %}View Grade{% else %}Grade{% endif %}
+                                                </a>
+                                                {% if submission.patient %}
+                                                <a href="{{ url_for('views.asl', pt=submission.patient.id) }}" 
+                                                   class="btn btn-outline-info" target="_blank">
+                                                    <i class="fas fa-eye"></i> View ASL
+                                                </a>
+                                                {% endif %}
+                                            </div>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">No submissions</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No students assigned</h5>
+                        <p class="text-muted">Assign students to this scenario to see their submissions here.</p>
+                        <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Assign Students
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
