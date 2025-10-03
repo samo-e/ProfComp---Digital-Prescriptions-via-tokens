@@ -3,9 +3,12 @@ from flask_login import login_required, current_user
 from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User, StudentScenario, ScenarioPatient
 from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
 from sqlalchemy import or_
+from .converters import ingest_pt_data_contract
 from datetime import datetime
 from functools import wraps
 import requests
+from render_readme import render_readme
+from pathlib import Path
 
 views = Blueprint('views', __name__)
 
@@ -1402,3 +1405,50 @@ def bulk_delete_scenarios():
         flash("An error occurred while deleting scenarios. Please try again.", "error")
     
     return redirect(url_for("views.teacher_dashboard"))
+
+@views.route("/asl/ingest", methods=["POST"])
+def asl_ingest():
+    pt_data = request.get_json(force=True)
+    print("DEBUG pt_data:", pt_data)
+    try:
+        pt_data = request.get_json(force=True)
+        result = ingest_pt_data_contract(pt_data, db.session, commit=True)
+        return jsonify({
+            "status": "success",
+            "patient_id": result.patient.id,
+            "created_prescriptions": result.created_prescriptions,
+            "is_new_patient": result.is_new_patient
+        }), 201
+    except Exception as e:
+        import traceback
+        print("Error in asl_ingest:", str(e))
+        traceback.print_exc()
+        return jsonify({"status": "error", "message": str(e)}), 400
+    
+@views.route("/asl/form", methods=["GET"])
+def asl_form():
+    return render_template("asl_form.html")
+
+
+@views.route("/help")
+@login_required
+def readme():
+    """
+    Renders README.md as a html page
+    """
+    role = "teacher" if current_user.is_teacher() else "student"
+    html_path = (
+        Path(__file__).resolve().parents[2]
+        / "flaskr"
+        / "website"
+        / "templates"
+        / "views"
+        / "help"
+        / f"help-{role}.html"
+    )
+
+    if not html_path.exists():
+        render_readme()
+    html_content = html_path.read_text(encoding="utf-8")
+
+    return render_template("views/help/help.html", html=html_content)
