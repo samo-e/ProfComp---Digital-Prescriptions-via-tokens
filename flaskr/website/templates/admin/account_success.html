@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Created Successfully</title>
+    <script>
+        // Prevent browser back button from returning to form
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+        
+        // Clear any form data from browser cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+        
+        // Prevent Ctrl+Z or any undo operations
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                alert('Undo is not allowed on this page.');
+            }
+        });
+    </script>
+</head>
+<body>
+    <h1>Account Created Successfully!</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div>
+        <h2>Account Details:</h2>
+        <p><strong>Name:</strong> {{ user.get_full_name() }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Student Number:</strong> {{ user.studentnumber if user.studentnumber else "N/A" }}</p>
+        <p><strong>Role:</strong> {{ user.role.title() }}</p>
+        <p><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('admin.create_account') }}">Create Another Account</a> |
+        <a href="{{ url_for('admin.admin_dashboard') }}">Back to Admin Dashboard</a>
+    </div>
+    
+    <script>
+        // Additional protection - disable form resubmission
+        window.addEventListener('beforeunload', function() {
+            // Clear any cached form data
+            if (document.forms) {
+                for (let form of document.forms) {
+                    form.reset();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

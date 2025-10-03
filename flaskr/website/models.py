@@ -36,6 +36,7 @@ class User(db.Model, UserMixin):
     __tablename__ = 'users'
     
     id = db.Column(db.Integer, primary_key=True)
+    studentnumber = db.Column(db.Integer, unique=True, nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'teacher' or 'student'

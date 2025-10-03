@@ -9,6 +9,21 @@
     <h1>User Profile</h1>
     <p>{{ user.get_full_name() }}</p>
 
+    <h2>Change Password</h2>
+    <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}">
+        {{ password_form.hidden_tag() }}
+        <div>
+            {{ password_form.new_password.label() }}
+            {{ password_form.new_password() }}
+            {% if password_form.new_password.errors %}
+                {% for error in password_form.new_password.errors %}
+                    <div style="color: red;">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button type="submit">Change Password</button>
+    </form>
+
     {% if user.is_teacher() %}
 
     <h2>Assigned Students</h2>
@@ -16,7 +31,7 @@
     {% for student in user.students %}
         <li>
             {{ student.get_full_name() }} ({{ student.email }})
-            <form method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
+            <form class="unassign-student-form" method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
                 {{ form.csrf_token }}
                 <input type="hidden" name="teacher_id" value="{{ user.id }}">
                 <input type="hidden" name="student_id" value="{{ student.id }}">
@@ -35,7 +50,10 @@
         <div class="modal-content">
             <span class="close" id="closeModal">&times;</span>
             <h2>Assign Students</h2>
-            <ul>
+            <!-- Search bar -->
+            <input type="text" id="student-search" placeholder="Search students..."
+                   style="width:100%;padding:10px;margin:10px 0 15px;border:1px solid #ddd;border-radius:4px;">
+            <ul id="students-list">
             {% for student in students %}
                 {% set is_assigned = student in user.students %}
                 <li style="opacity: {{ '0.5' if is_assigned else '1' }};">
@@ -84,6 +102,7 @@
         }
         .close:hover { color: #000; }
     </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var modal = document.getElementById('assignModal');
@@ -99,28 +118,19 @@
                 if (event.target == modal) { modal.style.display = 'none'; }
             }
 
-            // AJAX assignment
-            document.querySelectorAll('.assign-student-form').forEach(function(form) {
-                form.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    var formData = new FormData(form);
-                    var button = form.querySelector('button[type="submit"]');
-                    fetch(form.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            // Gray out and disable the button, but keep the student visible
-                            button.disabled = true;
-                            button.style.opacity = '0.5';
-                        }
-                        // No alert on assignment
+            // Search functionality
+            var searchInput = document.getElementById('student-search');
+            var studentsList = document.getElementById('students-list');
+            if(searchInput && studentsList) {
+                searchInput.addEventListener('keyup', function() {
+                    var filter = searchInput.value.toLowerCase();
+                    var students = studentsList.getElementsByTagName('li');
+                    Array.from(students).forEach(function(student) {
+                        var text = student.textContent || student.innerText;
+                        student.style.display = text.toLowerCase().indexOf(filter) > -1 ? '' : 'none';
                     });
                 });
-            });
+            }
         });
     </script>
     {% endif %}

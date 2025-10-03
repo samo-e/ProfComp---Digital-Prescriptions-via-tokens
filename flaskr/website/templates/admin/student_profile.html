@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile</title>
+</head>
+<body>
+    <h1>Student Profile</h1>
+    <p><strong>Name:</strong> {{ user.get_full_name() }}</p>
+    <p><strong>Email:</strong> {{ user.email }}</p>
+    <p><strong>Student Number:</strong> {{ user.studentnumber if user.studentnumber else "N/A" }}</p>
+
+    <h2>Change Password</h2>
+    <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}">
+        {{ password_form.hidden_tag() }}
+        <div>
+            {{ password_form.new_password.label() }}
+            {{ password_form.new_password() }}
+            {% if password_form.new_password.errors %}
+                {% for error in password_form.new_password.errors %}
+                    <div style="color: red;">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <button type="submit">Change Password</button>
+    </form>
+
+    <h2>Assigned Teacher</h2>
+    {% if user.teacher %}
+        <p>{{ user.teacher.get_full_name() }} ({{ user.teacher.email }})</p>
+    {% else %}
+        <p>No teacher assigned.</p>
+    {% endif %}
+
+    <!-- Add more student-specific info here -->
+</body>
+</html>

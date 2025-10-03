@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block styles %}
+<style>
+	body {
+		font-family: Arial, sans-serif;
+		margin: 0;
+		padding: 20px;
+		background-color: #f5f5f5;
+	}
+	
+	h1 {
+		text-align: center;
+		color: #333;
+		margin-bottom: 30px;
+	}
+	
+	.create-account-btn {
+		display: block;
+		width: 200px;
+		margin: 0 auto 30px;
+		background-color: #007bff;
+		color: white;
+		padding: 12px 20px;
+		text-decoration: none;
+		border-radius: 6px;
+		font-weight: bold;
+		text-align: center;
+		transition: background-color 0.3s;
+	}
+	
+	.create-account-btn:hover {
+		background-color: #0056b3;
+	}
+	
+	.container {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 20px;
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+	
+	.column {
+		background: white;
+		border-radius: 8px;
+		padding: 20px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		min-height: 400px;
+	}
+	
+	.column h2 {
+		margin-top: 0;
+		margin-bottom: 20px;
+		color: #333;
+		border-bottom: 2px solid #eee;
+		padding-bottom: 10px;
+	}
+	
+	.user-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	
+	.user-item {
+		margin-bottom: 15px;
+		padding: 12px;
+		background: #f8f9fa;
+		border-radius: 6px;
+		border-left: 4px solid #007bff;
+		transition: transform 0.2s;
+	}
+	
+	.user-item:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+	}
+	
+	.user-name {
+		font-weight: bold;
+		color: #333;
+		text-decoration: none;
+		display: block;
+		margin-bottom: 5px;
+	}
+	
+	.user-name:hover {
+		color: #007bff;
+	}
+	
+	.user-email {
+		font-size: 0.9em;
+		color: #666;
+	}
+	
+	.user-count {
+		background: #007bff;
+		color: white;
+		padding: 4px 8px;
+		border-radius: 12px;
+		font-size: 0.8em;
+		margin-left: 10px;
+	}
+	
+	.no-users {
+		text-align: center;
+		color: #999;
+		font-style: italic;
+		padding: 40px 20px;
+	}
+	
+	/* Mobile responsive design */
+	@media (max-width: 768px) {
+		.container {
+			grid-template-columns: 1fr;
+			gap: 15px;
+		}
+		
+		.column {
+			padding: 15px;
+		}
+		
+		body {
+			padding: 10px;
+		}
+		
+		.create-account-btn {
+			width: 100%;
+			margin-bottom: 20px;
+		}
+	}
+	
+	/* Tablet responsive design */
+	@media (max-width: 1024px) and (min-width: 769px) {
+		.container {
+			grid-template-columns: 1fr 1fr;
+			gap: 15px;
+		}
+		
+		.column:last-child {
+			grid-column: 1 / -1;
+		}
+	}
+</style>
+{% endblock %}
+
+{% block body %}
+<h1>Admin Dashboard</h1>
+
+<a href="{{ url_for('admin.create_account') }}" class="create-account-btn">Create New Account</a>
+
+<div class="container">
+	<!-- Teachers Column -->
+	<div class="column">
+		<h2>Teachers <span class="user-count">{{ teachers|length }}</span></h2>
+		<ul class="user-list">
+			{% for teacher in teachers %}
+			<li class="user-item">
+				<a href="{{ url_for('admin.teacher_profile', user_id=teacher.id) }}" class="user-name">
+					{{ teacher.get_full_name() if teacher.get_full_name() else teacher.email }}
+				</a>
+				<div class="user-email">{{ teacher.email }}</div>
+			</li>
+			{% else %}
+			<div class="no-users">No teachers found.</div>
+			{% endfor %}
+		</ul>
+	</div>
+	
+	<!-- Students Column -->
+	<div class="column">
+		<h2>Students <span class="user-count">{{ students|length }}</span></h2>
+		<ul class="user-list">
+			{% for student in students %}
+			<li class="user-item">
+				<a href="{{ url_for('admin.student_profile', user_id=student.id) }}" class="user-name">
+					{{ student.studentnumber if student.studentnumber else "########" }} - {{ student.get_full_name() if student.get_full_name() else student.email }}
+				</a>
+				<div class="user-email">{{ student.email }}</div>
+			</li>
+			{% else %}
+			<div class="no-users">No students found.</div>
+			{% endfor %}
+		</ul>
+	</div>
+	
+	<!-- Admins Column -->
+	<div class="column">
+		<h2>Admins <span class="user-count">{{ admins|length }}</span></h2>
+		<ul class="user-list">
+			{% for admin_user in admins %}
+			<li class="user-item">
+				<a href="{{ url_for('admin.teacher_profile', user_id=admin_user.id) }}" class="user-name">
+					{{ admin_user.get_full_name() if admin_user.get_full_name() else admin_user.email }}
+				</a>
+				<div class="user-email">{{ admin_user.email }}</div>
+			</li>
+			{% else %}
+			<div class="no-users">No admins found.</div>
+			{% endfor %}
+		</ul>
+	</div>
+</div>
+{% endblock %}
