@@ -166,18 +166,27 @@
                                 <td>{{ patient.dob if patient.dob else "—" }}</td>
                                 <td>{{ patient.medicare if patient.medicare else "—" }}</td>
                                 <td class="text-center">
-                                    {% if patient.get_asl_status() == 1 %}
+                                    {% if patient.get_asl_status().value == 2 %}
                                         <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Granted</span>
+                                    {% elif patient.get_asl_status().value == 1 %}
+                                        <span class="badge bg-warning"><i class="bi bi-clock me-1"></i>Pending</span>
                                     {% else %}
-                                        <span class="badge bg-warning"><i class="bi bi-exclamation-triangle me-1"></i>No ASL</span>
+                                        <span class="badge bg-secondary"><i class="bi bi-exclamation-triangle me-1"></i>No ASL</span>
                                     {% endif %}
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm">
-                                        <a href="{{ url_for('views.patient_asl_form', patient_id=patient.id) }}" 
-                                           class="btn btn-outline-success" title="View ASL">
+                                        <!-- ASL Registration Form Button -->
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=patient.id, redirect_to='patient_dashboard') }}" 
+                                           class="btn btn-outline-success" title="Patient ASL Registration">
                                             <i class="bi bi-clipboard-heart"></i>
                                         </a>
+                                        <!-- ASL Form Button -->
+                                        <a href="{{ url_for('views.asl_form', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-info" title="ASL Form">
+                                            <i class="bi bi-clipboard2-check"></i>
+                                        </a>
+                                        <!-- Edit Patient Button -->
                                         <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
                                            class="btn btn-outline-primary" title="Edit Patient">
                                             <i class="bi bi-pencil"></i>

@@ -120,12 +120,12 @@
                                         <i class="fas fa-play me-2"></i>View Details
                                     </a>
                                     {% if scenario_patients.get(scenario.id) %}
-                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario_patients[scenario.id].id) }}" 
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario_patients[scenario.id].id, redirect_to='student_dashboard') }}" 
                                            class="btn btn-asl btn-sm">
                                             <i class="fas fa-hands me-2"></i>View ASL
                                         </a>
                                     {% elif scenario.active_patient %}
-                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" 
+                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id, redirect_to='student_dashboard') }}" 
                                            class="btn btn-asl btn-sm">
                                             <i class="fas fa-hands me-2"></i>View ASL
                                         </a>

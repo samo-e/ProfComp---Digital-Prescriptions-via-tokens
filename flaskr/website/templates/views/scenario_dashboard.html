@@ -467,7 +467,7 @@
                             {% endif %}
                         </div>
                         <div class="d-flex gap-2">
-                            <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" class="btn btn-asl">
+                            <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id, redirect_to='scenario_dashboard', scenario_id=scenario.id) }}" class="btn btn-asl">
                                 <i class="bi bi-list-ul"></i> View ASL
                             </a>
                             {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}

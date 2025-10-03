@@ -7,8 +7,14 @@ from .converters import ingest_pt_data_contract
 from datetime import datetime
 from functools import wraps
 import requests
-from render_readme import render_readme
 from pathlib import Path
+
+# Optional import for readme rendering
+try:
+    from render_readme import render_readme
+except ImportError:
+    def render_readme(*args, **kwargs):
+        return "Readme rendering not available"
 
 views = Blueprint('views', __name__)
 
@@ -620,22 +626,24 @@ def asl(pt: int):
         alr_prescriptions = []
         
         if can_view_asl:
-            # Only get AVAILABLE prescriptions for ASL table
+            # Get ALL prescriptions for ASL display (not just available ones)
+            # For ASL items - we distinguish them from ALR by having a non-minimal prescriber
             asl_prescriptions = db.session.query(Prescription, Prescriber).join(
                 Prescriber, Prescription.prescriber_id == Prescriber.id
             ).filter(
                 Prescription.patient_id == pt,
-                Prescription.status == PrescriptionStatus.AVAILABLE.value
+                Prescriber.fname != "ALR"  # Exclude ALR placeholder prescribers
             ).all()
             
-            # get ALR prescriptions with remaining repeat
+            # For ALR items - these have the placeholder ALR prescriber or have remaining repeats
             alr_prescriptions = db.session.query(Prescription, Prescriber).join(
                 Prescriber, Prescription.prescriber_id == Prescriber.id
             ).filter(
                 Prescription.patient_id == pt,
-                Prescription.status == PrescriptionStatus.DISPENSED.value,
-                Prescription.dispensed_at_this_pharmacy == True,
-                Prescription.remaining_repeats > 0
+                db.or_(
+                    Prescriber.fname == "ALR",  # ALR placeholder prescribers
+                    Prescription.remaining_repeats > 0  # Or prescriptions with remaining repeats
+                )
             ).all()
         
         pt_data = {
@@ -646,8 +654,8 @@ def asl(pt: int):
             "name": patient.name,
             "dob": patient.dob,
             "preferred-contact": patient.preferred_contact,
-            "address-1": patient.address_1,
-            "address-2": patient.address_2,
+            "address-1": patient.address or "",
+            "address-2": "",  # Patient model doesn't have address_2
             "script-date": patient.script_date,
             "pbs": patient.pbs,
             "rpbs": patient.rpbs,
@@ -721,6 +729,17 @@ def asl(pt: int):
                 }
             }
             pt_data["alr-data"].append(alr_item)
+        
+        # Get ASL record data (carer information, notes, etc.)
+        from .models import ASL
+        asl_record = ASL.query.filter_by(patient_id=pt).first()
+        pt_data["carer"] = {
+            "name": asl_record.carer_name if asl_record else "",
+            "relationship": asl_record.carer_relationship if asl_record else "",
+            "mobile": asl_record.carer_mobile if asl_record else "",
+            "email": asl_record.carer_email if asl_record else ""
+        }
+        pt_data["notes"] = asl_record.notes if asl_record else ""
         
         return render_template("views/asl.html", pt=pt, pt_data=pt_data)
         
@@ -927,8 +946,8 @@ def print_selected_prescriptions():
                 "name": patient.name,
                 "dob": patient.dob,
                 "preferred-contact": patient.preferred_contact,
-                "address-1": patient.address_1,
-                "address-2": patient.address_2,
+                "address-1": patient.address or "",
+                "address-2": "",  # Patient model doesn't have address_2
                 "script-date": patient.script_date,
                 "pbs": patient.pbs,
                 "rpbs": patient.rpbs,
@@ -982,6 +1001,18 @@ def patient_asl_form(patient_id):
         asl = ASL(patient_id=patient.id)
 
     form = ASLForm(obj=asl)
+    
+    # Pre-populate form with patient data on GET request
+    if request.method == "GET":
+        # Pre-fill with existing patient preferred_contact if available
+        if patient.preferred_contact:
+            form.preferred_contact.data = patient.preferred_contact
+        
+        # Set default consent status to current patient ASL status if not already set
+        if not asl.consent_status and hasattr(patient, 'asl_status'):
+            form.consent_status.data = str(patient.asl_status)
+        elif asl.consent_status:
+            form.consent_status.data = str(asl.consent_status)
 
     if form.validate_on_submit():
         # Save ASL-specific fields
@@ -994,14 +1025,24 @@ def patient_asl_form(patient_id):
 
         # Update patient’s preferred contact (lives in Patient model)
         patient.preferred_contact = form.preferred_contact.data
+        
+        # Set patient as registered when the form is submitted
+        patient.is_registered = True
+        
+        # Set ASL status to PENDING when registering
+        asl.consent_status = ASLStatus.PENDING.value
+        patient.asl_status = ASLStatus.PENDING.value
 
         db.session.add(asl)
         db.session.commit()
 
         flash(f"ASL record saved for {patient.given_name or patient.name}!", "success")
+        
+        # Redirect to ASL view to show the saved data
+        return redirect(url_for('views.asl', pt=patient.id))
 
     return render_template(
-        "views/patientasl.html",
+        "views/aslregister.html",
         form=form,
         patient=patient,
     )
@@ -1425,9 +1466,247 @@ def asl_ingest():
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 400
     
-@views.route("/asl/form", methods=["GET"])
-def asl_form():
-    return render_template("asl_form.html")
+@views.route("/asl/form/<int:patient_id>", methods=["GET", "POST"])
+def asl_form(patient_id):
+    """ASL form - pre-populate with patient data"""
+    patient = Patient.query.get_or_404(patient_id)
+    
+    if request.method == "POST":
+        print(f"DEBUG: ASL form POST received for patient {patient_id}")
+        print(f"DEBUG: Form data keys: {list(request.form.keys())}")
+        # Handle form submission
+        try:
+            # Extract patient data from form
+            pt_data = request.form.to_dict()
+            
+            # Update patient information
+            if 'pt_data[name]' in pt_data and pt_data['pt_data[name]']:
+                # Split full name into first and last name
+                full_name = pt_data['pt_data[name]'].strip()
+                name_parts = full_name.split(' ', 1)
+                patient.given_name = name_parts[0] if name_parts else ''
+                patient.last_name = name_parts[1] if len(name_parts) > 1 else ''
+                patient.name = full_name
+            
+            # Update other patient fields
+            if 'pt_data[medicare]' in pt_data:
+                patient.medicare = pt_data['pt_data[medicare]']
+            
+            if 'pt_data[pharmaceut-ben-entitlement-no]' in pt_data:
+                patient.pharmaceut_ben_entitlement_no = pt_data['pt_data[pharmaceut-ben-entitlement-no]']
+            
+            if 'pt_data[preferred-contact]' in pt_data:
+                patient.preferred_contact = pt_data['pt_data[preferred-contact]']
+            
+            if 'pt_data[dob]' in pt_data:
+                patient.dob = pt_data['pt_data[dob]']
+            
+            if 'pt_data[script-date]' in pt_data:
+                patient.script_date = pt_data['pt_data[script-date]']
+            
+            if 'pt_data[address-1]' in pt_data:
+                patient.address = pt_data['pt_data[address-1]']
+            
+            # Parse address line 2 (suburb state postcode)
+            if 'pt_data[address-2]' in pt_data and pt_data['pt_data[address-2]']:
+                address_parts = pt_data['pt_data[address-2]'].strip().split()
+                if len(address_parts) >= 3:
+                    patient.postcode = address_parts[-1]  # Last part is postcode
+                    patient.state = address_parts[-2]    # Second to last is state
+                    patient.suburb = ' '.join(address_parts[:-2])  # Everything else is suburb
+                elif len(address_parts) == 2:
+                    patient.state = address_parts[0]
+                    patient.postcode = address_parts[1]
+                elif len(address_parts) == 1:
+                    patient.suburb = address_parts[0]
+            
+            # Update entitlement flags
+            if 'pt_data[sfty-net-entitlement-cardholder]' in pt_data:
+                patient.sfty_net_entitlement_cardholder = pt_data['pt_data[sfty-net-entitlement-cardholder]'].lower() == 'true'
+            
+            if 'pt_data[rpbs-ben-entitlement-cardholder]' in pt_data:
+                patient.rpbs_ben_entitlement_cardholder = pt_data['pt_data[rpbs-ben-entitlement-cardholder]'].lower() == 'true'
+            
+            # Update additional fields
+            if 'pt_data[pbs]' in pt_data:
+                patient.pbs = pt_data['pt_data[pbs]'] if pt_data['pt_data[pbs]'] else None
+            
+            if 'pt_data[rpbs]' in pt_data:
+                patient.rpbs = pt_data['pt_data[rpbs]'] if pt_data['pt_data[rpbs]'] else None
+            
+            # Update consent status information
+            if 'pt_data[consent-status][is-registered]' in pt_data:
+                patient.is_registered = pt_data['pt_data[consent-status][is-registered]'].lower() == 'true'
+            
+            if 'pt_data[consent-status][status]' in pt_data:
+                # Map consent status to ASL status
+                status_value = pt_data['pt_data[consent-status][status]']
+                if status_value == 'Granted':
+                    patient.asl_status = ASLStatus.GRANTED.value
+                elif status_value == 'Pending':
+                    patient.asl_status = ASLStatus.PENDING.value
+                else:
+                    patient.asl_status = ASLStatus.NO_CONSENT.value
+            
+            if 'pt_data[consent-status][last-updated]' in pt_data:
+                patient.consent_last_updated = pt_data['pt_data[consent-status][last-updated]'] if pt_data['pt_data[consent-status][last-updated]'] else None
+            
+            # Set patient as registered (fallback)
+            if not hasattr(patient, 'is_registered') or patient.is_registered is None:
+                patient.is_registered = True
+            
+            # Process prescription data (ASL and ALR items)
+            from .models import ASL, Prescription, Prescriber
+            
+            # Save ASL data to ASL table
+            # Check if ASL record exists for this patient
+            asl_record = ASL.query.filter_by(patient_id=patient_id).first()
+            if not asl_record:
+                asl_record = ASL(patient_id=patient_id)
+                db.session.add(asl_record)
+            
+            # Update ASL record with form data
+            asl_record.consent_status = patient.asl_status
+            if 'pt_data[carer][name]' in pt_data:
+                asl_record.carer_name = pt_data['pt_data[carer][name]']
+            if 'pt_data[carer][relationship]' in pt_data:
+                asl_record.carer_relationship = pt_data['pt_data[carer][relationship]']
+            if 'pt_data[carer][mobile]' in pt_data:
+                asl_record.carer_mobile = pt_data['pt_data[carer][mobile]']
+            if 'pt_data[carer][email]' in pt_data:
+                asl_record.carer_email = pt_data['pt_data[carer][email]']
+            if 'pt_data[notes]' in pt_data:
+                asl_record.notes = pt_data['pt_data[notes]']
+            
+            # Clear existing prescriptions for this patient to replace with new data
+            Prescription.query.filter_by(patient_id=patient_id).delete()
+            
+            # Process ASL prescriptions (pt_data[asl-data])
+            # Find all ASL prescription indices
+            asl_indices = set()
+            for key in pt_data.keys():
+                if 'pt_data[asl-data]' in key and '[prescription_id]' in key:
+                    # Extract index from key like pt_data[asl-data][0][prescription_id]
+                    start = key.find('[asl-data][') + len('[asl-data][')
+                    end = key.find(']', start)
+                    if start < end:
+                        try:
+                            asl_indices.add(int(key[start:end]))
+                        except ValueError:
+                            continue
+            
+            # Process each ASL prescription
+            for idx in asl_indices:
+                # Get prescription data
+                prescription_id = pt_data.get(f'pt_data[asl-data][{idx}][prescription_id]')
+                if not prescription_id:
+                    continue
+                
+                # Create or get prescriber
+                prescriber_fname = pt_data.get(f'pt_data[asl-data][{idx}][prescriber][fname]', '')
+                prescriber_lname = pt_data.get(f'pt_data[asl-data][{idx}][prescriber][lname]', '')
+                prescriber_id_num = pt_data.get(f'pt_data[asl-data][{idx}][prescriber][id]', '')
+                
+                if prescriber_fname and prescriber_lname:
+                    prescriber = Prescriber(
+                        fname=prescriber_fname,
+                        lname=prescriber_lname,
+                        title=pt_data.get(f'pt_data[asl-data][{idx}][prescriber][title]', ''),
+                        address_1=pt_data.get(f'pt_data[asl-data][{idx}][prescriber][address-1]', ''),
+                        address_2=pt_data.get(f'pt_data[asl-data][{idx}][prescriber][address-2]', ''),
+                        prescriber_id=int(prescriber_id_num) if prescriber_id_num else None,
+                        hpii=int(pt_data.get(f'pt_data[asl-data][{idx}][prescriber][hpii]', '0') or 0),
+                        hpio=int(pt_data.get(f'pt_data[asl-data][{idx}][prescriber][hpio]', '0') or 0),
+                        phone=pt_data.get(f'pt_data[asl-data][{idx}][prescriber][phone]', ''),
+                        fax=pt_data.get(f'pt_data[asl-data][{idx}][prescriber][fax]', '')
+                    )
+                    db.session.add(prescriber)
+                    db.session.flush()  # Get the prescriber ID
+                    
+                    # Create prescription
+                    prescription = Prescription(
+                        patient_id=patient_id,
+                        prescriber_id=prescriber.id,
+                        DSPID=pt_data.get(f'pt_data[asl-data][{idx}][DSPID]', ''),
+                        status=1,  # Available status
+                        drug_name=pt_data.get(f'pt_data[asl-data][{idx}][drug-name]', ''),
+                        drug_code=pt_data.get(f'pt_data[asl-data][{idx}][drug-code]', ''),
+                        dose_instr=pt_data.get(f'pt_data[asl-data][{idx}][dose-instr]', ''),
+                        dose_qty=int(pt_data.get(f'pt_data[asl-data][{idx}][dose-qty]', '0') or 0),
+                        prescribed_date=pt_data.get(f'pt_data[asl-data][{idx}][prescribed-date]', ''),
+                        paperless=True,
+                        dispensed_at_this_pharmacy=False
+                    )
+                    db.session.add(prescription)
+            
+            # Process ALR prescriptions (pt_data[alr-data])
+            alr_indices = set()
+            for key in pt_data.keys():
+                if 'pt_data[alr-data]' in key and '[prescription_id]' in key:
+                    # Extract index from key like pt_data[alr-data][0][prescription_id]
+                    start = key.find('[alr-data][') + len('[alr-data][')
+                    end = key.find(']', start)
+                    if start < end:
+                        try:
+                            alr_indices.add(int(key[start:end]))
+                        except ValueError:
+                            continue
+            
+            # Process each ALR prescription
+            for idx in alr_indices:
+                # Get prescription data
+                prescription_id = pt_data.get(f'pt_data[alr-data][{idx}][prescription_id]')
+                if not prescription_id:
+                    continue
+                
+                # For ALR, we'll use a default prescriber or create a minimal one
+                # Since ALR prescriptions might not have complete prescriber data
+                prescriber = Prescriber(
+                    fname="ALR",
+                    lname="Prescriber",
+                    title="",
+                    address_1="",
+                    address_2="",
+                    prescriber_id=0,
+                    hpii=0,
+                    hpio=0,
+                    phone="",
+                    fax=""
+                )
+                db.session.add(prescriber)
+                db.session.flush()  # Get the prescriber ID
+                
+                # Create ALR prescription
+                prescription = Prescription(
+                    patient_id=patient_id,
+                    prescriber_id=prescriber.id,
+                    DSPID=pt_data.get(f'pt_data[alr-data][{idx}][DSPID]', ''),
+                    status=1,  # Available status
+                    drug_name=pt_data.get(f'pt_data[alr-data][{idx}][drug-name]', ''),
+                    drug_code=pt_data.get(f'pt_data[alr-data][{idx}][drug-code]', ''),
+                    dose_instr=pt_data.get(f'pt_data[alr-data][{idx}][dose-instr]', ''),
+                    dose_qty=int(pt_data.get(f'pt_data[alr-data][{idx}][dose-qty]', '0') or 0),
+                    dose_rpt=int(pt_data.get(f'pt_data[alr-data][{idx}][dose-rpt]', '0') or 0),
+                    remaining_repeats=int(pt_data.get(f'pt_data[alr-data][{idx}][remaining-repeats]', '0') or 0),
+                    prescribed_date=patient.script_date or '',
+                    paperless=True,
+                    dispensed_at_this_pharmacy=False
+                )
+                db.session.add(prescription)
+            
+            # Save all changes to database
+            db.session.commit()
+            
+            flash("All ASL form data saved successfully! Patient details, prescriptions, and prescriber information have been stored.", "success")
+            
+            # Redirect to ASL view after submission
+            return redirect(url_for('views.asl', pt=patient_id))
+                
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error saving form data: {str(e)}", "error")
+    
+    return render_template("asl_form.html", patient=patient)
 
 
 @views.route("/help")

@@ -31,11 +31,12 @@
 <body>
   <div class="container py-4">
     <header class="mb-4">
-      <h1 class="h3 mb-1">Active Script List (ASL) — Patient Data Form</h1>
-      <p class="text-muted mb-0">Complete all required fields. Dates use DD/MM/YYYY format.</p>
+      <h1 class="h3 mb-1">Active Script List (ASL) �?Patient Data Form</h1>
+      <p class="text-muted mb-0">Complete all fields. Dates use DD/MM/YYYY format.</p>
     </header>
 
-    <form class="needs-validation" novalidate>
+    <form class="needs-validation" method="POST" action="{{ url_for('views.asl_form', patient_id=patient.id) }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <!-- Patient Info -->
       <div class="card">
         <div class="card-body">
@@ -44,41 +45,41 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label required" for="medicare">Medicare (11 digits)</label>
-                <input type="text" inputmode="numeric" pattern="^\d{11}$" class="form-control" id="medicare" name="pt_data[medicare]" placeholder="49502864011" required />
+                <input type="text" inputmode="numeric" pattern="^\d{11}$" class="form-control" id="medicare" name="pt_data[medicare]" placeholder="49502864011" value="{{ patient.medicare if patient and patient.medicare else '' }}" required />
                 <div class="help-text">Must be an 11-digit positive integer.</div>
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="entitlement">Pharmaceutical Benefits Entitlement No</label>
-                <input type="text" class="form-control" id="entitlement" name="pt_data[pharmaceut-ben-entitlement-no]" placeholder="NA318402K(W)" required />
+                <input type="text" class="form-control" id="entitlement" name="pt_data[pharmaceut-ben-entitlement-no]" placeholder="NA318402K(W)" value="{{ patient.pharmaceut_ben_entitlement_no if patient and patient.pharmaceut_ben_entitlement_no else '' }}" required />
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="preferredContact">Preferred Contact (Phone)</label>
-                <input type="tel" class="form-control" id="preferredContact" name="pt_data[preferred-contact]" placeholder="401234567" required />
+                <input type="tel" class="form-control" id="preferredContact" name="pt_data[preferred-contact]" placeholder="401234567" value="{{ patient.preferred_contact if patient and patient.preferred_contact else '' }}" />
                 <div class="help-text">Digits/spaces allowed.</div>
               </div>
 
               <div class="col-md-6">
                 <label class="form-label required" for="name">Full Name</label>
-                <input type="text" class="form-control" id="name" name="pt_data[name]" placeholder="Draga Diaz" required />
+                <input type="text" class="form-control" id="name" name="pt_data[name]" placeholder="Draga Diaz" value="{{ ((patient.given_name or '') + ' ' + (patient.last_name or '')).strip() if patient and (patient.given_name or patient.last_name) else '' }}" required />
               </div>
               <div class="col-md-3">
                 <label class="form-label required" for="dob">Date of Birth</label>
-                <input type="text" class="form-control" id="dob" name="pt_data[dob]" placeholder="26/01/1998" required />
+                <input type="text" class="form-control" id="dob" name="pt_data[dob]" placeholder="26/01/1998" value="{{ patient.dob if patient and patient.dob else '' }}" required />
                 <div class="help-text">DD/MM/YYYY</div>
               </div>
               <div class="col-md-3">
                 <label class="form-label required" for="scriptDate">Script Date</label>
-                <input type="text" class="form-control" id="scriptDate" name="pt_data[script-date]" placeholder="30/11/2020" required />
+                <input type="text" class="form-control" id="scriptDate" name="pt_data[script-date]" placeholder="30/11/2020" value="{{ patient.script_date if patient and patient.script_date else '' }}" />
                 <div class="help-text">DD/MM/YYYY</div>
               </div>
 
               <div class="col-md-6">
                 <label class="form-label required" for="address1">Address Line 1</label>
-                <input type="text" class="form-control" id="address1" name="pt_data[address-1]" placeholder="33 JIT DR" required />
+                <input type="text" class="form-control" id="address1" name="pt_data[address-1]" placeholder="33 JIT DR" value="{{ patient.address if patient and patient.address else '' }}" />
               </div>
               <div class="col-md-6">
                 <label class="form-label required" for="address2">Address Line 2</label>
-                <input type="text" class="form-control" id="address2" name="pt_data[address-2]" placeholder="CHARAM VIC 3318" required />
+                <input type="text" class="form-control" id="address2" name="pt_data[address-2]" placeholder="CHARAM VIC 3318" value="{{ (patient.suburb + ' ' + patient.state + ' ' + (patient.postcode|string)) if patient and patient.suburb and patient.state and patient.postcode else '' }}" />
               </div>
             </div>
           </fieldset>
@@ -93,7 +94,7 @@
             <div class="row g-3">
               <div class="col-md-4">
                 <label class="form-label required" for="sftyNet">Safety Net Cardholder</label>
-                <select class="form-select" id="sftyNet" name="pt_data[sfty-net-entitlement-cardholder]" required>
+                <select class="form-select" id="sftyNet" name="pt_data[sfty-net-entitlement-cardholder]">
                   <option value="" selected disabled>Select...</option>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -101,7 +102,7 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="rpbsCardholder">RPBS Cardholder</label>
-                <select class="form-select" id="rpbsCardholder" name="pt_data[rpbs-ben-entitlement-cardholder]" required>
+                <select class="form-select" id="rpbsCardholder" name="pt_data[rpbs-ben-entitlement-cardholder]">
                   <option value="" selected disabled>Select...</option>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -109,7 +110,7 @@
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="canViewAsl">Can View ASL</label>
-                <select class="form-select" id="canViewAsl" name="pt_data[can_view_asl]" required>
+                <select class="form-select" id="canViewAsl" name="pt_data[can_view_asl]">
                   <option value="" selected disabled>Select...</option>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -117,11 +118,11 @@
               </div>
 
               <div class="col-md-6">
-                <label class="form-label" for="pbs">PBS</label>
+                <label class="form-label required" for="pbs">PBS</label>
                 <input type="text" class="form-control" id="pbs" name="pt_data[pbs]" placeholder="(optional, usually null)" />
               </div>
               <div class="col-md-6">
-                <label class="form-label" for="rpbs">RPBS</label>
+                <label class="form-label required" for="rpbs">RPBS</label>
                 <input type="text" class="form-control" id="rpbs" name="pt_data[rpbs]" placeholder="(optional, usually null)" />
               </div>
             </div>
@@ -137,7 +138,7 @@
             <div class="row g-3">
               <div class="col-md-3">
                 <label class="form-label required" for="isRegistered">Is Registered</label>
-                <select class="form-select" id="isRegistered" name="pt_data[consent-status][is-registered]" required>
+                <select class="form-select" id="isRegistered" name="pt_data[consent-status][is-registered]">
                   <option value="" selected disabled>Select...</option>
                   <option value="true">True</option>
                   <option value="false">False</option>
@@ -145,7 +146,7 @@
               </div>
               <div class="col-md-5">
                 <label class="form-label required" for="consentStatus">Status</label>
-                <select class="form-select" id="consentStatus" name="pt_data[consent-status][status]" required>
+                <select class="form-select" id="consentStatus" name="pt_data[consent-status][status]">
                   <option value="" selected disabled>Select...</option>
                   <option>No Consent</option>
                   <option>Pending</option>
@@ -155,7 +156,7 @@
                 <div class="help-text">When not "No Consent", include Last Updated.</div>
               </div>
               <div class="col-md-4">
-                <label class="form-label" for="lastUpdated">Last Updated</label>
+                <label class="form-label required" for="lastUpdated">Last Updated</label>
                 <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" />
               </div>
             </div>
@@ -220,47 +221,47 @@
         <div class="row g-3">
           <div class="col-md-2">
             <label class="form-label required">Prescription ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescription_id]" placeholder="1" required />
+            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescription_id]" placeholder="1" />
           </div>
           <div class="col-md-4">
             <label class="form-label required">DSPID</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][DSPID]" placeholder="MPK00009002011563" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][DSPID]" placeholder="MPK00009002011563" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Status</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][status]" placeholder="Available" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][status]" placeholder="Available" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescribed-date]" placeholder="10/06/2021" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescribed-date]" placeholder="10/06/2021" />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[asl-data][__INDEX__][drug-name]" placeholder="Coversyl 5mg tablet, 30 5 mg 30 Tablets" required></textarea>
+            <textarea class="form-control" rows="2" name="pt_data[asl-data][__INDEX__][drug-name]" placeholder="Coversyl 5mg tablet, 30 5 mg 30 Tablets"></textarea>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][drug-code]" placeholder="9007C" required />
-            <div class="help-text">4–5 alphanumeric chars.</div>
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][drug-code]" placeholder="9007C" />
+            <div class="help-text">4�? alphanumeric chars.</div>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][dose-instr]" placeholder="ONCE A DAY" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][dose-instr]" placeholder="ONCE A DAY" />
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Dose Qty</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][dose-qty]" placeholder="30" required />
+            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][dose-qty]" placeholder="30" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Repeats</label>
-            <input type="number" min="0" class="form-control" name="pt_data[asl-data][__INDEX__][dose-rpt]" placeholder="6" required />
+            <input type="number" min="0" class="form-control" name="pt_data[asl-data][__INDEX__][dose-rpt]" placeholder="6" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Paperless</label>
-            <select class="form-select" name="pt_data[asl-data][__INDEX__][paperless]" required>
+            <select class="form-select" name="pt_data[asl-data][__INDEX__][paperless]">
               <option value="" selected disabled>Select...</option>
               <option value="true">True</option>
               <option value="false">False</option>
@@ -268,7 +269,7 @@
           </div>
           <div class="col-md-3">
             <label class="form-label required">Brand Substitution Not Permitted</label>
-            <select class="form-select" name="pt_data[asl-data][__INDEX__][brand-sub-not-prmt]" required>
+            <select class="form-select" name="pt_data[asl-data][__INDEX__][brand-sub-not-prmt]">
               <option value="" selected disabled>Select...</option>
               <option value="true">True</option>
               <option value="false">False</option>
@@ -282,45 +283,45 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fname]" placeholder="Phillip" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][lname]" placeholder="Davis" />
           </div>
           <div class="col-md-6">
-            <label class="form-label">Title / Qualifications</label>
+            <label class="form-label required">Title / Qualifications</label>
             <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" />
           </div>
           <div class="col-md-6">
             <label class="form-label required">Address Line 2</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" />
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Prescriber ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][id]" placeholder="987774" required />
+            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][id]" placeholder="987774" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
+            <input type="tel" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">Fax (optional)</label>
+            <label class="form-label required">Fax (optional)</label>
             <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
           </div>
         </div>
@@ -336,51 +337,51 @@
         <div class="row g-3">
           <div class="col-md-2">
             <label class="form-label required">Prescription ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescription_id]" placeholder="2" required />
+            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescription_id]" placeholder="2" />
           </div>
           <div class="col-md-4">
-            <label class="form-label">DSPID (optional)</label>
+            <label class="form-label required">DSPID (optional)</label>
             <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][DSPID]" placeholder="(optional, usually null)" />
           </div>
           <div class="col-md-6">
             <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[alr-data][__INDEX__][drug-name]" placeholder="Levlen ED Tablets, 150mcg-30mcg(28)" required></textarea>
+            <textarea class="form-control" rows="2" name="pt_data[alr-data][__INDEX__][drug-name]" placeholder="Levlen ED Tablets, 150mcg-30mcg(28)"></textarea>
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][drug-code]" placeholder="1394J" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][drug-code]" placeholder="1394J" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dose-instr]" placeholder="ONCE DAILY" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dose-instr]" placeholder="ONCE DAILY" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Qty</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][dose-qty]" placeholder="4" required />
+            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][dose-qty]" placeholder="4" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Original Repeats</label>
-            <input type="number" min="0" class="form-control" name="pt_data[alr-data][__INDEX__][dose-rpt]" placeholder="6" required />
+            <input type="number" min="0" class="form-control" name="pt_data[alr-data][__INDEX__][dose-rpt]" placeholder="6" />
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Remaining Repeats</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][remaining-repeats]" placeholder="3" required />
+            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][remaining-repeats]" placeholder="3" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescribed-date]" placeholder="05/07/2021" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescribed-date]" placeholder="05/07/2021" />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dispensed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dispensed-date]" placeholder="05/07/2021" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dispensed-date]" placeholder="05/07/2021" />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Paperless</label>
-            <select class="form-select" name="pt_data[alr-data][__INDEX__][paperless]" required>
+            <select class="form-select" name="pt_data[alr-data][__INDEX__][paperless]">
               <option value="" selected disabled>Select...</option>
               <option value="true">True</option>
               <option value="false">False</option>
@@ -389,7 +390,7 @@
 
           <div class="col-md-6">
             <label class="form-label required">Brand Substitution Not Permitted</label>
-            <select class="form-select" name="pt_data[alr-data][__INDEX__][brand-sub-not-prmt]" required>
+            <select class="form-select" name="pt_data[alr-data][__INDEX__][brand-sub-not-prmt]">
               <option value="" selected disabled>Select...</option>
               <option value="true">True</option>
               <option value="false">False</option>
@@ -403,45 +404,45 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fname]" placeholder="Phillip" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][lname]" placeholder="Davis" />
           </div>
           <div class="col-md-6">
-            <label class="form-label">Title / Qualifications</label>
+            <label class="form-label required">Title / Qualifications</label>
             <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" />
           </div>
           <div class="col-md-6">
             <label class="form-label required">Address Line 2</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" />
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Prescriber ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][id]" placeholder="987774" required />
+            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][id]" placeholder="987774" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
+            <input type="tel" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" />
           </div>
 
           <div class="col-md-6">
-            <label class="form-label">Fax (optional)</label>
+            <label class="form-label required">Fax (optional)</label>
             <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
           </div>
         </div>
@@ -508,7 +509,7 @@
     const form = document.querySelector("form.needs-validation");
     console.log("form element:", form); 
   
-    // 把带 [] 的 name 转成嵌套 JSON
+    // 把带 [] �?name 转成嵌套 JSON
     function assignNested(obj, path, value) {
       let cur = obj;
       for (let i = 0; i < path.length - 1; i++) {
@@ -534,37 +535,22 @@
       return out.pt_data || out;
     }
   
-    form.addEventListener("submit", async function (e) {
+    form.addEventListener("submit", function (e) {
       console.log("submit handler triggered"); 
-      e.preventDefault();
-  
-      // Bootstrap 校验
+      console.log("Form action:", form.action);
+      console.log("Form method:", form.method);
+      
+      // Bootstrap validation
       if (!form.checkValidity()) {
+        console.log("Form validation failed");
+        e.preventDefault();
         e.stopPropagation();
         form.classList.add("was-validated");
         return;
       }
-  
-
-      const pt_data = formDataToNestedJSON(form);
-  
-      // submit it to backend
-      const resp = await fetch("/asl/ingest", {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-CSRFToken": document.querySelector('meta[name="csrf-token"]').getAttribute("content")
-        },
-        body: JSON.stringify(pt_data)
-      });
-  
-      const res = await resp.json();
-      if (resp.ok && res.status === "success") {
-        alert("Data has been stored. Patient ID: " + res.patient_id);
-        window.location.href = "/asl/" + res.patient_id;
-      } else {
-        alert("Error: " + res.message);
-      }
+      
+      // Allow normal form submission to Flask route
+      console.log("Form is valid, submitting to Flask route");
     });
   })();
 </script>
