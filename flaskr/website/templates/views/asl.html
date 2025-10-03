@@ -23,6 +23,14 @@
 
 {% block body %}
 <div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Patient Dashboard
+            </a>
+        </div>
+    </div>
+    
     <h2>Active Script List</h2>
     <div class="row">
         <div id="customer-details" class="col">
@@ -261,7 +269,7 @@
                         <div class="col-md-6">
                             <label for="dispensed_by" class="form-label">Dispensed By</label>
                             <input type="text" class="form-control" id="dispensed_by" name="dispensed_by" 
-                                   value="{{ current_user.get_full_name() if current_user else '' }}" required>
+                                   value="{{ current_user.get_full_name() if current_user.is_authenticated else '' }}" required>
                         </div>
                         <div class="col-md-6">
                             <label for="dispensed_date" class="form-label">Dispensed Date</label>

@@ -2000,31 +2000,44 @@ def asl_form(patient_id):
     pt_data = {
         "medicare": patient.medicare or "",
         "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no or "",
-        "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder or "",
-        "rpbs-ben-entitlement-cardholder": patient.rpbs_ben_entitlement_cardholder or "",
+        "sfty-net-entitlement-cardholder": "true" if patient.sfty_net_entitlement_cardholder is True else ("false" if patient.sfty_net_entitlement_cardholder is False else ""),
+        "rpbs-ben-entitlement-cardholder": "true" if patient.rpbs_ben_entitlement_cardholder is True else ("false" if patient.rpbs_ben_entitlement_cardholder is False else ""),
+        "can_view_asl": "true" if patient.can_view_asl() else "false",
         "name": patient.name or "",
         "dob": patient.dob or "",
         "preferred-contact": patient.preferred_contact or "",
         "address-1": patient.address or "",
-        "address-2": "",  # You might want to split this from address if needed
+        "address-2": f"{patient.suburb or ''} {patient.state or ''} {patient.postcode or ''}".strip(),
         "script-date": patient.script_date or "",
         "pbs": patient.pbs or "",
         "rpbs": patient.rpbs or "",
         "consent-status": {
-            "is-registered": patient.is_registered or False,
-            "status": patient.get_asl_status().name.replace('_', ' ').title() if hasattr(patient, 'get_asl_status') else 'Pending',
+            "is-registered": "true" if patient.is_registered is True else ("false" if patient.is_registered is False else ""),
+            "status": patient.get_asl_status().name.replace('_', ' ').title() if patient.get_asl_status() else '',
             "last-updated": patient.consent_last_updated or ""
         },
         "carer": {
-            "name": asl_record.carer_name if asl_record else "",
-            "relationship": asl_record.carer_relationship if asl_record else "",
-            "mobile": asl_record.carer_mobile if asl_record else "",
-            "email": asl_record.carer_email if asl_record else ""
+            "name": asl_record.carer_name if asl_record and asl_record.carer_name else "",
+            "relationship": asl_record.carer_relationship if asl_record and asl_record.carer_relationship else "",
+            "mobile": asl_record.carer_mobile if asl_record and asl_record.carer_mobile else "",
+            "email": asl_record.carer_email if asl_record and asl_record.carer_email else ""
         },
-        "notes": asl_record.notes if asl_record else "",
+        "notes": asl_record.notes if asl_record and asl_record.notes else "",
         "asl-data": [],
         "alr-data": []
     }
+
+    # Debug information
+    print(f"DEBUG: Patient {patient_id}")
+    print(f"  - sfty_net: {patient.sfty_net_entitlement_cardholder} -> {pt_data['sfty-net-entitlement-cardholder']}")
+    print(f"  - rpbs: {patient.rpbs_ben_entitlement_cardholder} -> {pt_data['rpbs-ben-entitlement-cardholder']}")
+    print(f"  - can_view_asl: {patient.can_view_asl()} -> {pt_data['can_view_asl']}")
+    print(f"  - is_registered: {patient.is_registered} -> {pt_data['consent-status']['is-registered']}")
+    print(f"  - asl_status: {patient.get_asl_status().name} -> {pt_data['consent-status']['status']}")
+    print(f"DEBUG: ASL record exists: {asl_record is not None}")
+    if asl_record:
+        print(f"  - carer_name: '{asl_record.carer_name}'")
+        print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
     
     # Process existing prescriptions into ASL and ALR data
     for prescription in prescriptions:
@@ -2040,17 +2053,17 @@ def asl_form(patient_id):
             "dose-qty": prescription.dose_qty or 0,
             "dose-rpt": prescription.dose_rpt or 0,
             "prescribed-date": prescription.prescribed_date or "",
-            "paperless": prescription.paperless,
-            "brand-sub-not-prmt": prescription.brand_sub_not_prmt or False,
+            "paperless": "true" if prescription.paperless else "false",
+            "brand-sub-not-prmt": "true" if prescription.brand_sub_not_prmt else "false",
             "prescriber": {
                 "fname": prescriber.fname or "",
                 "lname": prescriber.lname or "",
                 "title": prescriber.title or "",
                 "address-1": prescriber.address_1 or "",
                 "address-2": prescriber.address_2 or "",
-                "id": prescriber.prescriber_id or "",
-                "hpii": prescriber.hpii or "",
-                "hpio": prescriber.hpio or "",
+                "id": str(prescriber.prescriber_id) if prescriber.prescriber_id else "",
+                "hpii": f"{int(prescriber.hpii):016d}" if prescriber.hpii and prescriber.hpii > 0 else "0000000000000000",
+                "hpio": f"{int(prescriber.hpio):016d}" if prescriber.hpio and prescriber.hpio > 0 else "0000000000000000",
                 "phone": prescriber.phone or "",
                 "fax": prescriber.fax or "",
             }
@@ -2062,10 +2075,13 @@ def asl_form(patient_id):
             prescription_data["dispensed-date"] = prescription.dispensed_date or ""
             prescription_data["remaining-repeats"] = prescription.remaining_repeats or 0
             pt_data["alr-data"].append(prescription_data)
+            print(f"DEBUG: Added ALR prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}")
         else:
             # This is ASL data
             pt_data["asl-data"].append(prescription_data)
+            print(f"DEBUG: Added ASL prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}")
 
+    print(f"DEBUG: Final pt_data structure: {pt_data}")
     return render_template("asl_form.html", patient=patient, pt_data=pt_data)
 
 

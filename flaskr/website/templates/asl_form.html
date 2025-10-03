@@ -109,35 +109,35 @@
               <div class="col-md-4">
                 <label class="form-label required" for="sftyNet">Safety Net Cardholder</label>
                 <select class="form-select" id="sftyNet" name="pt_data[sfty-net-entitlement-cardholder]" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
+                  <option value="" {% if not pt_data or pt_data['sfty-net-entitlement-cardholder'] == '' %}selected{% endif %} disabled>Select...</option>
+                  <option value="true" {% if pt_data and pt_data['sfty-net-entitlement-cardholder'] == 'true' %}selected{% endif %}>True</option>
+                  <option value="false" {% if pt_data and pt_data['sfty-net-entitlement-cardholder'] == 'false' %}selected{% endif %}>False</option>
                 </select>
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="rpbsCardholder">RPBS Cardholder</label>
                 <select class="form-select" id="rpbsCardholder" name="pt_data[rpbs-ben-entitlement-cardholder]" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
+                  <option value="" {% if not pt_data or pt_data['rpbs-ben-entitlement-cardholder'] == '' %}selected{% endif %} disabled>Select...</option>
+                  <option value="true" {% if pt_data and pt_data['rpbs-ben-entitlement-cardholder'] == 'true' %}selected{% endif %}>True</option>
+                  <option value="false" {% if pt_data and pt_data['rpbs-ben-entitlement-cardholder'] == 'false' %}selected{% endif %}>False</option>
                 </select>
               </div>
               <div class="col-md-4">
                 <label class="form-label required" for="canViewAsl">Can View ASL</label>
                 <select class="form-select" id="canViewAsl" name="pt_data[can_view_asl]" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
+                  <option value="" {% if not pt_data or pt_data['can_view_asl'] == '' %}selected{% endif %} disabled>Select...</option>
+                  <option value="true" {% if pt_data and pt_data['can_view_asl'] == 'true' %}selected{% endif %}>True</option>
+                  <option value="false" {% if pt_data and pt_data['can_view_asl'] == 'false' %}selected{% endif %}>False</option>
                 </select>
               </div>
 
               <div class="col-md-6">
                 <label class="form-label" for="pbs">PBS</label>
-                <input type="text" class="form-control" id="pbs" name="pt_data[pbs]" placeholder="(optional, usually null)" />
+                <input type="text" class="form-control" id="pbs" name="pt_data[pbs]" placeholder="(optional, usually null)" value="{{ pt_data.pbs if pt_data and pt_data.pbs else '' }}" />
               </div>
               <div class="col-md-6">
                 <label class="form-label" for="rpbs">RPBS</label>
-                <input type="text" class="form-control" id="rpbs" name="pt_data[rpbs]" placeholder="(optional, usually null)" />
+                <input type="text" class="form-control" id="rpbs" name="pt_data[rpbs]" placeholder="(optional, usually null)" value="{{ pt_data.rpbs if pt_data and pt_data.rpbs else '' }}" />
               </div>
             </div>
           </fieldset>
@@ -153,25 +153,67 @@
               <div class="col-md-3">
                 <label class="form-label required" for="isRegistered">Is Registered</label>
                 <select class="form-select" id="isRegistered" name="pt_data[consent-status][is-registered]" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option value="true">True</option>
-                  <option value="false">False</option>
+                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['is-registered'] == '' %}selected{% endif %} disabled>Select...</option>
+                  <option value="true" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'true' %}selected{% endif %}>True</option>
+                  <option value="false" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'false' %}selected{% endif %}>False</option>
                 </select>
               </div>
               <div class="col-md-5">
                 <label class="form-label required" for="consentStatus">Status</label>
                 <select class="form-select" id="consentStatus" name="pt_data[consent-status][status]" required>
-                  <option value="" selected disabled>Select...</option>
-                  <option>No Consent</option>
-                  <option>Pending</option>
-                  <option>Granted</option>
-                  <option>Rejected</option>
+                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['status'] == '' %}selected{% endif %} disabled>Select...</option>
+                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'No Consent' %}selected{% endif %}>No Consent</option>
+                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Pending' %}selected{% endif %}>Pending</option>
+                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Granted' %}selected{% endif %}>Granted</option>
+                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Rejected' %}selected{% endif %}>Rejected</option>
                 </select>
                 <div class="help-text">When not "No Consent", include Last Updated.</div>
               </div>
               <div class="col-md-4">
                 <label class="form-label" for="lastUpdated">Last Updated</label>
-                <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" />
+                <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" value="{{ pt_data['consent-status']['last-updated'] if pt_data and pt_data['consent-status'] and pt_data['consent-status']['last-updated'] else '' }}" />
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+      <!-- Carer Information -->
+      <div class="card">
+        <div class="card-body">
+          <h2 class="section-title mb-3">Carer Information</h2>
+          <fieldset>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label" for="carerName">Carer Name</label>
+                <input type="text" class="form-control" id="carerName" name="pt_data[carer][name]" placeholder="John Smith" value="{{ pt_data.carer.name if pt_data and pt_data.carer and pt_data.carer.name else '' }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="carerRelationship">Relationship</label>
+                <input type="text" class="form-control" id="carerRelationship" name="pt_data[carer][relationship]" placeholder="Spouse, Child, etc." value="{{ pt_data.carer.relationship if pt_data and pt_data.carer and pt_data.carer.relationship else '' }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="carerMobile">Mobile</label>
+                <input type="tel" class="form-control" id="carerMobile" name="pt_data[carer][mobile]" placeholder="0412345678" value="{{ pt_data.carer.mobile if pt_data and pt_data.carer and pt_data.carer.mobile else '' }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="carerEmail">Email</label>
+                <input type="email" class="form-control" id="carerEmail" name="pt_data[carer][email]" placeholder="carer@example.com" value="{{ pt_data.carer.email if pt_data and pt_data.carer and pt_data.carer.email else '' }}" />
+              </div>
+            </div>
+          </fieldset>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div class="card">
+        <div class="card-body">
+          <h2 class="section-title mb-3">Notes</h2>
+          <fieldset>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label" for="notes">Additional Notes</label>
+                <textarea class="form-control" rows="3" id="notes" name="pt_data[notes]" placeholder="Any additional notes or comments...">{{ pt_data.notes if pt_data and pt_data.notes else '' }}</textarea>
               </div>
             </div>
           </fieldset>
@@ -474,14 +516,67 @@
       const addAslBtn = document.getElementById('add-asl-item');
       const addAlrBtn = document.getElementById('add-alr-item');
 
-      function addItem(container, templateEl) {
-        const index = container.children.length;
+      function addItem(container, templateEl, data = null, index = null) {
+        const itemIndex = index !== null ? index : container.children.length;
         const clone = templateEl.content.cloneNode(true);
+        
         // Replace placeholder indices in name attributes
         clone.querySelectorAll('[name]').forEach((el) => {
-          el.name = el.name.replaceAll('__INDEX__', index.toString());
+          el.name = el.name.replaceAll('__INDEX__', itemIndex.toString());
         });
+        
         container.appendChild(clone);
+        
+        // If data is provided, populate the fields immediately after adding to DOM
+        if (data) {
+          setTimeout(() => {
+            // Get the last added item (the one we just added)
+            const addedItem = container.lastElementChild;
+            
+            // Populate prescription fields
+            Object.entries(data).forEach(([key, value]) => {
+              if (value !== null && value !== undefined && value !== '') {
+                // Find field by exact name match in the added item
+                const fieldName = `pt_data[${container.id === 'asl-items' ? 'asl' : 'alr'}-data][${itemIndex}][${key}]`;
+                const field = addedItem.querySelector(`[name="${fieldName}"]`);
+                if (field) {
+                  if (field.tagName === 'SELECT') {
+                    field.value = value.toString();
+                  } else if (field.tagName === 'TEXTAREA') {
+                    field.textContent = value;
+                  } else {
+                    field.value = value;
+                  }
+                  // Trigger validation check after setting value
+                  field.dispatchEvent(new Event('input', { bubbles: true }));
+                  console.log(`Pre-populated ${key}:`, value);
+                } else {
+                  console.log(`Field not found: ${fieldName}`);
+                }
+              }
+            });
+            
+            // Populate prescriber fields
+            if (data.prescriber) {
+              Object.entries(data.prescriber).forEach(([key, value]) => {
+                if (value !== null && value !== undefined && value !== '') {
+                  const fieldName = `pt_data[${container.id === 'asl-items' ? 'asl' : 'alr'}-data][${itemIndex}][prescriber][${key}]`;
+                  const field = addedItem.querySelector(`[name="${fieldName}"]`);
+                  if (field) {
+                    field.value = value;
+                    // Trigger validation check after setting value
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    console.log(`Pre-populated prescriber ${key}:`, value);
+                  } else {
+                    console.log(`Prescriber field not found: ${fieldName}`);
+                  }
+                }
+              });
+            }
+          }, 10);
+        }
+        
+        return clone;
       }
 
       function handleRemove(e) {
@@ -507,123 +602,26 @@
       // Pre-populate with existing data if available
       const ptData = {{ pt_data|tojson if pt_data else '{}' }};
       console.log('Pre-population data:', ptData);
-      console.log('ASL data:', ptData['asl-data']);
-      console.log('ALR data:', ptData['alr-data']);
       
       // Populate ASL prescriptions
       if (ptData && ptData['asl-data'] && ptData['asl-data'].length > 0) {
-        console.log('Found', ptData['asl-data'].length, 'ASL prescriptions to populate');
+        console.log('Found existing ASL data, populating', ptData['asl-data'].length, 'items');
         ptData['asl-data'].forEach((aslItem, index) => {
-          console.log('Processing ASL item:', index, aslItem);
-          const newItem = addItem(aslContainer, aslTemplate);
-          if (newItem) {
-            // Wait a moment for DOM to update then populate
-            setTimeout(() => {
-              // Get all input fields in this item
-              const inputs = newItem.querySelectorAll('input, select, textarea');
-              console.log('Found', inputs.length, 'fields in new ASL item');
-              
-              // Try to populate each field by matching the name pattern
-              inputs.forEach(field => {
-                const fieldName = field.getAttribute('name') || '';
-                console.log('Checking field:', fieldName);
-                
-                // Simple field mapping
-                if (fieldName.includes('prescription_id') && aslItem.prescription_id) {
-                  field.value = aslItem.prescription_id;
-                  console.log('Set prescription_id to:', aslItem.prescription_id);
-                }
-                if (fieldName.includes('DSPID') && aslItem.DSPID) {
-                  field.value = aslItem.DSPID;
-                  console.log('Set DSPID to:', aslItem.DSPID);
-                }
-                if (fieldName.includes('drug-name') && aslItem['drug-name']) {
-                  field.value = aslItem['drug-name'];
-                  console.log('Set drug-name to:', aslItem['drug-name']);
-                }
-                if (fieldName.includes('drug-code') && aslItem['drug-code']) {
-                  field.value = aslItem['drug-code'];
-                  console.log('Set drug-code to:', aslItem['drug-code']);
-                }
-                if (fieldName.includes('dose-qty') && aslItem['dose-qty']) {
-                  field.value = aslItem['dose-qty'];
-                  console.log('Set dose-qty to:', aslItem['dose-qty']);
-                }
-                if (fieldName.includes('dose-rpt') && aslItem['dose-rpt']) {
-                  field.value = aslItem['dose-rpt'];
-                  console.log('Set dose-rpt to:', aslItem['dose-rpt']);
-                }
-                if (fieldName.includes('prescribed-date') && aslItem['prescribed-date']) {
-                  field.value = aslItem['prescribed-date'];
-                  console.log('Set prescribed-date to:', aslItem['prescribed-date']);
-                }
-                if (fieldName.includes('dose-instr') && aslItem['dose-instr']) {
-                  field.value = aslItem['dose-instr'];
-                  console.log('Set dose-instr to:', aslItem['dose-instr']);
-                }
-                if (fieldName.includes('status') && aslItem.status) {
-                  field.value = aslItem.status;
-                  console.log('Set status to:', aslItem.status);
-                }
-                // Prescriber fields
-                if (aslItem.prescriber) {
-                  if (fieldName.includes('prescriber][fname') && aslItem.prescriber.fname) {
-                    field.value = aslItem.prescriber.fname;
-                    console.log('Set prescriber fname to:', aslItem.prescriber.fname);
-                  }
-                  if (fieldName.includes('prescriber][lname') && aslItem.prescriber.lname) {
-                    field.value = aslItem.prescriber.lname;
-                    console.log('Set prescriber lname to:', aslItem.prescriber.lname);
-                  }
-                }
-              });
-            }, 100);
-          }
+          addItem(aslContainer, aslTemplate, aslItem, index);
         });
       } else {
-        console.log('No ASL data found, adding empty item');
-        // Seed with one empty ASL item if no existing data
+        console.log('No existing ASL data found, adding empty form');
         addItem(aslContainer, aslTemplate);
       }
       
       // Populate ALR prescriptions
       if (ptData && ptData['alr-data'] && ptData['alr-data'].length > 0) {
+        console.log('Found existing ALR data, populating', ptData['alr-data'].length, 'items');
         ptData['alr-data'].forEach((alrItem, index) => {
-          const newItem = addItem(alrContainer, alrTemplate);
-          if (newItem) {
-            // Wait a moment for DOM to update
-            setTimeout(() => {
-              // Populate ALR fields using exact name patterns
-              const populateField = (namePattern, value) => {
-                const field = newItem.querySelector(`[name*="${namePattern}"]`);
-                if (field && value !== undefined && value !== null && value !== '') {
-                  if (field.type === 'checkbox') {
-                    field.checked = value === true || value === 'true';
-                  } else if (field.tagName === 'SELECT') {
-                    field.value = value.toString();
-                  } else {
-                    field.value = value;
-                  }
-                  console.log(`Populated ALR ${namePattern} with:`, value);
-                }
-              };
-              
-              populateField('prescription_id', alrItem.prescription_id);
-              populateField('DSPID', alrItem.DSPID);
-              populateField('drug-name', alrItem['drug-name']);
-              populateField('drug-code', alrItem['drug-code']);
-              populateField('dose-instr', alrItem['dose-instr']);
-              populateField('dose-qty', alrItem['dose-qty']);
-              populateField('dose-rpt', alrItem['dose-rpt']);
-              populateField('prescribed-date', alrItem['prescribed-date']);
-              populateField('dispensed-date', alrItem['dispensed-date']);
-              populateField('remaining-repeats', alrItem['remaining-repeats']);
-              populateField('paperless', alrItem.paperless ? 'true' : 'false');
-            }, 10);
-          }
+          addItem(alrContainer, alrTemplate, alrItem, index);
         });
       } else {
-        // Seed with one empty ALR item if no existing data
+        console.log('No existing ALR data found, adding empty form');
         addItem(alrContainer, alrTemplate);
       }
 
