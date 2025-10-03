@@ -702,12 +702,28 @@ body > .container {
     background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
 }
 
+.stat-submissions::before {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.stat-marked::before {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
 .stat-students .stat-number {
     color: #28a745;
 }
 
 .stat-patients .stat-number {
     color: #fd7e14;
+}
+
+.stat-submissions .stat-number {
+    color: #ffc107;
+}
+
+.stat-marked .stat-number {
+    color: #28a745;
 }
 
 .stat-number {

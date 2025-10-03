@@ -505,9 +505,14 @@
                                                 data-student-id="{{ student.id }}">
                                             <option value="">-- Select Patient --</option>
                                             {% for patient in available_patients %}
-                                            <option value="{{ patient.id }}">
+                                            {% set is_assigned = patient.id in assigned_patients and current_assignments.get(student.id) != patient.id %}
+                                            {% set is_current = current_assignments.get(student.id) == patient.id %}
+                                            <option value="{{ patient.id }}" 
+                                                    {% if is_assigned %}disabled data-already-assigned="true"{% endif %}
+                                                    {% if is_current %}selected{% endif %}>
                                                 {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
                                                 {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
+                                                {% if is_assigned %} (Already Assigned){% endif %}
                                             </option>
                                             {% endfor %}
                                         </select>
@@ -569,16 +574,52 @@ function updatePatientAvailability() {
         options.forEach(option => {
             if (option.value === '') return; // Skip the default "Select Patient" option
             
+            // Check if this option is already assigned to another student
             if (selectedPatients.has(option.value) && option.value !== currentValue) {
                 option.style.display = 'none';
                 option.disabled = true;
-            } else {
+            } else if (!option.hasAttribute('data-already-assigned')) {
                 option.style.display = 'block';
                 option.disabled = false;
             }
         });
     });
 }
+
+// Add event listeners to patient selects for real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    const patientSelects = document.querySelectorAll('.patient-select');
+    
+    patientSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedPatientId = this.value;
+            const studentId = this.dataset.studentId;
+            
+            if (selectedPatientId) {
+                // Check if this patient is already assigned to another student
+                const otherSelects = document.querySelectorAll('.patient-select:not([data-student-id="' + studentId + '"])');
+                let alreadyAssigned = false;
+                
+                otherSelects.forEach(otherSelect => {
+                    if (otherSelect.value === selectedPatientId) {
+                        alreadyAssigned = true;
+                    }
+                });
+                
+                if (alreadyAssigned) {
+                    alert('This patient is already assigned to another student. Please select a different patient.');
+                    this.value = '';
+                    return;
+                }
+            }
+            
+            updatePatientDropdowns();
+        });
+    });
+    
+    // Initial update
+    updatePatientDropdowns();
+});
 
 function toggleStudent(studentId) {
     var checkbox = document.getElementById('student_' + studentId);

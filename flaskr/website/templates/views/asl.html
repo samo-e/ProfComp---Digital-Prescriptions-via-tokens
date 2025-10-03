@@ -127,8 +127,8 @@
             <div class="col-1">
                 <!-- CHANGED: Use asl-data instead of asl_data -->
                 {% if pt_data['asl-data']|length > 0 %}
-                <button id="script-print" class="btn btn-primary">
-                    <i class="bi bi-printer-fill printer"></i>
+                <button id="script-print" class="btn btn-outline-secondary btn-sm" title="Print Selected">
+                    <i class="bi bi-printer-fill"></i>
                 </button>
                 {% endif %}
             </div>
@@ -149,10 +149,22 @@
             <tbody>
                 <!-- Use asl-data -->
                 {% for asl in pt_data['asl-data'] %}
-                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}"></td>
+                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }} {% if asl['status'] == 'Dispensed' %}table-secondary{% endif %}">
+                    <td class="asl-check">
+                        {% if asl['status'] != 'Dispensed' %}
+                        <input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}">
+                        {% else %}
+                        <span class="badge bg-success">Dispensed</span>
+                        {% endif %}
+                    </td>
                     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
-                    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+                    <td class="asl-item">
+                        {{ asl['drug-name'] }}
+                        <p>{{ asl['DSPID'] }}</p>
+                        {% if asl['status'] == 'Dispensed' %}
+                        <small class="text-muted">Status: Dispensed</small>
+                        {% endif %}
+                    </td>
                     <td class="asl-qty">{{ asl['dose-qty'] }}</td>
                     <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
                     <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
@@ -162,6 +174,18 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Dispense button - shows when prescriptions are selected -->
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-12 text-end">
+                <button id="dispense-selected" class="btn btn-success" style="display: none;">
+                    <i class="bi bi-capsule"></i> Dispense Selected
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <br>
     
     <div class="container">
@@ -207,6 +231,201 @@
     </div>
     
     {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> 
+        Access to ASL is restricted. Please check consent status.
+    </div>
     {% endif %}
+</div>
+
+<!-- Dispensing Modal -->
+<div class="modal fade" id="dispensingModal" tabindex="-1" aria-labelledby="dispensingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dispensingModalLabel">
+                    <i class="bi bi-capsule"></i> Dispense Prescriptions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="selected-prescriptions">
+                    <!-- Selected prescriptions will be populated here -->
+                </div>
+                <form id="dispensing-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="patient_id" value="{{ pt }}">
+                    <input type="hidden" id="prescription-ids" name="prescription_ids" value="">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="dispensed_by" class="form-label">Dispensed By</label>
+                            <input type="text" class="form-control" id="dispensed_by" name="dispensed_by" 
+                                   value="{{ current_user.get_full_name() if current_user else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dispensed_date" class="form-label">Dispensed Date</label>
+                            <input type="text" class="form-control" id="dispensed_date" name="dispensed_date" 
+                                   value="" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="dispensing_notes" class="form-label">Dispensing Notes</label>
+                            <textarea class="form-control" id="dispensing_notes" name="dispensing_notes" 
+                                      rows="3" placeholder="Add any notes about the dispensing..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirm-dispense">
+                    <i class="bi bi-check-circle"></i> Confirm Dispensing
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle prescription selection for dispensing
+    const checkboxes = document.querySelectorAll('#asl-table input[type="checkbox"]');
+    const dispenseButton = document.getElementById('dispense-selected');
+    
+    // Show/hide dispense button based on selection
+    function toggleDispenseButton() {
+        const checkedBoxes = document.querySelectorAll('#asl-table input[type="checkbox"]:checked');
+        dispenseButton.style.display = checkedBoxes.length > 0 ? 'inline-block' : 'none';
+    }
+    
+    // Add event listeners to checkboxes
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', toggleDispenseButton);
+    });
+    
+    // Handle dispense button click
+    dispenseButton.addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('#asl-table input[type="checkbox"]:checked');
+        const selectedPrescriptions = Array.from(checkedBoxes).map(cb => {
+            const row = cb.closest('tr');
+            const cells = row.querySelectorAll('td');
+            return {
+                id: cb.value,
+                prescribed_date: cells[1].textContent.trim(),
+                drug_name: cells[2].querySelector('p') ? cells[2].textContent.split('\n')[0].trim() : cells[2].textContent.trim(),
+                dspid: cells[2].querySelector('p') ? cells[2].querySelector('p').textContent.trim() : '',
+                quantity: cells[3].textContent.trim(),
+                prescriber: cells[4].textContent.split('\n')[0].trim(),
+                repeats: cells[5].textContent.trim()
+            };
+        });
+        
+        // Populate modal with selected prescriptions
+        populateDispensingModal(selectedPrescriptions);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('dispensingModal'));
+        modal.show();
+    });
+    
+    function populateDispensingModal(prescriptions) {
+        const container = document.getElementById('selected-prescriptions');
+        const prescriptionIds = document.getElementById('prescription-ids');
+        
+        // Set prescription IDs
+        prescriptionIds.value = prescriptions.map(p => p.id).join(',');
+        
+        // Create prescription cards
+        container.innerHTML = prescriptions.map(prescription => `
+            <div class="card mb-2">
+                <div class="card-body p-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="card-title mb-1">${prescription.drug_name}</h6>
+                            <small class="text-muted">DSPID: ${prescription.dspid}</small>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Quantity:</small><br>
+                            <strong>${prescription.quantity}</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <small class="text-muted">Repeats:</small><br>
+                            <strong>${prescription.repeats}</strong>
+                        </div>
+                    </div>
+                    <hr class="my-2">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">Prescriber: ${prescription.prescriber}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <small class="text-muted">Prescribed: ${prescription.prescribed_date}</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    // Handle confirm dispensing
+    document.getElementById('confirm-dispense').addEventListener('click', function() {
+        const form = document.getElementById('dispensing-form');
+        const formData = new FormData(form);
+        
+        // Submit dispensing request
+        fetch(`/api/dispense/${pt_id}`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': formData.get('csrf_token')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Close modal
+                bootstrap.Modal.getInstance(document.getElementById('dispensingModal')).hide();
+                
+                // Show success message
+                showAlert('success', 'Prescriptions dispensed successfully!');
+                
+                // Refresh page to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showAlert('error', data.message || 'Error dispensing prescriptions');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('error', 'An error occurred while dispensing prescriptions');
+        });
+    });
+    
+    // Set current date in dispensed_date field
+    const today = new Date();
+    const formattedDate = today.toLocaleDateString('en-GB'); // DD/MM/YYYY format
+    document.getElementById('dispensed_date').value = formattedDate;
+    
+    function showAlert(type, message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        // Insert at top of container
+        const container = document.querySelector('.container');
+        container.insertBefore(alertDiv, container.firstChild);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+});
+</script>
 </div>
 {% endblock %}

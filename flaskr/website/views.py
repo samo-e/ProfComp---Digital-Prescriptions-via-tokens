@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify, request, current_app, send_file
 from flask_login import login_required, current_user
-from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User, StudentScenario, ScenarioPatient
+from .models import db, Patient, Prescriber, Prescription, PrescriptionStatus, ASLStatus,ASL,Scenario,User, StudentScenario, ScenarioPatient, Submission
 from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
 from sqlalchemy import or_
 from .converters import ingest_pt_data_contract
 from datetime import datetime
 from functools import wraps
 import requests
+import os
 from pathlib import Path
+from werkzeug.utils import secure_filename
 
 # Optional import for readme rendering
 try:
@@ -63,12 +65,36 @@ def scenario_dashboard(scenario_id):
     # Get all available patients for selection
     all_patients = Patient.query.all()
     
+    # Get student scenario assignment if current user is a student
+    student_scenario = None
+    assigned_patient = None
+    if current_user.is_student():
+        student_scenario = StudentScenario.query.filter_by(
+            student_id=current_user.id,
+            scenario_id=scenario_id
+        ).first()
+        
+        # Find patient assigned to this student for this scenario
+        if student_scenario:
+            patient_assignment = ScenarioPatient.query.filter_by(
+                scenario_id=scenario_id,
+                student_id=current_user.id
+            ).first()
+            
+            if patient_assignment:
+                assigned_patient = Patient.query.get(patient_assignment.patient_id)
+            else:
+                # Fallback to scenario's active patient if no individual assignment
+                assigned_patient = scenario.active_patient
+    
     return render_template(
         "views/scenario_dashboard.html", 
         scenario=scenario,
         assigned_students=assigned_students,
         scenario_patients=scenario_patients,
-        all_patients=all_patients
+        all_patients=all_patients,
+        student_scenario=student_scenario,
+        assigned_patient=assigned_patient
     )
 
 
@@ -158,6 +184,14 @@ def assign_scenario(scenario_id):
                 ScenarioPatient.query.filter_by(scenario_id=scenario.id).delete()
             
             success_count = 0
+            errors = []
+            
+            # Get already assigned patients in this scenario
+            already_assigned_patients = set()
+            existing_patient_assignments = ScenarioPatient.query.filter_by(scenario_id=scenario.id).all()
+            for assignment in existing_patient_assignments:
+                already_assigned_patients.add(assignment.patient_id)
+            
             for assignment in assignments_data.values():
                 student_id = assignment.get('student_id')
                 patient_id = assignment.get('patient_id')
@@ -167,6 +201,18 @@ def assign_scenario(scenario_id):
                     patient = Patient.query.get(patient_id)
                     
                     if student and patient:
+                        # Check if this patient is already assigned to another student in this scenario
+                        existing_patient_assignment = ScenarioPatient.query.filter_by(
+                            scenario_id=scenario.id,
+                            patient_id=patient_id
+                        ).filter(ScenarioPatient.student_id != student_id).first()
+                        
+                        if existing_patient_assignment:
+                            assigned_student = User.query.get(existing_patient_assignment.student_id)
+                            patient_name = f"{patient.title or ''} {patient.given_name or ''} {patient.last_name or ''}".strip() or f"Patient {patient.id}"
+                            errors.append(f"{patient_name} is already assigned to {assigned_student.get_full_name()}")
+                            continue
+                        
                         # Check if student assignment already exists
                         existing_student = StudentScenario.query.filter_by(
                             student_id=student_id,
@@ -180,7 +226,7 @@ def assign_scenario(scenario_id):
                             )
                             db.session.add(student_assignment)
                         
-                        # Check if patient assignment already exists
+                        # Check if this exact patient assignment already exists
                         existing_patient = ScenarioPatient.query.filter_by(
                             student_id=student_id,
                             scenario_id=scenario.id,
@@ -188,6 +234,12 @@ def assign_scenario(scenario_id):
                         ).first()
                         
                         if not existing_patient:
+                            # Remove any existing patient assignment for this student in this scenario
+                            ScenarioPatient.query.filter_by(
+                                student_id=student_id,
+                                scenario_id=scenario.id
+                            ).delete()
+                            
                             patient_assignment = ScenarioPatient(
                                 student_id=student_id,
                                 scenario_id=scenario.id,
@@ -198,7 +250,11 @@ def assign_scenario(scenario_id):
                         success_count += 1
             
             db.session.commit()
-            flash(f'Successfully assigned {success_count} students with their patients!', 'success')
+            
+            if errors:
+                flash(f'Assignment completed with warnings: {"; ".join(errors)}', 'warning')
+            else:
+                flash(f'Successfully assigned {success_count} students with their patients!', 'success')
         else:
             # Handle simple student assignments (fallback for old method)
             student_ids = request.form.getlist('student_ids')
@@ -234,11 +290,22 @@ def assign_scenario(scenario_id):
     assigned_student_ids = [s.id for s in scenario.assigned_students]
     available_patients = Patient.query.all()  # Get all patients for assignment
     
+    # Get current patient assignments for this scenario
+    current_assignments = {}
+    assigned_patients = set()
+    scenario_patient_assignments = ScenarioPatient.query.filter_by(scenario_id=scenario.id).all()
+    
+    for assignment in scenario_patient_assignments:
+        current_assignments[assignment.student_id] = assignment.patient_id
+        assigned_patients.add(assignment.patient_id)
+    
     return render_template("views/assign_scenario.html", 
                          scenario=scenario, 
                          students=students,
                          assigned_student_ids=assigned_student_ids,
-                         available_patients=available_patients)
+                         available_patients=available_patients,
+                         current_assignments=current_assignments,
+                         assigned_patients=assigned_patients)
 
 
 @views.route("/scenarios/<int:scenario_id>/assign-patient", methods=["GET", "POST"])
@@ -361,6 +428,35 @@ def teacher_dashboard():
     total_students = User.query.filter_by(role='student').count()
     total_patients = Patient.query.count()
     
+    # Add submission counts and grading statistics to each scenario
+    for scenario in scenarios:
+        # Count submissions for this scenario by counting submitted StudentScenarios
+        submitted_count = StudentScenario.query.filter_by(
+            scenario_id=scenario.id
+        ).filter(StudentScenario.status.in_(['submitted', 'graded'])).count()
+        
+        # Count graded submissions
+        graded_count = StudentScenario.query.filter_by(
+            scenario_id=scenario.id,
+            status='graded'
+        ).count()
+        
+        # Count total assigned students
+        total_assigned = StudentScenario.query.filter_by(
+            scenario_id=scenario.id
+        ).count()
+        
+        # Get all submissions for this scenario
+        scenario_submissions = db.session.query(Submission).join(StudentScenario).filter(
+            StudentScenario.scenario_id == scenario.id
+        ).all()
+        
+        # Add the counts as attributes
+        scenario.submission_count = submitted_count
+        scenario.submissions = scenario_submissions
+        scenario.graded_count = graded_count
+        scenario.total_assigned = total_assigned
+    
     # Create forms
     form = EmptyForm()
     delete_form = DeleteForm()
@@ -382,28 +478,43 @@ def student_dashboard():
     if current_user.is_teacher():
         return redirect(url_for('views.teacher_dashboard'))
     
-    # Get student's assigned scenarios with patient information
-    assigned_scenarios = current_user.assigned_scenarios
+    # Get student's assigned scenarios with submission status
+    student_scenarios = StudentScenario.query.filter_by(student_id=current_user.id).all()
     
-    # Get patient assignments for each scenario
-    scenario_patients = {}
-    for scenario in assigned_scenarios:
+    # Get detailed information for each scenario
+    scenario_data = []
+    for ss in student_scenarios:
+        scenario = Scenario.query.get(ss.scenario_id)
+        
         # Find patient assigned to this student for this scenario
         patient_assignment = ScenarioPatient.query.filter_by(
             scenario_id=scenario.id,
             student_id=current_user.id
         ).first()
         
+        assigned_patient = None
         if patient_assignment:
-            scenario_patients[scenario.id] = Patient.query.get(patient_assignment.patient_id)
+            assigned_patient = Patient.query.get(patient_assignment.patient_id)
         else:
             # Fallback to scenario's active patient if no individual assignment
-            scenario_patients[scenario.id] = scenario.active_patient
+            assigned_patient = scenario.active_patient
+        
+        # Get submission status
+        submissions = Submission.query.filter_by(
+            student_scenario_id=ss.id
+        ).all() if assigned_patient else []
+        
+        scenario_data.append({
+            'student_scenario': ss,
+            'scenario': scenario,
+            'patient': assigned_patient,
+            'submissions': submissions,
+            'can_submit': assigned_patient is not None and ss.status in ['assigned', 'submitted']
+        })
     
     return render_template(
         "views/student_dash.html",
-        scenarios=assigned_scenarios,
-        scenario_patients=scenario_patients
+        scenario_data=scenario_data
     )
 
 @views.route('/students/manage')
@@ -985,6 +1096,71 @@ def print_selected_prescriptions():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@views.route('/api/dispense/<int:patient_id>', methods=['POST'])
+@login_required
+def dispense_prescriptions(patient_id):
+    """Handle prescription dispensing for students and teachers"""
+    try:
+        # Get form data
+        prescription_ids = request.form.get('prescription_ids', '').split(',')
+        dispensed_by = request.form.get('dispensed_by', '')
+        dispensed_date = request.form.get('dispensed_date', '')
+        dispensing_notes = request.form.get('dispensing_notes', '')
+        
+        if not prescription_ids or not prescription_ids[0]:
+            return jsonify({'success': False, 'message': 'No prescriptions selected'})
+        
+        if not dispensed_by:
+            return jsonify({'success': False, 'message': 'Dispensed by field is required'})
+        
+        # Convert prescription IDs to integers
+        prescription_ids = [int(pid) for pid in prescription_ids if pid.strip()]
+        
+        # Get prescriptions
+        prescriptions = Prescription.query.filter(
+            Prescription.id.in_(prescription_ids),
+            Prescription.patient_id == patient_id
+        ).all()
+        
+        if len(prescriptions) != len(prescription_ids):
+            return jsonify({'success': False, 'message': 'Some prescriptions not found'})
+        
+        # Update prescriptions to dispensed status
+        dispensed_count = 0
+        
+        for prescription in prescriptions:
+            # Check if already dispensed
+            if prescription.status == PrescriptionStatus.DISPENSED.value:
+                continue
+                
+            # Update prescription status
+            prescription.status = PrescriptionStatus.DISPENSED.value
+            prescription.dispensed_date = dispensed_date
+            prescription.dispensed_at_this_pharmacy = True
+            
+            # Handle repeats - if this prescription has repeats, initialize remaining_repeats if not set
+            if prescription.dose_rpt > 0:
+                if prescription.remaining_repeats is None:
+                    prescription.remaining_repeats = prescription.dose_rpt
+                # Don't reduce repeats here - this happens when the prescription moves to ALR
+            
+            dispensed_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Successfully dispensed {dispensed_count} prescription(s)',
+            'dispensed_count': dispensed_count
+        })
+        
+    except ValueError as e:
+        return jsonify({'success': False, 'message': 'Invalid prescription IDs'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': f'Error dispensing prescriptions: {str(e)}'})
+
+
 @views.route('/prescription')
 @login_required
 def prescription():
@@ -1235,7 +1411,20 @@ def unassign_all_students(scenario_id):
 def patient_dashboard():
     patients = Patient.query.all()
     delete_form = DeleteForm()  # one form instance reused
-    return render_template("views/patient_dash.html", patients=patients, delete_form=delete_form)
+    
+    # Calculate ASL statistics
+    asl_granted_count = sum(1 for patient in patients if patient.can_view_asl())
+    asl_pending_count = sum(1 for patient in patients if patient.asl_status == ASLStatus.PENDING.value)
+    asl_rejected_count = sum(1 for patient in patients if patient.asl_status == ASLStatus.REJECTED.value)
+    no_consent_count = sum(1 for patient in patients if patient.asl_status == ASLStatus.NO_CONSENT.value)
+    
+    return render_template("views/patient_dash.html", 
+                         patients=patients, 
+                         delete_form=delete_form,
+                         asl_granted_count=asl_granted_count,
+                         asl_pending_count=asl_pending_count,
+                         asl_rejected_count=asl_rejected_count,
+                         no_consent_count=no_consent_count)
 
 
 @views.route("/patients/delete/<int:patient_id>", methods=["POST"])
@@ -1243,12 +1432,104 @@ def patient_dashboard():
 def delete_patient(patient_id):
     form = DeleteForm()
     if form.validate_on_submit():  # ✅ checks CSRF
-        patient = Patient.query.get_or_404(patient_id)
-        db.session.delete(patient)
-        db.session.commit()
-        flash("Patient deleted successfully!", "success")
+        try:
+            patient = Patient.query.get_or_404(patient_id)
+            
+            # Delete related records first to avoid foreign key constraint errors
+            
+            # 1. Delete all prescriptions for this patient
+            Prescription.query.filter_by(patient_id=patient_id).delete()
+            
+            # 2. Delete ASL records for this patient
+            ASL.query.filter_by(patient_id=patient_id).delete()
+            
+            # 3. Delete submissions for this patient
+            Submission.query.filter_by(patient_id=patient_id).delete()
+            
+            # 4. Delete scenario patient assignments for this patient
+            ScenarioPatient.query.filter_by(patient_id=patient_id).delete()
+            
+            # 5. Remove this patient as active patient from any scenarios
+            scenarios_with_this_patient = Scenario.query.filter_by(active_patient_id=patient_id).all()
+            for scenario in scenarios_with_this_patient:
+                scenario.active_patient_id = None
+            
+            # 6. Finally delete the patient
+            db.session.delete(patient)
+            db.session.commit()
+            
+            flash("Patient and all related records deleted successfully!", "success")
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Error deleting patient: {str(e)}", "error")
     else:
         flash("CSRF check failed!", "danger")
+        
+    return redirect(url_for("views.patient_dashboard"))
+
+
+@views.route("/patients/bulk-delete", methods=["POST"])
+@teacher_required
+def bulk_delete_patients():
+    """Delete multiple patients at once"""
+    patient_ids = request.form.getlist('patient_ids')
+    
+    if not patient_ids:
+        flash("No patients selected for deletion.", "error")
+        return redirect(url_for("views.patient_dashboard"))
+    
+    try:
+        # Convert to integers and validate
+        patient_ids = [int(id) for id in patient_ids]
+        
+        # Get patients to verify they exist
+        patients = Patient.query.filter(Patient.id.in_(patient_ids)).all()
+        
+        if len(patients) != len(patient_ids):
+            flash("Some selected patients were not found.", "error")
+            return redirect(url_for("views.patient_dashboard"))
+        
+        # Delete all patients and their related records
+        deleted_count = 0
+        for patient in patients:
+            try:
+                # Delete related records first to avoid foreign key constraint errors
+                
+                # 1. Delete all prescriptions for this patient
+                Prescription.query.filter_by(patient_id=patient.id).delete()
+                
+                # 2. Delete ASL records for this patient
+                ASL.query.filter_by(patient_id=patient.id).delete()
+                
+                # 3. Delete submissions for this patient
+                Submission.query.filter_by(patient_id=patient.id).delete()
+                
+                # 4. Delete scenario patient assignments for this patient
+                ScenarioPatient.query.filter_by(patient_id=patient.id).delete()
+                
+                # 5. Remove this patient as active patient from any scenarios
+                scenarios_with_this_patient = Scenario.query.filter_by(active_patient_id=patient.id).all()
+                for scenario in scenarios_with_this_patient:
+                    scenario.active_patient_id = None
+                
+                # 6. Finally delete the patient
+                db.session.delete(patient)
+                deleted_count += 1
+                
+            except Exception as e:
+                flash(f"Error deleting patient {patient.name or 'Unnamed'}: {str(e)}", "error")
+                continue
+        
+        db.session.commit()
+        flash(f"Successfully deleted {deleted_count} patient(s) and all related records.", "success")
+        
+    except ValueError:
+        flash("Invalid patient IDs provided.", "error")
+    except Exception as e:
+        db.session.rollback()
+        flash("An error occurred while deleting patients. Please try again.", "error")
+    
     return redirect(url_for("views.patient_dashboard"))
 
 @views.route("/scenarios/<int:scenario_id>/name", methods=["POST"])
@@ -1706,7 +1987,86 @@ def asl_form(patient_id):
             db.session.rollback()
             flash(f"Error saving form data: {str(e)}", "error")
     
-    return render_template("asl_form.html", patient=patient)
+    # GET request - pre-populate form with existing data
+    from .models import ASL, Prescription, Prescriber
+    
+    # Get existing ASL record
+    asl_record = ASL.query.filter_by(patient_id=patient_id).first()
+    
+    # Get existing prescriptions
+    prescriptions = Prescription.query.filter_by(patient_id=patient_id).all()
+    
+    # Prepare pre-populated data structure similar to what the form expects
+    pt_data = {
+        "medicare": patient.medicare or "",
+        "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no or "",
+        "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder or "",
+        "rpbs-ben-entitlement-cardholder": patient.rpbs_ben_entitlement_cardholder or "",
+        "name": patient.name or "",
+        "dob": patient.dob or "",
+        "preferred-contact": patient.preferred_contact or "",
+        "address-1": patient.address or "",
+        "address-2": "",  # You might want to split this from address if needed
+        "script-date": patient.script_date or "",
+        "pbs": patient.pbs or "",
+        "rpbs": patient.rpbs or "",
+        "consent-status": {
+            "is-registered": patient.is_registered or False,
+            "status": patient.get_asl_status().name.replace('_', ' ').title() if hasattr(patient, 'get_asl_status') else 'Pending',
+            "last-updated": patient.consent_last_updated or ""
+        },
+        "carer": {
+            "name": asl_record.carer_name if asl_record else "",
+            "relationship": asl_record.carer_relationship if asl_record else "",
+            "mobile": asl_record.carer_mobile if asl_record else "",
+            "email": asl_record.carer_email if asl_record else ""
+        },
+        "notes": asl_record.notes if asl_record else "",
+        "asl-data": [],
+        "alr-data": []
+    }
+    
+    # Process existing prescriptions into ASL and ALR data
+    for prescription in prescriptions:
+        prescriber = prescription.prescriber
+        
+        prescription_data = {
+            "prescription_id": prescription.id,
+            "DSPID": prescription.DSPID or "",
+            "status": prescription.get_status().name.title(),
+            "drug-name": prescription.drug_name or "",
+            "drug-code": prescription.drug_code or "",
+            "dose-instr": prescription.dose_instr or "",
+            "dose-qty": prescription.dose_qty or 0,
+            "dose-rpt": prescription.dose_rpt or 0,
+            "prescribed-date": prescription.prescribed_date or "",
+            "paperless": prescription.paperless,
+            "brand-sub-not-prmt": prescription.brand_sub_not_prmt or False,
+            "prescriber": {
+                "fname": prescriber.fname or "",
+                "lname": prescriber.lname or "",
+                "title": prescriber.title or "",
+                "address-1": prescriber.address_1 or "",
+                "address-2": prescriber.address_2 or "",
+                "id": prescriber.prescriber_id or "",
+                "hpii": prescriber.hpii or "",
+                "hpio": prescriber.hpio or "",
+                "phone": prescriber.phone or "",
+                "fax": prescriber.fax or "",
+            }
+        }
+        
+        # Determine if this is ASL or ALR data
+        if prescriber.fname == "ALR" or prescription.remaining_repeats and prescription.remaining_repeats > 0:
+            # This is ALR data
+            prescription_data["dispensed-date"] = prescription.dispensed_date or ""
+            prescription_data["remaining-repeats"] = prescription.remaining_repeats or 0
+            pt_data["alr-data"].append(prescription_data)
+        else:
+            # This is ASL data
+            pt_data["asl-data"].append(prescription_data)
+
+    return render_template("asl_form.html", patient=patient, pt_data=pt_data)
 
 
 @views.route("/help")
@@ -1731,3 +2091,246 @@ def readme():
     html_content = html_path.read_text(encoding="utf-8")
 
     return render_template("views/help/help.html", html=html_content)
+
+
+# Submission and Grading System
+@views.route("/scenarios/<int:scenario_id>/submit/<int:patient_id>", methods=["GET", "POST"])
+@login_required
+def submit_work(scenario_id, patient_id):
+    """Student submits their ASL work for grading"""
+    if current_user.role != 'student':
+        flash("Only students can submit work.", "error")
+        return redirect(url_for('views.home'))
+    
+    # Check if student is assigned to this scenario
+    student_scenario = StudentScenario.query.filter_by(
+        student_id=current_user.id,
+        scenario_id=scenario_id
+    ).first()
+    
+    if not student_scenario:
+        flash("You are not assigned to this scenario.", "error")
+        return redirect(url_for('views.student_dashboard'))
+    
+    # Check if student is assigned to this patient
+    scenario_patient = ScenarioPatient.query.filter_by(
+        student_id=current_user.id,
+        scenario_id=scenario_id,
+        patient_id=patient_id
+    ).first()
+    
+    if not scenario_patient:
+        flash("You are not assigned to this patient.", "error")
+        return redirect(url_for('views.student_dashboard'))
+    
+    scenario = Scenario.query.get_or_404(scenario_id)
+    patient = Patient.query.get_or_404(patient_id)
+    
+    if request.method == "POST":
+        # Handle file uploads
+        uploaded_files = []
+        if 'pdf_file' in request.files:
+            files = request.files.getlist('pdf_file')
+            
+            # Create uploads directory if it doesn't exist
+            upload_folder = os.path.join(current_app.root_path, 'uploads', 'submissions')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            for file in files:
+                if file and file.filename:
+                    # Validate file size (10MB max)
+                    file.seek(0, os.SEEK_END)
+                    file_size = file.tell()
+                    file.seek(0)
+                    
+                    if file_size > 10 * 1024 * 1024:  # 10MB
+                        flash(f"File {file.filename} is too large. Maximum size is 10MB.", "error")
+                        continue
+                    
+                    # Validate file type
+                    allowed_extensions = {'.pdf', '.doc', '.docx', '.txt'}
+                    file_ext = os.path.splitext(file.filename)[1].lower()
+                    
+                    if file_ext not in allowed_extensions:
+                        flash(f"File {file.filename} has unsupported format. Please use PDF, Word, or text files.", "error")
+                        continue
+                    
+                    # Generate secure filename
+                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                    safe_filename = f"{current_user.id}_{scenario_id}_{patient_id}_{timestamp}_{secure_filename(file.filename)}"
+                    file_path = os.path.join(upload_folder, safe_filename)
+                    
+                    try:
+                        file.save(file_path)
+                        uploaded_files.append({
+                            'original_name': file.filename,
+                            'stored_name': safe_filename,
+                            'file_path': file_path,
+                            'file_size': file_size,
+                            'upload_time': datetime.now().isoformat()
+                        })
+                    except Exception as e:
+                        flash(f"Error uploading {file.filename}: {str(e)}", "error")
+        
+        # Create submission
+        from .models import Submission
+        
+        # Get current ASL data for this patient
+        asl_record = ASL.query.filter_by(patient_id=patient_id).first()
+        prescriptions = Prescription.query.filter_by(patient_id=patient_id).all()
+        
+        # Create submission data snapshot
+        submission_data = {
+            "patient_data": {
+                "medicare": patient.medicare,
+                "name": patient.name,
+                "dob": patient.dob,
+                "address": patient.address,
+                "phone": patient.phone,
+                "asl_status": patient.asl_status
+            },
+            "asl_record": {
+                "carer_name": asl_record.carer_name if asl_record else "",
+                "carer_relationship": asl_record.carer_relationship if asl_record else "",
+                "notes": asl_record.notes if asl_record else ""
+            },
+            "prescriptions": [
+                {
+                    "drug_name": p.drug_name,
+                    "drug_code": p.drug_code,
+                    "dose_instr": p.dose_instr,
+                    "dose_qty": p.dose_qty,
+                    "status": p.status
+                } for p in prescriptions
+            ],
+            "uploaded_files": uploaded_files
+        }
+        
+        # Create or update submission
+        existing_submission = Submission.query.filter_by(
+            student_scenario_id=student_scenario.id,
+            patient_id=patient_id
+        ).first()
+        
+        if existing_submission:
+            existing_submission.submission_data = submission_data
+            existing_submission.notes = request.form.get('notes', '')
+            existing_submission.submitted_at = datetime.now()
+        else:
+            submission = Submission(
+                student_scenario_id=student_scenario.id,
+                patient_id=patient_id,
+                submission_data=submission_data,
+                notes=request.form.get('notes', '')
+            )
+            db.session.add(submission)
+        
+        # Update student scenario status
+        student_scenario.submitted_at = datetime.now()
+        student_scenario.status = 'submitted'
+        
+        db.session.commit()
+        flash("Work submitted successfully!", "success")
+        return redirect(url_for('views.student_dashboard'))
+    
+    # GET request - show submission form
+    return render_template("views/submit_work.html", 
+                         scenario=scenario, 
+                         patient=patient,
+                         student_scenario=student_scenario)
+
+
+@views.route("/scenarios/<int:scenario_id>/submissions")
+@teacher_required
+def view_submissions(scenario_id):
+    """Teacher views all submissions for a scenario"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    
+    # Ensure teacher owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only view submissions for your own scenarios.", "error")
+        return redirect(url_for('views.teacher_dash'))
+    
+    # Get all student scenarios with submissions
+    student_scenarios = StudentScenario.query.filter_by(scenario_id=scenario_id).all()
+    
+    submissions_data = []
+    for ss in student_scenarios:
+        student = User.query.get(ss.student_id)
+        submissions = Submission.query.filter_by(student_scenario_id=ss.id).all()
+        
+        submissions_data.append({
+            'student_scenario': ss,
+            'student': student,
+            'submissions': submissions
+        })
+    
+    return render_template("views/scenario_submissions.html", 
+                         scenario=scenario,
+                         submissions_data=submissions_data)
+
+
+@views.route("/submissions/<int:submission_id>/grade", methods=["GET", "POST"])
+@teacher_required
+def grade_submission(submission_id):
+    """Teacher grades a specific submission"""
+    submission = Submission.query.get_or_404(submission_id)
+    student_scenario = submission.student_scenario
+    scenario = student_scenario.scenario
+    
+    # Ensure teacher owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash("You can only grade submissions for your own scenarios.", "error")
+        return redirect(url_for('views.teacher_dash'))
+    
+    if request.method == "POST":
+        # Update grade and feedback
+        score = request.form.get('score', type=float)
+        feedback = request.form.get('feedback', '')
+        
+        if score is not None:
+            student_scenario.score = score
+            student_scenario.feedback = feedback
+            student_scenario.completed_at = datetime.now()
+            student_scenario.status = 'graded'
+            
+            db.session.commit()
+            flash("Submission graded successfully!", "success")
+            return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+    
+    # GET request - show grading form
+    student = User.query.get(student_scenario.student_id)
+    patient = Patient.query.get(submission.patient_id)
+    
+    return render_template("views/grade_submission.html",
+                         submission=submission,
+                         student_scenario=student_scenario,
+                         student=student,
+                         patient=patient,
+                         scenario=scenario)
+
+
+@views.route('/download_file/<filename>')
+@login_required
+def download_file(filename):
+    """Download uploaded file (only for teachers/admins)"""
+    if current_user.user_type not in ['teacher', 'admin']:
+        flash("Unauthorized access.", "error")
+        return redirect(url_for('views.student_dashboard'))
+    
+    try:
+        # Ensure the uploads directory exists
+        uploads_dir = os.path.join(current_app.instance_path, 'uploads')
+        file_path = os.path.join(uploads_dir, filename)
+        
+        # Verify file exists and is within uploads directory
+        if not os.path.exists(file_path) or not os.path.commonpath([uploads_dir, file_path]) == uploads_dir:
+            flash("File not found.", "error")
+            return redirect(url_for('views.teacher_dash'))
+        
+        # Send file with appropriate headers
+        return send_file(file_path, as_attachment=True)
+        
+    except Exception as e:
+        flash(f"Error downloading file: {str(e)}", "error")
+        return redirect(url_for('views.teacher_dash'))
