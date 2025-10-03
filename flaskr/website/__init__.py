@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 
 def create_app():
     app = Flask(__name__)
@@ -29,6 +30,11 @@ def create_app():
     login_manager.login_message = 'Please log in to access this page.'
     login_manager.login_message_category = 'info'
     
+    # Expose csrf_token() in all templates
+    @app.context_processor
+    def inject_csrf_token():
+        return dict(csrf_token=generate_csrf)
+    
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
@@ -42,6 +48,7 @@ def create_app():
 
     # Check and initialize database if needed
     initialize_database(app)
+    apply_light_migrations(app)
 
     return app
 
@@ -54,6 +61,32 @@ def initialize_database(app):
             db.create_all()
 
     return app
+
+
+def apply_light_migrations(app):
+    """Best-effort, idempotent column adds for SQLite dev DBs.
+    Safe to run repeatedly; only adds columns if missing.
+    """
+    from sqlalchemy import text
+    from .models import db
+    with app.app_context():
+        engine = db.engine
+        with engine.begin() as conn:
+            def column_exists(table_name: str, column_name: str) -> bool:
+                rows = conn.execute(text(f"PRAGMA table_info({table_name})")).fetchall()
+                # PRAGMA table_info returns: cid, name, type, notnull, dflt_value, pk
+                return any(row[1] == column_name for row in rows)
+
+            def add_column_if_missing(table_name: str, column_name: str, column_sql_type: str, default_value=None):
+                if not column_exists(table_name, column_name):
+                    conn.execute(text(f"ALTER TABLE {table_name} ADD COLUMN {column_name} {column_sql_type}"))
+                    if default_value is not None:
+                        conn.execute(text(f"UPDATE {table_name} SET {column_name} = :val"), {"val": default_value})
+
+            # scenarios.question (TEXT)
+            add_column_if_missing('scenarios', 'question', 'TEXT')
+            # scenarios.is_active (INTEGER as boolean), default 1
+            add_column_if_missing('scenarios', 'is_active', 'INTEGER', default_value=1)
 
 
 

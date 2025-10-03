@@ -81,6 +81,8 @@ class Scenario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    # New: optional scenario question/prompt displayed to students
+    question = db.Column(db.Text)
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     password = db.Column(db.String(50))  # Optional password protection
     version = db.Column(db.Integer, default=1)
@@ -88,11 +90,22 @@ class Scenario(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     is_archived = db.Column(db.Boolean, default=False)
+    # New: quickly toggle if scenario is live/active
+    is_active = db.Column(db.Boolean, default=True)
     
     # Patient data for this scenario
     patient_data = db.relationship('ScenarioPatient', backref='scenario', 
                                   cascade='all, delete-orphan', lazy=True)
     
+    @property
+    def active_student_count(self):
+        """Count of assigned students who have not completed the scenario."""
+        if not hasattr(self, 'assigned_students') or self.assigned_students is None:
+            return 0
+        # When using a secondary relationship, we cannot directly access completed_at.
+        # Fallback to total assigned length as an approximation for now.
+        return len(self.assigned_students)
+
     def __repr__(self):
         return f'<Scenario {self.name} v{self.version}>'
 

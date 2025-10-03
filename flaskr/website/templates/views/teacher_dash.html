@@ -77,9 +77,12 @@
             <h4><i class="bi bi-clipboard2-pulse"></i> Scenarios</h4>
         </div>
         <div class="col-2 d-flex justify-content-end">
-            <button class="btn btn-primary" title="Create New Scenario">
-                <i class="bi bi-plus-square-fill"></i> New Scenario
-            </button>
+            <form method="post" action="{{ url_for('views.scenario_create') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-primary" title="Create New Scenario" type="submit">
+                    <i class="bi bi-plus-square-fill"></i> New Scenario
+                </button>
+            </form>
         </div>
     </div>
 
@@ -105,7 +108,7 @@
                             <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
                         </td>
                         <td class="scenario-name">
-                            <a href="#scenario-{{ scenario.id }}">{{ scenario.name }}</a>
+                            <a href="{{ url_for('views.scenario_detail', scenario_id=scenario.id) }}">{{ scenario.name }}</a>
                             {% if scenario.password %}
                                 <span class="badge bg-warning ms-2"><i class="bi bi-lock"></i></span>
                             {% endif %}
@@ -126,16 +129,16 @@
                         </td>
                         <td class="text-center">
                             <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-info" title="Edit scenario">
+                                <a href="{{ url_for('views.scenario_detail', scenario_id=scenario.id) }}" class="btn btn-sm btn-info" title="Edit scenario">
                                     <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button class="btn btn-sm btn-success" title="Assign students">
+                                </a>
+                                <a href="{{ url_for('views.scenario_assign', scenario_id=scenario.id) }}" class="btn btn-sm btn-success" title="Assign students">
                                     <i class="bi bi-person-plus"></i>
-                                </button>
+                                </a>
                                 <button class="btn btn-sm btn-secondary" title="Export data">
                                     <i class="bi bi-download"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" title="Delete scenario">
+                                <button class="btn btn-sm btn-danger btn-delete-scenario" data-id="{{ scenario.id }}" title="Delete scenario">
                                     <i class="bi bi-trash3-fill"></i>
                                 </button>
                             </div>
@@ -252,6 +255,33 @@
     document.getElementById('select-all')?.addEventListener('change', function() {
         const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
         checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    // Delete scenario via fetch (send CSRF token)
+    document.querySelectorAll('.btn-delete-scenario').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            if (!confirm('Delete this scenario?')) return;
+            const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            fetch(`/teacher/scenario/${id}/delete`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({})
+            })
+            .then(async r => {
+                const data = await r.json().catch(() => ({}));
+                if (r.ok && data.success) {
+                    location.reload();
+                } else {
+                    throw new Error(data.error || `HTTP ${r.status}`);
+                }
+            })
+            .catch((e) => alert('Delete failed: ' + e.message));
+        });
     });
 </script>
 {% endblock %}

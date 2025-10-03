@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Scenario {{ scenario.name }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3><i class="bi bi-clipboard2-pulse"></i> {{ scenario.name }} <span class="badge bg-info">v{{ scenario.version }}</span></h3>
+    <div>
+      <a href="{{ url_for('views.scenario_assign', scenario_id=scenario.id) }}" class="btn btn-success">
+        <i class="bi bi-person-plus"></i> Assign Students
+      </a>
+      <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-secondary">Back</a>
+    </div>
+  </div>
+
+  {% if scenario.description %}
+  <p class="text-muted">{{ scenario.description }}</p>
+  {% endif %}
+  {% if scenario.question %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <strong>Question:</strong>
+      <p class="mb-0">{{ scenario.question }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-header">Assigned Students ({{ scenario.assigned_students|length }})</div>
+    <ul class="list-group list-group-flush">
+      {% for s in scenario.assigned_students %}
+      <li class="list-group-item">{{ s.get_full_name() }}</li>
+      {% else %}
+      <li class="list-group-item text-muted">No students assigned</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+{% endblock %}
+
+

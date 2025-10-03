@@ -20,7 +20,8 @@ $(document).ready(function() {
       
       $(this).prop('disabled', true);
       
-      $.post(`/api/asl/${pt_id}/request-access`)
+      const token = $('meta[name="csrf-token"]').attr('content');
+      $.ajax({ url: `/api/asl/${pt_id}/request-access`, method: 'POST', headers: { 'X-CSRFToken': token } })
       .done(function(data) {
           console.log('Request Access response:', data);
           if (data.success) {
@@ -52,7 +53,8 @@ $(document).ready(function() {
       
       $(this).prop('disabled', true).text('Refreshing...');
       
-      $.post(`/api/asl/${pt_id}/refresh`)
+      const token = $('meta[name="csrf-token"]').attr('content');
+      $.ajax({ url: `/api/asl/${pt_id}/refresh`, method: 'POST', headers: { 'X-CSRFToken': token } })
       .done(function(data) {
           console.log('Refresh response:', data);
           if (data.success) {
@@ -92,9 +94,11 @@ $(document).ready(function() {
           return;
       }
       
+      const token = $('meta[name="csrf-token"]').attr('content');
       $.ajax({
           url: `/api/patient/${pt_id}/consent`,
           method: 'DELETE',
+          headers: { 'X-CSRFToken': token },
           success: function(data) {
               console.log('Delete Consent response:', data);
               if (data.success) {
@@ -193,6 +197,45 @@ $(document).ready(function() {
       });
       
       console.log('Selected prescription IDs:', selectedIds);
+  });
+
+  // Dispense selected (students only)
+  $('#script-dispense').on('click', function() {
+      const selectedIds = [];
+      $('#asl-table tbody input[type="checkbox"]:checked').each(function() {
+          selectedIds.push(parseInt($(this).val()));
+      });
+      if (selectedIds.length === 0) {
+          alert('Select at least one prescription to dispense');
+          return;
+      }
+      $(this).prop('disabled', true).text('Dispensing...');
+      const token = $('meta[name="csrf-token"]').attr('content');
+      $.ajax({
+          url: '/api/prescriptions/dispense',
+          method: 'POST',
+          contentType: 'application/json',
+          headers: { 'X-CSRFToken': token },
+          data: JSON.stringify({ prescription_ids: selectedIds }),
+          success: function(data) {
+              if (data.success) {
+                  alert(`Dispensed ${data.updated} prescription(s)`);
+                  if (data.should_reload) {
+                      location.reload();
+                  }
+              } else {
+                  alert(data.error || 'Dispense failed');
+              }
+          },
+          error: function(xhr) {
+              if (xhr.status === 403) {
+                  alert(xhr.responseJSON?.error || 'Not permitted');
+              } else {
+                  alert('Dispense failed');
+              }
+          },
+          complete: () => $('#script-dispense').prop('disabled', false).text('Dispense Selected')
+      });
   });
 
   function initializeButtonStates() {

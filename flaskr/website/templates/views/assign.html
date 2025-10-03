@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Assign Students{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+  <h3>Assign Students to {{ scenario.name }}</h3>
+  <form method="post">
+    <div class="card mt-3">
+      <div class="card-header">All Students</div>
+      <div class="card-body">
+        {% for s in students %}
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" name="student_ids" value="{{ s.id }}" id="student-{{ s.id }}" {% if s in scenario.assigned_students %}checked{% endif %}>
+          <label class="form-check-label" for="student-{{ s.id }}">{{ s.get_full_name() }} ({{ s.email }})</label>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="mt-3 d-flex gap-2">
+      <button type="submit" class="btn btn-primary">Assign Selected</button>
+      <a href="{{ url_for('views.scenario_detail', scenario_id=scenario.id) }}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+

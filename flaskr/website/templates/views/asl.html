@@ -127,9 +127,14 @@
             <div class="col-1">
                 <!-- CHANGED: Use asl-data instead of asl_data -->
                 {% if pt_data['asl-data']|length > 0 %}
-                <button id="script-print" class="btn btn-primary">
+                <button id="script-print" class="btn btn-primary me-2">
                     <i class="bi bi-printer-fill printer"></i>
                 </button>
+                {% if is_student %}
+                <button id="script-dispense" class="btn btn-success">
+                    <i class="bi bi-capsule"></i> Dispense Selected
+                </button>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
