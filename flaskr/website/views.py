@@ -55,7 +55,7 @@ def teacher_required(f):
     @login_required
     def decorated_function(*args, **kwargs):
         if not current_user.is_teacher():
-            flash("You need to be a teacher to access this page", "error")
+            # flash("You need to be a teacher to access this page", "error")
             return redirect(url_for("auth.home"))
         return f(*args, **kwargs)
 
