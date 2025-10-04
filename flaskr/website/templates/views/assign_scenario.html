@@ -2,7 +2,7 @@
 {% block title %}Assign Students - {{ scenario.name }}{% endblock %}
 
 {% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/assign_scenarios.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/assign_scenario.css') }}">
 {% endblock %}
 
 {% block body %}
@@ -42,7 +42,7 @@
                             <i class="bi bi-check-square"></i> Select All
                         </button>
                         <button type="button" id="selectNoneBtn" class="bulk-btn secondary">
-                            <i class="bi bi-square"></i> Select None
+                            <i class="bi bi-square"></i> Deselect All
                         </button>
                         <button type="button" id="selectNewBtn" class="bulk-btn success">
                             <i class="bi bi-person-plus"></i> Select Unassigned
@@ -59,16 +59,16 @@
 
             <!-- Selection Summary -->
             <div class="selection-summary d-none" id="selectionSummary">
-                <div class="d-flex justify-content-between align-items-center">
+                <div class="d-flex justify-content-between align-items-center text-dark">
                     <span><i class="bi bi-check-square me-2"></i><span id="selectedCount">0</span> students selected</span>
-                    <small class="text-muted">Currently assigned: {{ assigned_student_ids|length }}</small>
+                    <small>Currently assigned: {{ assigned_student_ids|length }}</small>
                 </div>
             </div>
 
             <!-- Students List -->
             <div id="studentsList">
                 {% if students and students|length > 0 %}
-                    <div class="table-responsive">
+                    <div class="table-responsive students-table-wrapper">
                         <table class="table students-table">
                             <thead>
                                 <tr>
@@ -100,8 +100,8 @@
                                     </td>
                                     <td>
                                         <div class="student-details">
-                                            <div class="student-name">{{ student.get_full_name() }}</div>
-                                            <small class="student-id">ID: {{ student.id }}</small>
+                                            <div class="student-name text-primary-emphasis">{{ student.get_full_name() }}</div>
+                                            <small class="student-id text-dark-emphasis">ID: {{ student.id }}</small>
                                         </div>
                                     </td>
                                     <td>
@@ -126,7 +126,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        <select class="form-select patient-select" 
+                                        <select class="form-select patient-select text-secondary" 
                                                 name="patient_{{ student.id }}" 
                                                 data-student-id="{{ student.id }}">
                                             <option value="">-- Select Patient --</option>

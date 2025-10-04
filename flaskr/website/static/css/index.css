@@ -7,6 +7,10 @@ body {
   overflow-y: scroll !important;
 }
 
+body.modal-open {
+    padding-right: 0 !important;
+}
+
 .delete-btn {
   border-radius: 0px 0.5rem 0.5rem 0px !important;
   margin-left: -1px;

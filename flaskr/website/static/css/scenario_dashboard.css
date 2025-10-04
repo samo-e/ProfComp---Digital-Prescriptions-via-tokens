@@ -60,17 +60,12 @@
   border: 3px solid #fff;
   box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
   transition: transform 0.2s ease;
+  width: 45px;
+  height: 45px;
 }
 
 .patient-icon:hover {
   transform: scale(1.1);
-}
-
-.patient-name {
-  color: #2c3e50;
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
 .patient-basic-info .badge {
@@ -168,11 +163,6 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
-.patient-name {
-  color: #2c3e50;
-  font-weight: 700;
-}
-
 .patient-card {
   background: #f8f9fa;
   border: 1px solid #e9ecef;
@@ -186,6 +176,7 @@
   font-weight: 600;
   color: #212529;
   margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
 }
 
 .patient-dob {
@@ -343,9 +334,4 @@
   border-radius: 5px;
   border-left: 4px solid #007bff;
   white-space: pre-wrap;
-}
-
-.patient-icon {
-  width: 45px;
-  height: 45px;
 }

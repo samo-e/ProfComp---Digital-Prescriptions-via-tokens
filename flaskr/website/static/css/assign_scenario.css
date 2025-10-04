@@ -1,7 +1,6 @@
 .assign-container {
   max-width: 900px;
   margin: 2rem auto;
-  background: white;
   padding: 2rem;
   border-radius: 1rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -52,10 +51,6 @@
   font-weight: 600;
 }
 
-.student-details small {
-  color: #6c757d;
-}
-
 .student-status {
   font-size: 0.875rem;
   font-weight: 500;
@@ -63,10 +58,6 @@
 
 .status-new {
   color: #28a745;
-}
-
-.status-assigned {
-  color: #ffc107;
 }
 
 .selection-summary {
@@ -88,7 +79,7 @@
 
 .btn-assign {
   background: linear-gradient(135deg, #28a745, #20c997);
-  color: white;
+  color: black !important;
 }
 
 .btn-assign:hover {
@@ -195,7 +186,6 @@
   flex-wrap: wrap;
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: #f8f9fa;
   border-radius: 0.75rem;
   border: 1px solid #e9ecef;
 }
@@ -236,10 +226,16 @@
 
 /* Enhanced Table Styling */
 .students-table {
+  border-collapse: separate; /* optional, avoids collapsing */
+  width: 100%;
+}
+
+.students-table-wrapper {
+  border: solid 1px white;
   border-radius: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  border: none;
+
 }
 
 .students-table thead th {
@@ -253,6 +249,14 @@
   position: sticky;
   top: 0;
   z-index: 10;
+}
+
+.students-table thead th:first-child {
+  border-top-left-radius: 0.7rem;
+}
+
+.students-table thead th:last-child {
+  border-top-right-radius: 0.7rem;
 }
 
 .students-table tbody tr {
@@ -279,13 +283,11 @@
 
 .student-name {
   font-weight: 600;
-  color: #2c3e50;
   margin-bottom: 0.25rem;
 }
 
 .student-id {
   font-size: 0.875rem;
-  color: #7f8c8d;
   font-weight: 500;
 }
 
@@ -328,6 +330,7 @@
   background: linear-gradient(135deg, #f39c12, #e67e22);
   color: white;
   box-shadow: 0 2px 4px rgba(243, 156, 18, 0.3);
+  color: #ffc107;
 }
 
 .patient-select {
