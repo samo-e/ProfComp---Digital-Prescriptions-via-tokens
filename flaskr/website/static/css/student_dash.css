@@ -1,0 +1,152 @@
+body > .container {
+    margin-top: 3%;
+    margin-bottom: 3%;
+}
+
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 1rem;
+    margin-bottom: 3rem;
+}
+
+.stats-card {
+    transition: transform 0.2s;
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.scenario-card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    height: 100%;
+}
+
+.scenario-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.scenario-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+
+.scenario-title {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.patient-info-card {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border: 1px solid #2196f3;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+}
+
+.patient-name {
+    font-weight: 600;
+    color: #1565c0;
+    margin-bottom: 0.25rem;
+}
+
+.btn-scenario {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
+}
+
+.btn-scenario:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+    transform: translateY(-1px);
+    color: white;
+}
+
+.btn-asl {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    font-weight: 500;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s;
+}
+
+.btn-asl:hover {
+    background: linear-gradient(135deg, #218838 0%, #1abc96 100%);
+    transform: translateY(-1px);
+    color: white;
+}
+
+.status-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 1rem;
+}
+
+.practice-section {
+    background: #f8f9fa;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+.empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.scenario-check * {
+    margin: auto;
+    display: block;
+}
+
+.scenario-qty,
+.scenario-percent-complete {
+    text-align: center;
+}
+
+.scenario-name > a,
+.scenario-check:hover > *, 
+.printer:hover {
+    cursor: pointer;
+}
+
+.scenario-name {
+    font-style: u;
+}
+
+.sr-only {
+  height: 1px;
+  width: 1px;
+  clip: rect(1px, 1px, 1px, 1px);
+  overflow: hidden;
+  position: absolute;
+}

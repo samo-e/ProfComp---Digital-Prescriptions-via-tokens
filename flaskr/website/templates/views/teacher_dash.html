@@ -3,21 +3,6 @@
 
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_dash.css') }}">
-    <style>
-        .dashboard-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: 1rem;
-            margin-bottom: 2rem;
-        }
-        .stats-card {
-            transition: transform 0.2s;
-        }
-        .stats-card:hover {
-            transform: translateY(-5px);
-        }
-    </style>
 {% endblock %}
 
 {% block body %}
@@ -40,191 +25,265 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4 mb-3">
-            <div class="card stats-card">
-                <div class="card-body text-center">
-                    <i class="bi bi-journal-medical" style="font-size: 2rem; color: #667eea;"></i>
-                    <h5 class="card-title mt-2">Total Scenarios</h5>
-                    <p class="card-text display-6">{{ total_scenarios if total_scenarios else 0 }}</p>
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Total Scenarios Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-primary text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Total Scenarios</h5>
+                            <h2 class="mb-0 fw-bold">{{ total_scenarios }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-journal-text fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <form method="POST" action="{{ url_for('views.create_scenario') }}">
+                            {{ form.hidden_tag() }}
+                            <button type="submit" class="btn btn-light btn-sm w-100 action-btn">
+                                <i class="bi bi-plus-circle me-2"></i>New Scenario
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card stats-card">
-                <div class="card-body text-center">
-                    <i class="bi bi-people-fill" style="font-size: 2rem; color: #10b981;"></i>
-                    <h5 class="card-title mt-2">Total Students</h5>
-                    <p class="card-text display-6">{{ total_students if total_students else 0 }}</p>
+        
+        <!-- Total Students Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-success text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Total Students</h5>
+                            <h2 class="mb-0 fw-bold">{{ total_students }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-people fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('views.student_management') }}" class="btn btn-light btn-sm w-100 action-btn">
+                            <i class="bi bi-mortarboard me-2"></i>Manage Students
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-3">
-            <div class="card stats-card">
-                <div class="card-body text-center">
-                    <i class="bi bi-activity" style="font-size: 2rem; color: #f59e0b;"></i>
-                    <h5 class="card-title mt-2">Active Scenarios</h5>
-                    <p class="card-text display-6">{{ scenarios|length if scenarios else 0 }}</p>
+        
+        <!-- Total Patients Card -->
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-warning text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Total Patients</h5>
+                            <h2 class="mb-0 fw-bold">{{ total_patients }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-person-heart fs-1 opacity-75"></i>
+                        </div>
+                    </div>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-light btn-sm w-100 action-btn">
+                            <i class="bi bi-people me-2"></i>Manage Patients
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scenarios Section -->
-    <div class="row m-3">
-        <div class="col-10">
-            <h4><i class="bi bi-clipboard2-pulse"></i> Scenarios</h4>
-        </div>
-        <div class="col-2 d-flex justify-content-end">
-            <button class="btn btn-primary" title="Create New Scenario">
-                <i class="bi bi-plus-square-fill"></i> New Scenario
-            </button>
-        </div>
-    </div>
-
-    <div class="rounded-2 border border-3">
-        <table class="table table-striped mb-0">
-            <thead>
-                <tr>
-                    <th scope="col" class="text-center" style="width: 50px;">
+    <!-- Scenarios Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-gradient border-0">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-journal-text me-2"></i>My Scenarios
+                        <span class="badge bg-primary ms-2">{{ scenarios|length }}</span>
+                    </h5>
+                </div>
+                <div class="col-auto">
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="select-all">
-                    </th>
-                    <th scope="col">Scenario Name</th>
-                    <th scope="col" class="text-center">Students</th>
-                    <th scope="col" class="text-center">Progress</th>
-                    <th scope="col" class="text-center">Version</th>
-                    <th scope="col" class="text-center">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% if scenarios and scenarios|length > 0 %}
-                    {% for scenario in scenarios %}
-                    <tr>
-                        <td class="scenario-check text-center">
-                            <input class="form-check-input" type="checkbox" value="{{ scenario.id }}" id="scenario-check-{{ scenario.id }}">
-                        </td>
-                        <td class="scenario-name">
-                            <a href="#scenario-{{ scenario.id }}">{{ scenario.name }}</a>
-                            {% if scenario.password %}
-                                <span class="badge bg-warning ms-2"><i class="bi bi-lock"></i></span>
-                            {% endif %}
-                            {% if scenario.description %}
-                                <br><small class="text-muted">{{ scenario.description[:50] }}...</small>
-                            {% endif %}
-                        </td>
-                        <td class="scenario-qty text-center">
-                            {{ scenario.assigned_students|length if scenario.assigned_students else 0 }}
-                        </td>
-                        <td class="scenario-percent-complete text-center">
-                            <div class="progress" style="height: 20px;">
-                                <div class="progress-bar" role="progressbar" style="width: 0%">0%</div>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge bg-info">v{{ scenario.version }}</span>
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group" role="group">
-                                <button class="btn btn-sm btn-info" title="Edit scenario">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button class="btn btn-sm btn-success" title="Assign students">
-                                    <i class="bi bi-person-plus"></i>
-                                </button>
-                                <button class="btn btn-sm btn-secondary" title="Export data">
-                                    <i class="bi bi-download"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" title="Delete scenario">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center py-4">
-                            <i class="bi bi-inbox" style="font-size: 2rem; color: #ccc;"></i>
-                            <p class="text-muted mt-2">No scenarios created yet. Click "New Scenario" to get started!</p>
-                        </td>
-                    </tr>
-                {% endif %}
-                
-                <!-- Sample static scenarios for demonstration -->
-                {% if not scenarios or scenarios|length == 0 %}
-                <tr>
-                    <td class="scenario-check text-center">
-                        <input class="form-check-input" type="checkbox" value="demo-1" id="scenario-check-demo-1">
-                    </td>
-                    <td class="scenario-name">
-                        <a href="#Scenario-1">Sample Scenario 1</a>
-                        <br><small class="text-muted">Basic ASL workflow practice</small>
-                    </td>
-                    <td class="scenario-qty text-center">25</td>
-                    <td class="scenario-percent-complete text-center">
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar" role="progressbar" style="width: 50%">50%</div>
+                        <label class="form-check-label small text-muted" for="select-all">
+                            Select All
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if scenarios %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-modern mb-0">
+                        <thead class="table-header">
+                            <tr>
+                                <th class="border-0" width="50">
+                                    <div class="th-content">
+                                        <i class="bi bi-check-square text-primary"></i>
+                                    </div>
+                                </th>
+                                <th class="border-0">
+                                    <div class="th-content">
+                                        <i class="bi bi-journal-text me-2 text-primary"></i>Scenario
+                                    </div>
+                                </th>
+                                <th class="border-0 text-center" width="120">
+                                    <div class="th-content">
+                                        <i class="bi bi-people me-2 text-success"></i>Students
+                                    </div>
+                                </th>
+                                <th class="border-0 text-center" width="120">
+                                    <div class="th-content">
+                                        <i class="bi bi-file-earmark-text me-2 text-warning"></i>Submissions
+                                    </div>
+                                </th>
+                                <th class="border-0 text-center" width="120">
+                                    <div class="th-content">
+                                        <i class="bi bi-check-circle me-2 text-success"></i>Marked
+                                    </div>
+                                </th>
+                                <th class="border-0 text-center" width="200">
+                                    <div class="th-content">
+                                        <i class="bi bi-gear me-2 text-info"></i>Actions
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for scenario in scenarios %}
+                            <tr class="scenario-row">
+                                <td class="border-0 align-middle">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <input class="form-check-input scenario-checkbox" type="checkbox" value="{{ scenario.id }}" id="scenario-{{ scenario.id }}">
+                                    </div>
+                                </td>
+                                <td class="border-0 align-middle">
+                                    <div class="scenario-info">
+                                        <div class="d-flex align-items-center">
+                                            <div class="scenario-icon me-3">
+                                                <i class="bi bi-journal-text"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="scenario-name mb-1">
+                                                    <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" class="text-decoration-none fw-semibold">
+                                                        {{ scenario.name }}
+                                                    </a>
+                                                </h6>
+                                                <div class="scenario-meta">
+                                                    <small class="text-muted me-3">
+                                                        <i class="bi bi-calendar3 me-1"></i>
+                                                        {{ scenario.created_at.strftime('%d %b %Y') if scenario.created_at else 'Unknown' }}
+                                                    </small>
+                                                    {% if scenario.version > 1 %}
+                                                        <span class="badge bg-secondary me-2">v{{ scenario.version }}</span>
+                                                    {% endif %}
+                                                    {% if scenario.password %}
+                                                        <span class="badge bg-warning text-dark">
+                                                            <i class="bi bi-lock-fill me-1"></i>Protected
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="border-0 align-middle text-center">
+                                    <div class="stat-badge stat-students">
+                                        <span class="stat-number">{{ scenario.assigned_students|length if scenario.assigned_students else 0 }}</span>
+                                        <small class="stat-label">Students</small>
+                                    </div>
+                                </td>
+                                <td class="border-0 align-middle text-center">
+                                    {% if scenario.submissions and scenario.submissions|length > 0 %}
+                                        <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="text-decoration-none">
+                                            <div class="stat-badge stat-submissions">
+                                                <span class="stat-number">{{ scenario.submissions|length }}</span>
+                                                <small class="stat-label">Submissions</small>
+                                            </div>
+                                        </a>
+                                    {% else %}
+                                        <div class="stat-badge stat-submissions">
+                                            <span class="stat-number">0</span>
+                                            <small class="stat-label">Submissions</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="border-0 align-middle text-center">
+                                    {% if scenario.graded_count and scenario.graded_count > 0 %}
+                                        <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="text-decoration-none">
+                                            <div class="stat-badge stat-marked">
+                                                <span class="stat-number">{{ scenario.graded_count }}</span>
+                                                <small class="stat-label">Marked</small>
+                                            </div>
+                                        </a>
+                                    {% else %}
+                                        <div class="stat-badge stat-marked">
+                                            <span class="stat-number">0</span>
+                                            <small class="stat-label">Marked</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="border-0 align-middle">
+                                    <div class="action-buttons">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                                               class="btn btn-outline-primary btn-action" title="View scenario">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('views.edit_scenario', scenario_id=scenario.id) }}" 
+                                               class="btn btn-outline-info btn-action" title="Edit scenario">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" 
+                                               class="btn btn-outline-success btn-action" title="Assign students">
+                                                <i class="bi bi-person-plus"></i>
+                                            </a>
+                                            {% if scenario.submissions and scenario.submissions|length > 0 %}
+                                            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" 
+                                               class="btn btn-outline-warning btn-action" title="View submissions ({{ scenario.submissions|length }})">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                            {% endif %}
+                                            <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" 
+                                                  class="d-inline" id="delete-form-{{ scenario.id }}">
+                                                {{ form.hidden_tag() }}
+                                                <button type="button" class="btn btn-outline-danger btn-action delete-btn" 
+                                                        title="Archive scenario" data-scenario-id="{{ scenario.id }}">
+                                                    <i class="bi bi-archive"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state py-5">
+                    <div class="text-center">
+                        <div class="empty-icon mb-4">
+                            <i class="bi bi-journal-x text-muted"></i>
                         </div>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-info">v1</span>
-                    </td>
-                    <td class="text-center">
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-info" title="Edit scenario">
-                                <i class="bi bi-pencil-square"></i>
+                        <h5 class="text-muted mb-3">No scenarios created yet</h5>
+                        <p class="text-muted mb-4">Create your first scenario to get started with managing student assignments.</p>
+                        <form method="POST" action="{{ url_for('views.create_scenario') }}" class="d-inline">
+                            {{ form.hidden_tag() }}
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-plus-circle me-2"></i>Create First Scenario
                             </button>
-                            <button class="btn btn-sm btn-success" title="Assign students">
-                                <i class="bi bi-person-plus"></i>
-                            </button>
-                            <button class="btn btn-sm btn-secondary" title="Export data">
-                                <i class="bi bi-download"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" title="Delete scenario">
-                                <i class="bi bi-trash3-fill"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="scenario-check text-center">
-                        <input class="form-check-input" type="checkbox" value="demo-2" id="scenario-check-demo-2">
-                    </td>
-                    <td class="scenario-name">
-                        <a href="#Scenario-2">Sample Scenario 2</a>
-                        <span class="badge bg-warning ms-2"><i class="bi bi-lock"></i></span>
-                        <br><small class="text-muted">Advanced prescription management</small>
-                    </td>
-                    <td class="scenario-qty text-center">64</td>
-                    <td class="scenario-percent-complete text-center">
-                        <div class="progress" style="height: 20px;">
-                            <div class="progress-bar bg-success" role="progressbar" style="width: 93%">93%</div>
-                        </div>
-                    </td>
-                    <td class="text-center">
-                        <span class="badge bg-info">v2</span>
-                    </td>
-                    <td class="text-center">
-                        <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-info" title="Edit scenario">
-                                <i class="bi bi-pencil-square"></i>
-                            </button>
-                            <button class="btn btn-sm btn-success" title="Assign students">
-                                <i class="bi bi-person-plus"></i>
-                            </button>
-                            <button class="btn btn-sm btn-secondary" title="Export data">
-                                <i class="bi bi-download"></i>
-                            </button>
-                            <button class="btn btn-sm btn-danger" title="Delete scenario">
-                                <i class="bi bi-trash3-fill"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-                {% endif %}
-            </tbody>
-        </table>
+                        </form>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Bulk Actions -->
@@ -234,24 +293,122 @@
                 <button class="btn btn-outline-secondary" id="bulk-export">
                     <i class="bi bi-download"></i> Export Selected
                 </button>
-                <button class="btn btn-outline-danger ms-2" id="bulk-delete">
-                    <i class="bi bi-trash"></i> Delete Selected
+                <button class="btn btn-danger ms-2" id="bulk-delete">
+                    <i class="bi bi-archive"></i> Archive Selected
                 </button>
             </div>
             <div>
-                <button class="btn btn-success">
-                    <i class="bi bi-people"></i> Manage Students
-                </button>
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    Select scenarios to perform bulk actions
+                </small>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Select all checkbox functionality
-    document.getElementById('select-all')?.addEventListener('change', function() {
-        const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
-        checkboxes.forEach(cb => cb.checked = this.checked);
-    });
+function selectAllToggle() {
+    var selectAll = document.getElementById('select-all');
+    var checkboxes = document.getElementsByTagName('input');
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0) {
+            checkboxes[i].checked = selectAll.checked;
+        }
+    }
+}
+
+function bulkArchive() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
+    }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to archive');
+        return;
+    }
+    
+    if (confirm('Are you sure you want to archive ' + selected + ' selected scenario(s)?')) {
+        alert('Bulk archive functionality to be implemented');
+    }
+}
+
+function bulkExport() {
+    var checkboxes = document.getElementsByTagName('input');
+    var selected = 0;
+    
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
+            selected++;
+        }
+    }
+    
+    if (selected === 0) {
+        alert('Please select scenarios to export');
+        return;
+    }
+    
+    alert('Bulk export functionality to be implemented');
+}
+
+function confirmDelete(scenarioId) {
+    if (confirm('Are you sure you want to archive this scenario?')) {
+        var form = document.getElementById('delete-form-' + scenarioId);
+        if (form) {
+            form.submit();
+        }
+    }
+}
+
+window.onload = function() {
+    // Set up select all checkbox
+    var selectAllBox = document.getElementById('select-all');
+    if (selectAllBox) {
+        selectAllBox.onchange = selectAllToggle;
+    }
+    
+    // Set up bulk action buttons
+    var deleteBtn = document.getElementById('bulk-delete');
+    if (deleteBtn) {
+        deleteBtn.onclick = bulkArchive;
+    }
+    
+    var exportBtn = document.getElementById('bulk-export');
+    if (exportBtn) {
+        exportBtn.onclick = bulkExport;
+    }
+    
+    // Set up individual delete buttons
+    var deleteBtns = document.getElementsByClassName('delete-btn');
+    for (var i = 0; i < deleteBtns.length; i++) {
+        (function(btn) {
+            btn.onclick = function() {
+                var scenarioId = btn.getAttribute('data-scenario-id');
+                confirmDelete(scenarioId);
+            };
+        })(deleteBtns[i]);
+    }
+    
+    // Set up create first scenario link
+    var createLink = document.getElementById('create-first-scenario');
+    if (createLink) {
+        createLink.onclick = function(e) {
+            e.preventDefault();
+            var form = document.querySelector('form[action="{{ url_for("views.create_scenario") }}"]');
+            if (form) {
+                var button = form.querySelector('button[type="submit"]');
+                if (button) {
+                    button.click();
+                }
+            }
+        };
+    }
+};
 </script>
 {% endblock %}

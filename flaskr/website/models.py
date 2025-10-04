@@ -81,7 +81,9 @@ class Scenario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
+    question_text = db.Column(db.Text)  # Long string for questions/instructions
     teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    active_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
     password = db.Column(db.String(50))  # Optional password protection
     version = db.Column(db.Integer, default=1)
     parent_scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'))
@@ -92,6 +94,9 @@ class Scenario(db.Model):
     # Patient data for this scenario
     patient_data = db.relationship('ScenarioPatient', backref='scenario', 
                                   cascade='all, delete-orphan', lazy=True)
+    
+    # Active patient relationship
+    active_patient = db.relationship('Patient', foreign_keys=[active_patient_id])
     
     def __repr__(self):
         return f'<Scenario {self.name} v{self.version}>'
@@ -105,36 +110,99 @@ class StudentScenario(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
     assigned_at = db.Column(db.DateTime, default=datetime.now)
+    submitted_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
     score = db.Column(db.Float)
+    feedback = db.Column(db.Text)
+    status = db.Column(db.String(20), default='assigned')  # assigned, submitted, graded
+    
+    # Relationships
+    student = db.relationship('User', foreign_keys=[student_id])
+    scenario = db.relationship('Scenario', foreign_keys=[scenario_id])
+
+
+class Submission(db.Model):
+    """Student submissions for ASL scenarios"""
+    __tablename__ = 'submissions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_scenario_id = db.Column(db.Integer, db.ForeignKey('student_scenarios.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    submitted_at = db.Column(db.DateTime, default=datetime.now)
+    submission_data = db.Column(db.JSON)  # Store the ASL form data snapshot
+    notes = db.Column(db.Text)  # Student's notes about their submission
+    
+    # Relationships
+    student_scenario = db.relationship('StudentScenario', backref='submissions')
+    patient = db.relationship('Patient')
     
 
+
+
 class ScenarioPatient(db.Model):
-    """Patient data specific to a scenario"""
+    """Patient assignments for students within scenarios"""
     __tablename__ = 'scenario_patients'
     
     id = db.Column(db.Integer, primary_key=True)
     scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Make nullable for existing data
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    # Any scenario-specific overrides for patient data can go here
+    assigned_at = db.Column(db.DateTime, default=datetime.now)
+    
+    
     
 
 class Patient(db.Model):
     __tablename__ = 'patients'
     
     id = db.Column(db.Integer, primary_key=True)
-    medicare = db.Column(db.BigInteger)  # Contract specifies int
+    medicare = db.Column(db.String(11))
     pharmaceut_ben_entitlement_no = db.Column(db.String(20))
     sfty_net_entitlement_cardholder = db.Column(db.Boolean, default=False)
     rpbs_ben_entitlement_cardholder = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(100))
-    dob = db.Column(db.String(10))  # DD/MM/YYYY format
-    preferred_contact = db.Column(db.BigInteger)
-    address_1 = db.Column(db.String(100))
-    address_2 = db.Column(db.String(100))
+    dob = db.Column(db.String(10))  # format is DD/MM/YYYY
+    preferred_contact = db.Column(db.String(20))
+    address = db.Column(db.String(200))
     script_date = db.Column(db.String(10))
     pbs = db.Column(db.String(50), nullable=True)
     rpbs = db.Column(db.String(50), nullable=True)
+    last_name = db.Column(db.String(100), nullable=True)
+    given_name = db.Column(db.String(100), nullable=True)
+    title = db.Column(db.String(50), nullable=True)
+    sex = db.Column(db.String(20), nullable=True)  # Male/Female
+    pt_number = db.Column(db.String(50), nullable=True)
+    suburb = db.Column(db.String(100), nullable=True)
+    state = db.Column(db.String(10), nullable=True)  # act, nt, nsw, qld, sa, tas, vic, wa
+    postcode = db.Column(db.Integer, nullable=True)
+    phone = db.Column(db.String(30), nullable=True)
+    mobile = db.Column(db.String(30), nullable=True)
+    licence = db.Column(db.String(50), nullable=True)
+    sms_repeats = db.Column(db.Boolean, default=False)
+    sms_owing = db.Column(db.Boolean, default=False)
+    email = db.Column(db.String(120), nullable=True)
+    medicare_valid_to = db.Column(db.String(10), nullable=True)  # mm/yyyy
+    medicare_surname = db.Column(db.String(100), nullable=True)
+    medicare_given_name = db.Column(db.String(100), nullable=True)
+    concession_number = db.Column(db.String(50), nullable=True)
+    concession_valid_to = db.Column(db.String(10), nullable=True)
+    safety_net_number = db.Column(db.String(50), nullable=True)
+    repatriation_number = db.Column(db.String(50), nullable=True)
+    repatriation_valid_to = db.Column(db.String(10), nullable=True)
+    repatriation_type = db.Column(db.String(50), nullable=True)
+    ndss_number = db.Column(db.String(50), nullable=True)
+    ihi_number = db.Column(db.String(16), nullable=True)
+    ihi_status = db.Column(db.String(50), nullable=True)
+    ihi_record_status = db.Column(db.String(50), nullable=True)
+    doctor = db.Column(db.String(100), nullable=True)  # could be ID reference later
+    ctg_registered = db.Column(db.Boolean, default=False)
+    generics_only = db.Column(db.Boolean, default=False)
+    repeats_held = db.Column(db.Boolean, default=False)
+    pt_deceased = db.Column(db.Boolean, default=False)
+    carer = db.Column(db.JSON, nullable=True)
+    consented_to_asl = db.Column(db.Boolean, default=False)
+    consented_to_upload = db.Column(db.Boolean, default=False)
+    # Combined status=
     asl_status = db.Column(db.Integer, default=ASLStatus.GRANTED.value)
     consent_last_updated = db.Column(db.String(20), default=lambda: datetime.now().strftime('%d/%m/%Y %I:%M %p'))
     is_registered = db.Column(db.Boolean, default=True)
@@ -188,4 +256,18 @@ class Prescription(db.Model):
     
     def get_status(self):
         return PrescriptionStatus(self.status)
-      
+
+class ASL(db.Model):
+    __tablename__ = "asls"
+    id = db.Column(db.Integer, primary_key=True)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    consent_status = db.Column(db.Integer, default=ASLStatus.PENDING.value)  
+    carer_name = db.Column(db.String(100))
+    carer_relationship = db.Column(db.String(100))
+    carer_mobile = db.Column(db.String(30))       # NEW
+    carer_email = db.Column(db.String(120))       # NEW
+    notes = db.Column(db.Text)
+    
+
+
+
