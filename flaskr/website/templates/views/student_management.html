@@ -19,7 +19,7 @@
                 <p class="mb-0">Manage students, their assignments, and monitor their progress.</p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-light">
+                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
@@ -40,7 +40,7 @@
 
     <!-- Stats Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -55,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -70,7 +70,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -110,8 +110,8 @@
         <div class="card-body p-0">
             {% if students and students|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="studentsTable">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0 table-light" id="studentsTable">
+                        <thead>
                             <tr>
                                 <th class="text-center">
                                     <input class="form-check-input" type="checkbox" id="select-all">
@@ -136,7 +136,7 @@
                                         </div>
                                         <div>
                                             <div class="fw-medium">{{ student.get_full_name() }}</div>
-                                            <small class="text-muted">Student ID: {{ student.id }}</small>
+                                            <small class="text-secondary">Student ID: {{ student.id }}</small>
                                         </div>
                                     </div>
                                 </td>
@@ -178,7 +178,7 @@
                 <div class="empty-state">
                     <i class="bi bi-people"></i>
                     <h5>No Students Found</h5>
-                    <p class="text-muted">No students are currently registered in the system.</p>
+                    <p class="text-secondary">No students are currently registered in the system.</p>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                         <i class="bi bi-person-plus"></i> Add First Student
                     </button>
@@ -199,7 +199,7 @@
                     </div>
                 </div>
                 <div class="col-auto">
-                    <small class="text-muted">{{ students|length }} student(s) total</small>
+                    <small class="text-secondary">{{ students|length }} student(s) total</small>
                 </div>
             </div>
         </div>

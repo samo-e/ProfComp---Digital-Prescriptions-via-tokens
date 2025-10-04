@@ -77,11 +77,11 @@
     </div>
 
     <!-- Assigned Scenarios Section -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-gradient border-0">
+    <div class="card shadow-sm">
+        <div class="card-header">
             <div class="row align-items-center">
                 <div class="col">
-                    <h5 class="mb-0 fw-bold text-dark">
+                    <h5 class="mb-0 fw-bold">
                         <i class="bi bi-journal-text me-2"></i>Your Assigned Scenarios
                         <span class="badge bg-primary ms-2">{{ scenario_data|length if scenario_data else 0 }}</span>
                     </h5>
@@ -125,10 +125,10 @@
                                         {% endif %}
                                         
                                         <div class="scenario-meta">
-                                            <small class="text-muted d-block">
+                                            <small class="d-block">
                                                 <i class="bi bi-person me-1"></i>{{ data.scenario.creator.get_full_name() if data.scenario.creator else 'Unknown' }}
                                             </small>
-                                            <small class="text-muted d-block">
+                                            <small class="d-block">
                                                 <i class="bi bi-calendar me-1"></i>{{ data.scenario.created_at.strftime('%d/%m/%Y') if data.scenario.created_at else 'Unknown' }}
                                             </small>
                                         </div>
@@ -143,10 +143,10 @@
                                                    (data.patient.last_name if data.patient.last_name else 'Unnamed Patient') }}
                                             </div>
                                             {% if data.patient.dob %}
-                                            <small class="text-muted d-block">DOB: {{ data.patient.dob }}</small>
+                                            <small class="text-dark d-block">DOB: {{ data.patient.dob }}</small>
                                             {% endif %}
                                             {% if data.patient.medicare %}
-                                            <small class="text-muted d-block">Medicare: {{ data.patient.medicare }}</small>
+                                            <small class="text-dark d-block">Medicare: {{ data.patient.medicare }}</small>
                                             {% endif %}
                                         </div>
                                         {% endif %}

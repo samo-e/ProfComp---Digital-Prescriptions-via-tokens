@@ -3,6 +3,10 @@ $(function() {
   load_dark_mode();
 });
 
+(function() {
+  load_dark_mode();
+})();
+
 function load_dark_mode() {
   // On page load, check cookie
   const theme = Cookies.get("theme") || "light";

@@ -296,7 +296,6 @@ body > .container {
   border-radius: 0 0.5rem 0.5rem 0;
   border-left: none;
   border: 1px solid #dee2e6;
-  border-left: 1px solid #667eea;
   background-color: #f8f9fa;
   color: #6c757d;
 }
@@ -310,28 +309,6 @@ body > .container {
 .input-group {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border-radius: 0.5rem;
-}
-
-/* Modal Improvements */
-.modal-content {
-  border-radius: 1rem;
-  border: none;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-}
-
-.modal-header {
-  border-bottom: 1px solid #f1f3f4;
-  padding: 1.5rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
-.modal-body {
-  padding: 2rem;
-}
-
-.modal-footer {
-  border-top: 1px solid #f1f3f4;
-  padding: 1.5rem;
 }
 
 /* Card Footer */
