@@ -37,11 +37,11 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        role = request.form.get("role")  # 'teacher' or 'student'
+        # role = request.form.get("role")  # 'teacher' or 'student'
         remember = request.form.get("remember") == "on"
 
         # Validate input
-        if not email or not password or not role:
+        if not email or not password:
             flash("Please fill in all fields", "error")
             return render_template("auth/login.html")
 
@@ -58,10 +58,10 @@ def login():
             return render_template("auth/login.html")
 
         # Check if role matches
-        role_value = "teacher" if role == "Teacher" else "student"
-        if user.role != role_value:
-            flash(f"This account is not registered as a {role}", "error")
-            return render_template("auth/login.html")
+        # role_value = "teacher" if role == "Teacher" else "student"
+        # if user.role != role_value:
+        #     flash(f"This account is not registered as a {role}", "error")
+        #     return render_template("auth/login.html")
 
         # Check if account is active
         if not user.is_active:
