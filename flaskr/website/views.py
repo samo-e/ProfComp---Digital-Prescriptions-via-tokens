@@ -532,7 +532,7 @@ def student_management():
     for student in students:
         student.completed_scenarios = [
             scenario for scenario in student.assigned_scenarios 
-            if hasattr(scenario, 'completed_at') and scenario.completed_at
+            if hasattr(scenario, 'status') and scenario.status == 'graded'
         ]
     
     return render_template(
