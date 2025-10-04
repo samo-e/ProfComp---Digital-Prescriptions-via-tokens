@@ -4,6 +4,9 @@
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/edit_scenario.css') }}">
 {% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/toggle_password.js') }}"></script>
+{% endblock %}
 
 {% block body %}
 <div class="container">
@@ -64,7 +67,7 @@
                            class="form-control" 
                            value="{{ scenario.password or '' }}" 
                            placeholder="Leave blank for no password protection">
-                    <button type="button" class="toggle-btn" onclick="togglePassword()">
+                    <button type="button" class="toggle-btn" id="password-view-toggle">
                         <i class="bi bi-eye" id="password-icon"></i>
                     </button>
                 </div>
@@ -141,19 +144,4 @@
         </form>
     </div>
 </div>
-
-<script>
-function togglePassword() {
-    const passwordField = document.getElementById('password');
-    const passwordIcon = document.getElementById('password-icon');
-    
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        passwordIcon.className = 'bi bi-eye-slash';
-    } else {
-        passwordField.type = 'password';
-        passwordIcon.className = 'bi bi-eye';
-    }
-}
-</script>
 {% endblock %}
