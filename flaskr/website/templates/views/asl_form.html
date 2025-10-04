@@ -13,117 +13,10 @@
     <header class="mb-4">
       <h1 class="h3 mb-1">Active Script List (ASL) — Patient Data Form</h1>
       <p class="text-muted mb-0">Complete all required fields. Dates use DD/MM/YYYY format.</p>
-      <!-- Debug info -->
-      {% if pt_data %}
-      <div class="alert alert-info">
-        <strong>Debug:</strong> Found existing data for patient - will auto-populate form fields.
-        <details>
-          <summary>Data preview</summary>
-          <pre>{{ pt_data | pprint }}</pre>
-        </details>
-      </div>
-      {% else %}
-      <div class="alert alert-warning">
-        <strong>Debug:</strong> No existing data found - form will start empty.
-      </div>
-      {% endif %}
     </header>
 
     <form class="needs-validation" method="POST" action="{{ url_for('views.asl_form', patient_id=patient.id) }}" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <!-- Patient Info -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Patient Info</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label class="form-label required" for="medicare">Medicare (11 digits)</label>
-                <input type="text" inputmode="numeric" pattern="^\d{11}$" class="form-control" id="medicare" name="pt_data[medicare]" placeholder="49502864011" value="{{ pt_data.medicare if pt_data and pt_data.medicare else (patient.medicare if patient and patient.medicare else '') }}" required />
-                <div class="help-text">Must be an 11-digit positive integer.</div>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label required" for="entitlement">Pharmaceutical Benefits Entitlement No</label>
-                <input type="text" class="form-control" id="entitlement" name="pt_data[pharmaceut-ben-entitlement-no]" placeholder="NA318402K(W)" value="{{ pt_data['pharmaceut-ben-entitlement-no'] if pt_data and pt_data['pharmaceut-ben-entitlement-no'] else (patient.pharmaceut_ben_entitlement_no if patient and patient.pharmaceut_ben_entitlement_no else '') }}" required />
-              </div>
-              <div class="col-md-4">
-                <label class="form-label required" for="preferredContact">Preferred Contact (Phone)</label>
-                <input type="tel" class="form-control" id="preferredContact" name="pt_data[preferred-contact]" placeholder="401234567" value="{{ pt_data['preferred-contact'] if pt_data and pt_data['preferred-contact'] else (patient.preferred_contact if patient and patient.preferred_contact else '') }}" required />
-                <div class="help-text">Digits/spaces allowed.</div>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label required" for="name">Full Name</label>
-                <input type="text" class="form-control" id="name" name="pt_data[name]" placeholder="Draga Diaz" value="{{ pt_data.name if pt_data and pt_data.name else (((patient.given_name or '') + ' ' + (patient.last_name or '')).strip() if patient and (patient.given_name or patient.last_name) else '') }}" required />
-              </div>
-              <div class="col-md-3">
-                <label class="form-label required" for="dob">Date of Birth</label>
-                <input type="text" class="form-control" id="dob" name="pt_data[dob]" placeholder="26/01/1998" value="{{ pt_data.dob if pt_data and pt_data.dob else (patient.dob if patient and patient.dob else '') }}" required />
-                <div class="help-text">DD/MM/YYYY</div>
-              </div>
-              <div class="col-md-3">
-                <label class="form-label required" for="scriptDate">Script Date</label>
-                <input type="text" class="form-control" id="scriptDate" name="pt_data[script-date]" placeholder="30/11/2020" value="{{ pt_data['script-date'] if pt_data and pt_data['script-date'] else (patient.script_date if patient and patient.script_date else '') }}" required />
-                <div class="help-text">DD/MM/YYYY</div>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label required" for="address1">Address Line 1</label>
-                <input type="text" class="form-control" id="address1" name="pt_data[address-1]" placeholder="33 JIT DR" value="{{ pt_data['address-1'] if pt_data and pt_data['address-1'] else (patient.address if patient and patient.address else '') }}" required />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label required" for="address2">Address Line 2</label>
-                <input type="text" class="form-control" id="address2" name="pt_data[address-2]" placeholder="CHARAM VIC 3318" value="{{ pt_data['address-2'] if pt_data and pt_data['address-2'] else ((patient.suburb + ' ' + patient.state + ' ' + (patient.postcode|string)) if patient and patient.suburb and patient.state and patient.postcode else '') }}" required />
-              </div>
-            </div>
-          </fieldset>
-        </div>
-      </div>
-
-      <!-- Entitlements & Flags -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Entitlements & Flags</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-md-4">
-                <label class="form-label required" for="sftyNet">Safety Net Cardholder</label>
-                <select class="form-select" id="sftyNet" name="pt_data[sfty-net-entitlement-cardholder]" required>
-                  <option value="" {% if not pt_data or pt_data['sfty-net-entitlement-cardholder'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option value="true" {% if pt_data and pt_data['sfty-net-entitlement-cardholder'] == 'true' %}selected{% endif %}>True</option>
-                  <option value="false" {% if pt_data and pt_data['sfty-net-entitlement-cardholder'] == 'false' %}selected{% endif %}>False</option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label required" for="rpbsCardholder">RPBS Cardholder</label>
-                <select class="form-select" id="rpbsCardholder" name="pt_data[rpbs-ben-entitlement-cardholder]" required>
-                  <option value="" {% if not pt_data or pt_data['rpbs-ben-entitlement-cardholder'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option value="true" {% if pt_data and pt_data['rpbs-ben-entitlement-cardholder'] == 'true' %}selected{% endif %}>True</option>
-                  <option value="false" {% if pt_data and pt_data['rpbs-ben-entitlement-cardholder'] == 'false' %}selected{% endif %}>False</option>
-                </select>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label required" for="canViewAsl">Can View ASL</label>
-                <select class="form-select" id="canViewAsl" name="pt_data[can_view_asl]" required>
-                  <option value="" {% if not pt_data or pt_data['can_view_asl'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option value="true" {% if pt_data and pt_data['can_view_asl'] == 'true' %}selected{% endif %}>True</option>
-                  <option value="false" {% if pt_data and pt_data['can_view_asl'] == 'false' %}selected{% endif %}>False</option>
-                </select>
-              </div>
-
-              <div class="col-md-6">
-                <label class="form-label" for="pbs">PBS</label>
-                <input type="text" class="form-control" id="pbs" name="pt_data[pbs]" placeholder="(optional, usually null)" value="{{ pt_data.pbs if pt_data and pt_data.pbs else '' }}" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label" for="rpbs">RPBS</label>
-                <input type="text" class="form-control" id="rpbs" name="pt_data[rpbs]" placeholder="(optional, usually null)" value="{{ pt_data.rpbs if pt_data and pt_data.rpbs else '' }}" />
-              </div>
-            </div>
-          </fieldset>
-        </div>
-      </div>
-
       <!-- Consent Status -->
       <div class="card">
         <div class="card-body">
@@ -152,48 +45,6 @@
               <div class="col-md-4">
                 <label class="form-label" for="lastUpdated">Last Updated</label>
                 <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" value="{{ pt_data['consent-status']['last-updated'] if pt_data and pt_data['consent-status'] and pt_data['consent-status']['last-updated'] else '' }}" />
-              </div>
-            </div>
-          </fieldset>
-        </div>
-      </div>
-
-      <!-- Carer Information -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Carer Information</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label" for="carerName">Carer Name</label>
-                <input type="text" class="form-control" id="carerName" name="pt_data[carer][name]" placeholder="John Smith" value="{{ pt_data.carer.name if pt_data and pt_data.carer and pt_data.carer.name else '' }}" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label" for="carerRelationship">Relationship</label>
-                <input type="text" class="form-control" id="carerRelationship" name="pt_data[carer][relationship]" placeholder="Spouse, Child, etc." value="{{ pt_data.carer.relationship if pt_data and pt_data.carer and pt_data.carer.relationship else '' }}" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label" for="carerMobile">Mobile</label>
-                <input type="tel" class="form-control" id="carerMobile" name="pt_data[carer][mobile]" placeholder="0412345678" value="{{ pt_data.carer.mobile if pt_data and pt_data.carer and pt_data.carer.mobile else '' }}" />
-              </div>
-              <div class="col-md-6">
-                <label class="form-label" for="carerEmail">Email</label>
-                <input type="email" class="form-control" id="carerEmail" name="pt_data[carer][email]" placeholder="carer@example.com" value="{{ pt_data.carer.email if pt_data and pt_data.carer and pt_data.carer.email else '' }}" />
-              </div>
-            </div>
-          </fieldset>
-        </div>
-      </div>
-
-      <!-- Notes -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Notes</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-12">
-                <label class="form-label" for="notes">Additional Notes</label>
-                <textarea class="form-control" rows="3" id="notes" name="pt_data[notes]" placeholder="Any additional notes or comments...">{{ pt_data.notes if pt_data and pt_data.notes else '' }}</textarea>
               </div>
             </div>
           </fieldset>
@@ -334,10 +185,7 @@
             <label class="form-label required">Address Line 1</label>
             <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
           </div>
-          <div class="col-md-6">
-            <label class="form-label required">Address Line 2</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" required />
-          </div>
+          <div class="col-md-6"></div>
 
           <div class="col-md-3">
             <label class="form-label required">Prescriber ID</label>
