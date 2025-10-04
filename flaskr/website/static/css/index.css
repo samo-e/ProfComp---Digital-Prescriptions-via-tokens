@@ -11,3 +11,16 @@ body {
     border-radius: 0px 0.5rem 0.5rem 0px !important;
     margin-left: -1px;
 }
+
+body > .container {
+    margin-top: 3.5%;
+    margin-bottom: 3.5%;
+}
+
+.mw-75 {
+    max-width: 75%;
+}
+
+.mw-50 {
+    max-width: 50%;
+}

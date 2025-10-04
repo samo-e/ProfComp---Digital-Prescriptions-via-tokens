@@ -189,7 +189,7 @@
     <div class="container mt-3">
         <div class="row">
             <div class="col-12 text-end">
-                <button id="dispense-selected" class="btn btn-success" style="display: none;">
+                <button id="dispense-selected" class="btn btn-success d-none">
                     <i class="bi bi-capsule"></i> Dispense Selected
                 </button>
             </div>
@@ -305,7 +305,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show/hide dispense button based on selection
     function toggleDispenseButton() {
         const checkedBoxes = document.querySelectorAll('#asl-table input[type="checkbox"]:checked');
-        dispenseButton.style.display = checkedBoxes.length > 0 ? 'inline-block' : 'none';
+        $(dispenseButton).toggleClass('d-none', checkedBoxes.length === 0);
     }
     
     // Add event listeners to checkboxes

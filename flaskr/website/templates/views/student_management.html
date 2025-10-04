@@ -185,7 +185,7 @@
         <div class="card-footer">
             <div class="row align-items-center">
                 <div class="col">
-                    <div class="bulk-actions" style="display: none;">
+                    <div class="bulk-actions d-none">
                         <button class="btn btn-outline-danger btn-sm" id="bulk-remove">
                             <i class="bi bi-trash"></i> Remove Selected
                         </button>
@@ -264,9 +264,10 @@ document.querySelectorAll('.student-checkbox').forEach(cb => {
 });
 
 function toggleBulkActions() {
-    const checked = document.querySelectorAll('.student-checkbox:checked');
-    const bulkActions = document.querySelector('.bulk-actions');
-    bulkActions.style.display = checked.length > 0 ? 'block' : 'none';
+    var $checked = $('.student-checkbox:checked');
+    var $bulkActions = $('.bulk-actions');
+
+    $bulkActions.toggleClass('d-none', $checked.length === 0);
 }
 
 // Action functions

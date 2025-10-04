@@ -432,7 +432,7 @@
             <input type="hidden" name="clear_existing" id="clear_existing" value="false">
 
             <!-- Selection Summary -->
-            <div class="selection-summary" id="selectionSummary" style="display: none;">
+            <div class="selection-summary d-none" id="selectionSummary">
                 <div class="d-flex justify-content-between align-items-center">
                     <span><i class="bi bi-check-square me-2"></i><span id="selectedCount">0</span> students selected</span>
                     <small class="text-muted">Currently assigned: {{ assigned_student_ids|length }}</small>
@@ -532,7 +532,7 @@
             </div>
 
             <!-- No results message -->
-            <div id="noResults" class="text-center py-4" style="display: none;">
+            <div id="noResults" class="text-center py-4 d-none">
                 <i class="bi bi-search fs-1 text-muted mb-3"></i>
                 <h5 class="text-muted">No students match your search</h5>
                 <p class="text-muted">Try adjusting your search terms.</p>
@@ -655,7 +655,7 @@ function updateCount() {
     if (countElement) countElement.innerHTML = count;
     
     if (summaryElement) {
-        summaryElement.style.display = count > 0 ? 'block' : 'none';
+        $(summaryElement).toggleClass('d-none', count === 0);
     }
     
     if (btnElement) {
@@ -715,10 +715,7 @@ function searchStudents() {
         }
     }
     
-    var noResults = document.getElementById('noResults');
-    if (noResults) {
-        noResults.style.display = (visibleCount === 0 && searchValue !== '') ? 'block' : 'none';
-    }
+    $('#noResults').toggleClass('d-none', visibleCount !== 0 || searchValue === '');
 }
 
 // Function to assign selected students with patient validation (from old assign.html)
