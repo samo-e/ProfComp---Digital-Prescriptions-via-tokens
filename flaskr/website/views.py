@@ -542,6 +542,244 @@ def student_management():
         total_assignments=total_assignments
     )
 
+@views.route('/students/add', methods=['POST'])
+@teacher_required
+def add_student():
+    """Add a new student to the system"""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['email', 'password', 'first_name', 'last_name']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'success': False, 'message': f'{field.replace("_", " ").title()} is required'}), 400
+        
+        # Check if email already exists
+        existing_user = User.query.filter_by(email=data['email']).first()
+        if existing_user:
+            return jsonify({'success': False, 'message': 'Email already exists'}), 400
+        
+        # Create new student user
+        new_student = User(
+            email=data['email'],
+            first_name=data['first_name'],
+            last_name=data['last_name'],
+            role='student'
+        )
+        
+        # Set password
+        new_student.set_password(data['password'])
+        
+        # Add optional fields
+        if data.get('student_id'):
+            new_student.student_id = data['student_id']
+        
+        db.session.add(new_student)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Student added successfully',
+            'student': {
+                'id': new_student.id,
+                'email': new_student.email,
+                'first_name': new_student.first_name,
+                'last_name': new_student.last_name,
+                'student_id': new_student.student_id
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@views.route('/students/<int:student_id>/edit', methods=['POST'])
+@teacher_required
+def edit_student(student_id):
+    """Edit student details"""
+    try:
+        student = User.query.filter_by(id=student_id, role='student').first()
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        
+        data = request.get_json()
+        
+        # Update fields if provided
+        if data.get('first_name'):
+            student.first_name = data['first_name']
+        if data.get('last_name'):
+            student.last_name = data['last_name']
+        if data.get('email'):
+            # Check if new email is unique
+            existing = User.query.filter(User.email == data['email'], User.id != student_id).first()
+            if existing:
+                return jsonify({'success': False, 'message': 'Email already exists'}), 400
+            student.email = data['email']
+        if data.get('student_id'):
+            student.student_id = data['student_id']
+        if data.get('password'):
+            student.set_password(data['password'])
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Student updated successfully',
+            'student': {
+                'id': student.id,
+                'email': student.email,
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'student_id': student.student_id
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@views.route('/students/<int:student_id>/delete', methods=['DELETE'])
+@teacher_required
+def delete_student(student_id):
+    """Delete a student (soft delete - deactivate)"""
+    try:
+        student = User.query.filter_by(id=student_id, role='student').first()
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        
+        # Option 1: Soft delete - deactivate the student
+        student.is_active = False
+        
+        # Option 2: Hard delete - remove from database
+        # Remove all student scenario assignments first
+        # StudentScenario.query.filter_by(student_id=student_id).delete()
+        # db.session.delete(student)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Student deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@views.route('/students/<int:student_id>/view', methods=['GET'])
+@teacher_required
+def view_student(student_id):
+    """Get detailed student information"""
+    try:
+        student = User.query.filter_by(id=student_id, role='student').first()
+        if not student:
+            return jsonify({'success': False, 'message': 'Student not found'}), 404
+        
+        # Get assigned scenarios
+        assigned_scenarios = []
+        for ss in student.assigned_scenarios:
+            scenario = Scenario.query.get(ss.scenario_id)
+            if scenario:
+                assigned_scenarios.append({
+                    'id': scenario.id,
+                    'name': scenario.name,
+                    'status': ss.status,
+                    'assigned_at': ss.assigned_at.isoformat() if ss.assigned_at else None,
+                    'submitted_at': ss.submitted_at.isoformat() if ss.submitted_at else None
+                })
+        
+        return jsonify({
+            'success': True,
+            'student': {
+                'id': student.id,
+                'email': student.email,
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'student_id': student.student_id,
+                'created_at': student.created_at.isoformat() if hasattr(student, 'created_at') and student.created_at else None,
+                'assigned_scenarios': assigned_scenarios,
+                'total_scenarios': len(assigned_scenarios),
+                'completed_scenarios': len([s for s in assigned_scenarios if s['status'] == 'completed'])
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@views.route('/students/bulk-delete', methods=['POST'])
+@teacher_required
+def bulk_delete_students():
+    """Delete multiple students at once"""
+    try:
+        data = request.get_json()
+        student_ids = data.get('student_ids', [])
+        
+        if not student_ids:
+            return jsonify({'success': False, 'message': 'No students selected'}), 400
+        
+        # Soft delete all selected students
+        User.query.filter(User.id.in_(student_ids), User.role == 'student').update(
+            {'is_active': False},
+            synchronize_session=False
+        )
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'{len(student_ids)} student(s) deleted successfully'
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+
+@views.route('/students/search', methods=['GET'])
+@teacher_required
+def search_students():
+    """Search for students by name or email"""
+    try:
+        query = request.args.get('q', '')
+        
+        if not query:
+            students = User.query.filter_by(role='student', is_active=True).all()
+        else:
+            students = User.query.filter(
+                User.role == 'student',
+                User.is_active == True,
+                db.or_(
+                    User.first_name.ilike(f'%{query}%'),
+                    User.last_name.ilike(f'%{query}%'),
+                    User.email.ilike(f'%{query}%'),
+                    User.student_id.ilike(f'%{query}%')
+                )
+            ).all()
+        
+        results = []
+        for student in students:
+            results.append({
+                'id': student.id,
+                'email': student.email,
+                'first_name': student.first_name,
+                'last_name': student.last_name,
+                'student_id': student.student_id,
+                'scenarios_count': len(student.assigned_scenarios) if hasattr(student, 'assigned_scenarios') else 0
+            })
+        
+        return jsonify({
+            'success': True,
+            'students': results,
+            'count': len(results)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 @views.route("/static/js/<path:filename>")
 def js_module(filename):
