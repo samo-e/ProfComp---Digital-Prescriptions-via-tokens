@@ -1,12 +1,46 @@
-
-      body { background: #f6f7fb; }
-      .card + .card { margin-top: 1rem; }
-      fieldset { border: 0; padding: 0; margin: 0; }
-      legend { font-size: 1.1rem; font-weight: 600; margin-bottom: .75rem; }
-      .required::after { content: " *"; color: #dc3545; }
-      .section-title { font-size: 1.25rem; font-weight: 700; }
-      .help-text { font-size: .875rem; color: #6c757d; }
-      .remove-item-btn { position: absolute; top: .75rem; right: .75rem; }
-      .item-card { position: relative; }
-      .muted-badge { background: #eef2ff; color: #334155; }
-      .sticky-actions { position: sticky; bottom: 0; background: rgba(246,247,251,.85); backdrop-filter: blur(6px); }
+body {
+  background: #f6f7fb;
+}
+.card + .card {
+  margin-top: 1rem;
+}
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+legend {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+.required::after {
+  content: " *";
+  color: #dc3545;
+}
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.help-text {
+  font-size: 0.875rem;
+  color: #6c757d;
+}
+.remove-item-btn {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+.item-card {
+  position: relative;
+}
+.muted-badge {
+  background: #eef2ff;
+  color: #334155;
+}
+.sticky-actions {
+  position: sticky;
+  bottom: 0;
+  background: rgba(246, 247, 251, 0.85);
+  backdrop-filter: blur(6px);
+}
