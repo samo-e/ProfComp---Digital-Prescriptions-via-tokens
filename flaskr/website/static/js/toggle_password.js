@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
   $("#password-view-toggle").click(function () {
     const $password = $("#password");
     const $icon = $(this).find("i");

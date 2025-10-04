@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
   // collapse functionality
   $(".btn-collapse").on("click", function () {
     var $btn = $(this);
@@ -11,10 +11,10 @@ $(document).ready(function () {
 
   // Request Access button
   $("#btn-request-access").on("click", function () {
-    console.log("Request Access clicked");
+    // console.log("Request Access clicked");
 
     if ($(this).prop("disabled")) {
-      console.log("Button is disabled, ignoring click");
+      // console.log("Button is disabled, ignoring click");
       return;
     }
 
@@ -22,7 +22,7 @@ $(document).ready(function () {
 
     $.post(`/api/asl/${pt_id}/request-access`)
       .done(function (data) {
-        console.log("Request Access response:", data);
+        // console.log("Request Access response:", data);
         if (data.success) {
           alert(data.message);
           $("#asl-status").text(data.new_status);
@@ -48,13 +48,13 @@ $(document).ready(function () {
 
   // Refresh button
   $("#btn-refresh").on("click", function () {
-    console.log("Refresh clicked");
+    // console.log("Refresh clicked");
 
     $(this).prop("disabled", true).text("Refreshing...");
 
     $.post(`/api/asl/${pt_id}/refresh`)
       .done(function (data) {
-        console.log("Refresh response:", data);
+        // console.log("Refresh response:", data);
         if (data.success) {
           alert(data.message);
 
@@ -88,7 +88,7 @@ $(document).ready(function () {
 
   // Delete Consent button
   $("#btn-delete-consent").on("click", function () {
-    console.log("Delete Consent clicked");
+    // console.log("Delete Consent clicked");
 
     if (
       !confirm(
@@ -102,7 +102,7 @@ $(document).ready(function () {
       url: `/api/patient/${pt_id}/consent`,
       method: "DELETE",
       success: function (data) {
-        console.log("Delete Consent response:", data);
+        // console.log("Delete Consent response:", data);
         if (data.success) {
           alert(data.message);
 
@@ -137,7 +137,7 @@ $(document).ready(function () {
   // search functionality
   $("#search-input").on("input", function () {
     const query = $(this).val().trim().toLowerCase();
-    console.log("Search query:", query);
+    // console.log("Search query:", query);
 
     if (query.length === 0) {
       showAllPrescriptions();
@@ -198,14 +198,14 @@ $(document).ready(function () {
   }
 
   $("#script-print").on("click", function () {
-    console.log("Print button clicked");
+    // console.log("Print button clicked");
 
     const selectedIds = [];
     $('#asl-table tbody input[type="checkbox"]:checked').each(function () {
       selectedIds.push(parseInt($(this).val()));
     });
 
-    console.log("Selected prescription IDs:", selectedIds);
+    // console.log("Selected prescription IDs:", selectedIds);
   });
 
   function initializeButtonStates() {
@@ -271,7 +271,7 @@ $(document).ready(function () {
   console.log("ASL Status:", pt_data["consent-status"]["status"]);
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+$(function() {
   // Handle prescription selection for dispensing
   const checkboxes = document.querySelectorAll(
     '#asl-table input[type="checkbox"]'

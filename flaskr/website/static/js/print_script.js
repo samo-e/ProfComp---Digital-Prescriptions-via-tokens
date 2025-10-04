@@ -1,4 +1,4 @@
-$(document).ready(function () {
+$(function() {
   $("#script-print").click(print_scripts);
 });
 
@@ -49,7 +49,7 @@ async function print_scripts() {
     const $checkbox = $row.find(".asl-check input");
 
     if (select_all || $checkbox.is(":checked")) {
-      console.log(`Processing prescription ${index}`);
+      // console.log(`Processing prescription ${index}`);
 
       let presc = prescription_container.cloneNode(true);
       const rowId = $row.attr("id");

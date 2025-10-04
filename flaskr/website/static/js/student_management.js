@@ -51,7 +51,7 @@ function editStudent(id) {
 function removeStudent(id) {
   // Implement remove student
   if (confirm("Are you sure you want to remove this student?")) {
-    console.log("Remove student:", id);
+    // console.log("Remove student:", id);
   }
 }
 
@@ -59,7 +59,7 @@ function addStudent() {
   // Implement add student
   const form = document.getElementById("addStudentForm");
   if (form.checkValidity()) {
-    console.log("Add new student");
+    // console.log("Add new student");
     // Close modal after success
     bootstrap.Modal.getInstance(
       document.getElementById("addStudentModal")

@@ -1,5 +1,5 @@
 // Darkmode
-$(document).ready(function () {
+$(function() {
   load_dark_mode();
 });
 
