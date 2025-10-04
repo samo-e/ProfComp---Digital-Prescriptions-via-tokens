@@ -34,26 +34,28 @@
     <h2>Active Script List</h2>
     <div class="row">
         <div id="customer-details" class="col">
-            <div class="row">
-                <h3>Customer Details (ASL)</h3>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <h4>Name</h4>
-                    <p>{{ pt_data['name'] }}</p>
+            <div class="card card-body customer-card">
+                <div class="row">
+                    <h3>Customer Details (ASL)</h3>
                 </div>
-                <div class="col">
-                    <h4>Date of Birth</h4>
-                    <p>{{ pt_data['dob'] }}</p>
+                <div class="row">
+                    <div class="col">
+                        <h4>Name</h4>
+                        <p>{{ pt_data['name'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Date of Birth</h4>
+                        <p>{{ pt_data['dob'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Address</h4>
+                        <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                    </div>
                 </div>
-                <div class="col">
-                    <h4>Address</h4>
-                    <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                <div class="row">
+                    <h4>Preferred Contact</h4>
+                    <p>{{ pt_data['preferred-contact'] }}</p>
                 </div>
-            </div>
-            <div class="row">
-                <h4>Preferred Contact</h4>
-                <p>{{ pt_data['preferred-contact'] }}</p>
             </div>
         </div>
         
