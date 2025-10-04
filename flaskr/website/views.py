@@ -1621,7 +1621,7 @@ def patient_dashboard():
 @login_required
 def delete_patient(patient_id):
     form = DeleteForm()
-    if form.validate_on_submit():  # ✅ checks CSRF
+    if form.validate_on_submit():
         try:
             patient = Patient.query.get_or_404(patient_id)
 

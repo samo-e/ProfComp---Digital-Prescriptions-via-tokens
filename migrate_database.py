@@ -30,27 +30,27 @@ def migrate_database():
             cursor.execute(
                 "ALTER TABLE scenario_patients ADD COLUMN student_id INTEGER"
             )
-            # print("✓ student_id column added")
+            # print("student_id column added")
         else:
             pass
-            # print("✓ student_id column already exists")
+            # print("student_id column already exists")
 
         if "assigned_at" not in columns:
             # print("Adding assigned_at column to scenario_patients table...")
             cursor.execute(
                 "ALTER TABLE scenario_patients ADD COLUMN assigned_at DATETIME"
             )
-            # print("✓ assigned_at column added")
+            # print("assigned_at column added")
         else:
             pass
-            # print("✓ assigned_at column already exists")
+            # print("assigned_at column already exists")
 
         # Commit the changes
         conn.commit()
-        # print("✅ Database migration completed successfully!")
+        # print("Database migration completed successfully!")
 
     except Exception as e:
-        # print(f"❌ Error during migration: {e}")
+        # print(f"Error during migration: {e}")
         conn.rollback()
     finally:
         conn.close()
