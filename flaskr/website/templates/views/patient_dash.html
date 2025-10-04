@@ -201,7 +201,7 @@
                                             style="display:inline;"
                                             onsubmit="return confirm('Are you sure you want to delete {{ (patient.given_name + ' ' + patient.last_name) if patient.given_name and patient.last_name else 'this patient' }}?');">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete Patient">
+                                            <button type="submit" class="btn btn-outline-danger btn-danger" title="Delete Patient">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
