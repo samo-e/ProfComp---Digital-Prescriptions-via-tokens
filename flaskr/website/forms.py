@@ -12,7 +12,7 @@ class BasicDetailsSubForm(FlaskForm):
         ("rev", "Rev"), ("dr", "Dr"), ("honorable", "Honorable")
     ])
     sex = SelectField("Sex", choices=[DEFAULT_CHOICE, ("male", "Male"), ("female", "Female")])
-    dob = DateField("Date of Birth", format="%Y-%m-%d")
+    dob = DateField("Date of Birth", format="%Y-%m-%d", validators=[Optional()])
     ptNumber = StringField("Patient No.")
 
     # Contact
@@ -52,10 +52,10 @@ class BasicDetailsSubForm(FlaskForm):
 
     # Concession
     concessionNumber = StringField("Concession No.")
-    concessionValidTo = DateField("Valid To", format="%Y-%m-%d")
+    concessionValidTo = DateField("Valid To", format="%Y-%m-%d", validators=[Optional()])
     safetyNetNumber = StringField("Safety Net No.")
     repatriationNumber = StringField("Repatriation No.")
-    repatriationValidTo = DateField("Valid To", format="%Y-%m-%d")
+    repatriationValidTo = DateField("Valid To", format="%Y-%m-%d", validators=[Optional()])
     repatriationType = StringField("Repatriation Type")
     ndssNumber = StringField("NDSS No.")
 
@@ -76,47 +76,47 @@ class BasicDetailsSubForm(FlaskForm):
 class SafetyNetDetailsSubForm(FlaskForm):
     # Individual
     script_count_outside = DecimalField(
-        validators=[NumberRange(min=0)])
+        validators=[NumberRange(min=0), Optional()])
     script_count_inside = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     script_count_total = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     scripts_value_outside = DecimalField(
         places=2,  # ensures step="0.01" for dollar amounts
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00"})
     scripts_value_inside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
         default=0.00,
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     scripts_value_total = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
         default=0.00,
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     
     # Family
     family_name = StringField("Family Name")
     family_script_count_outside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
-        validators=[NumberRange(min=0)])
+        validators=[NumberRange(min=0), Optional()])
     family_script_count_inside = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     family_script_count_total = IntegerField( # FIELD SHOULD BE IGNORED WHEN INPUT
         render_kw={"disabled": True})
     family_scripts_value_outside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,  # ensures step="0.01" for dollar amounts
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00"})
     family_scripts_value_inside = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
         default=0.00,
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     family_scripts_value_total = DecimalField( # FIELD SHOULD BE IGNORED WHEN INPUT
         places=2,
         default=0.00,
-        validators=[NumberRange(min=0.00)],
+        validators=[NumberRange(min=0.00), Optional()],
         render_kw={"step": "0.01", "min": "0.00", "disabled": True})
     
     class FamilyMember(FlaskForm):
@@ -134,8 +134,8 @@ class AccountsSubForm(FlaskForm):
     room = StringField("Room No")
     bed = StringField("Bed No")
     ptCat = SelectField("Patient Category", choices=[DEFAULT_CHOICE])
-    chartStart = DateField("Chart Start", format="%Y-%m-%d")
-    chartEnd = DateField("Chart End", format="%Y-%m-%d")
+    chartStart = DateField("Chart Start", format="%Y-%m-%d", validators=[Optional()])
+    chartEnd = DateField("Chart End", format="%Y-%m-%d", validators=[Optional()])
     chartDuration = SelectField("Chart Duration", choices=[DEFAULT_CHOICE])
 
     # Debtor Account Details
