@@ -96,6 +96,7 @@ We will require the simulation program to be editable by the Pharmacy Department
 | WTForms          |    3.0.1 |
 | SQLAlchemy       |   2.0.20 |
 | markdown-it-py   |    4.0.0 |
+| Flask-Minify     |     0.50 |
 
 </div>
 <div id="install">

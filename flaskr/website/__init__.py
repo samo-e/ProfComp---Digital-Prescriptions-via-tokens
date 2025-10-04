@@ -2,10 +2,14 @@ import os
 from flask import Flask
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_minify import Minify
 
 
 def create_app():
     app = Flask(__name__)
+
+    Minify(app=app, html=True, js=True, cssless=True)
+
     app.config["SECRET_KEY"] = (
         "dev-secret-key-change-in-production"  # Change this in production!
     )
