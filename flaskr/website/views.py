@@ -2431,7 +2431,7 @@ def asl_form(patient_id):
             # )
 
     # print(f"DEBUG: Final pt_data structure: {pt_data}")
-    return render_template("asl_form.html", patient=patient, pt_data=pt_data)
+    return render_template("views/asl_form.html", patient=patient, pt_data=pt_data)
 
 
 @views.route("/help")

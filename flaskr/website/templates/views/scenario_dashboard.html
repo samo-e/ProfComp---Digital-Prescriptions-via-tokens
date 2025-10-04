@@ -5,6 +5,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/scenario_dashboard.css') }}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scenario_dashboard.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container {% if current_user.is_student() %}student-view{% endif %}">
     <!-- Flash Messages -->
@@ -486,46 +490,4 @@
         {% endif %}
     </div>
 </div>
-
-<script>
-function toggleNameEdit() {
-    $('#name-display').toggleClass('d-none');
-    $('#name-edit').toggleClass('d-none');
-    $('#edit-name-btn').toggleClass('d-none');
-}
-
-function cancelNameEdit() {
-    $('#name-display, #edit-name-btn').removeClass('d-none');
-    $('#name-edit').addClass('d-none');
-}
-
-// Toggle question edit
-function toggleQuestionEdit() {
-    $('#question-display, #question-edit').toggleClass('d-none');
-}
-
-function cancelQuestionEdit() {
-    $('#question-display').removeClass('d-none');
-    $('#question-edit').addClass('d-none');
-}
-
-// Toggle description edit
-function toggleDescriptionEdit() {
-    $('#description-edit').toggleClass('d-none');
-}
-
-function cancelDescriptionEdit() {
-    $('#description-edit').addClass('d-none');
-}
-
-// Toggle patient selection
-function togglePatientSelection() {
-    $('#patient-display, #patient-selection').toggleClass('d-none');
-}
-
-function cancelPatientSelection() {
-    $('#patient-display').removeClass('d-none');
-    $('#patient-selection').addClass('d-none');
-}
-</script>
 {% endblock %}

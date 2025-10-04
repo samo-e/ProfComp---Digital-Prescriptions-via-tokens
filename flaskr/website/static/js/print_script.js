@@ -1,22 +1,22 @@
-$(document).ready(function() {
+$(document).ready(function () {
   $("#script-print").click(print_scripts);
 });
 
 const options = {
-  filename: 'prescriptions.pdf',
+  filename: "prescriptions.pdf",
   margin: 10,
-  image: { 
-    type: 'jpeg',
-    quality: 0.98
+  image: {
+    type: "jpeg",
+    quality: 0.98,
   },
-  html2canvas: { 
+  html2canvas: {
     scale: 2,
-    logging: false
-  }, 
-  jsPDF: { 
-    unit: 'mm',
-    format: 'a4',
-    orientation: 'portrait'
+    logging: false,
+  },
+  jsPDF: {
+    unit: "mm",
+    format: "a4",
+    orientation: "portrait",
   },
 };
 
@@ -40,42 +40,42 @@ async function print_scripts() {
   const checkedBoxes = $("#asl-table .asl-check input:checked");
   let select_all = checkedBoxes.length === 0;
 
-  let $container = $('<div></div>');
+  let $container = $("<div></div>");
   const prescription_container = await get_blank_prescription();
   let prescriptionCount = 0;
 
-  $("#asl-table tbody tr").each(function(index) {
+  $("#asl-table tbody tr").each(function (index) {
     const $row = $(this);
     const $checkbox = $row.find(".asl-check input");
-    
+
     if (select_all || $checkbox.is(":checked")) {
       console.log(`Processing prescription ${index}`);
-      
+
       let presc = prescription_container.cloneNode(true);
       const rowId = $row.attr("id");
-      
+
       presc = insert_prescription_details(presc, rowId);
 
-      let $wrapper = $('<div></div>').append(presc);
-      $wrapper.css({'break-after': 'page','margin-top': '10px'});
+      let $wrapper = $("<div></div>").append(presc);
+      $wrapper.css({ "break-after": "page", "margin-top": "10px" });
 
       $container.append($wrapper[0]);
       prescriptionCount++;
     }
   });
-  
+
   console.log(`Total prescriptions to print: ${prescriptionCount}`);
 
   if (prescriptionCount === 0) {
-      alert("No valid prescriptions found to print!");
-      return;
+    alert("No valid prescriptions found to print!");
+    return;
   }
-  
+
   html2pdf().set(options).from($container[0]).save();
 }
 
 const id_list = [
-  "medicare",  // now it's single field, not split
+  "medicare", // now it's single field, not split
   "pharmaceut-ben-entitlement-no",
   "sfty-net-entitlement-cardholder",
   "rpbs-ben-entitlement-cardholder",
@@ -86,12 +86,12 @@ const id_list = [
   "address-2",
   "script-date",
   "pbs",
-  "rpbs"
-]
+  "rpbs",
+];
 
 const drug_info_ids = [
   "prescriber-fname",
-  "prescriber-lname", 
+  "prescriber-lname",
   "prescriber-title",
   "prescriber-address-1",
   "prescriber-address-2",
@@ -109,15 +109,15 @@ const drug_info_ids = [
   "dose-qty",
   "dose-rpt",
   "prescribed-date",
-  "paperless"
-]
+  "paperless",
+];
 
 function flatten_dict(dict) {
   let new_dict = {};
-  
+
   for (var key in dict) {
     const value = dict[key];
-    
+
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
         if (typeof item === "object" && item !== null) {
@@ -138,20 +138,20 @@ function flatten_dict(dict) {
       new_dict[key] = value;
     }
   }
-  
+
   return new_dict;
 }
 
 function insert_prescription_details(el, drug_id) {
   console.log(`Inserting details for drug_id: ${drug_id}`);
-  
-  id_list.forEach(id => {
+
+  id_list.forEach((id) => {
     const $el = $(el).find(`#${id}`);
     if (pt_data[id] !== undefined) {
       let data_point = pt_data[id];
       if (data_point === true) {
-        data_point = 'x';
-      } else if (data_point === false){
+        data_point = "x";
+      } else if (data_point === false) {
         return;
       }
       $el.text(data_point);
@@ -159,14 +159,14 @@ function insert_prescription_details(el, drug_id) {
   });
 
   // Use asl-data, not asl_data
-  drug_info_ids.forEach(id => {
+  drug_info_ids.forEach((id) => {
     const $el = $(el).find(`#${id}`);
-    const new_key = `asl-data-${drug_id.slice(-1)}-${id}`;  
+    const new_key = `asl-data-${drug_id.slice(-1)}-${id}`;
     if (flatted_pt_data[new_key] !== undefined) {
       let data_point = flatted_pt_data[new_key];
       if (data_point === true) {
-        data_point = 'x';
-      } else if (data_point === false){
+        data_point = "x";
+      } else if (data_point === false) {
         return;
       }
       $el.text(data_point);
@@ -174,13 +174,13 @@ function insert_prescription_details(el, drug_id) {
   });
 
   const $el = $(el).find(`#age`);
-  $el.text(years_old(pt_data['dob']));
+  $el.text(years_old(pt_data["dob"]));
   return el;
 }
 
 function years_old(dob) {
   let pt_dob = dob.split("/");
-  let newDate = new Date( pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
+  let newDate = new Date(pt_dob[2], pt_dob[1] - 1, pt_dob[0]);
   let timeDifference = Date.now() - newDate;
   let pt_age = Math.floor(timeDifference / (1000 * 3600 * 24 * 365));
   return pt_age;
