@@ -1,9 +1,10 @@
 # Simulation of electronic prescriptions process through the use of tokens
 <!-- MD_ONLY_START -->
 <p align="center">
-<img src="https://img.shields.io/badge/python-3.13.7-blue" alt="Python 3.13.7">
+   <img src="https://img.shields.io/badge/python-3.13.7-blue" alt="Python 3.13.7">
   <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Black">
   <img src="https://img.shields.io/badge/flask-000000?logo=flask&logoColor=white" alt="Flask">
+  <img src="https://img.shields.io/badge/code%20style-prettier-ff69b4" alt="Prettier">
 </p>
 <!-- MD_ONLY_END -->
 
@@ -96,6 +97,7 @@ We will require the simulation program to be editable by the Pharmacy Department
 | WTForms          |    3.0.1 |
 | SQLAlchemy       |   2.0.20 |
 | markdown-it-py   |    4.0.0 |
+| Flask-Minify     |     0.50 |
 
 </div>
 <div id="install">

@@ -5,6 +5,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/student_management.css') }}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/student_management.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
     <!-- Dashboard Header -->
@@ -15,7 +19,7 @@
                 <p class="mb-0">Manage students, their assignments, and monitor their progress.</p>
             </div>
             <div class="col-md-4 text-end">
-                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-light">
+                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
@@ -36,7 +40,7 @@
 
     <!-- Stats Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-primary text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -51,7 +55,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-success text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -66,7 +70,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card stats-card bg-info text-white">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
@@ -106,8 +110,8 @@
         <div class="card-body p-0">
             {% if students and students|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0" id="studentsTable">
-                        <thead class="table-light">
+                    <table class="table table-hover mb-0 table-light" id="studentsTable">
+                        <thead>
                             <tr>
                                 <th class="text-center">
                                     <input class="form-check-input" type="checkbox" id="select-all">
@@ -132,7 +136,7 @@
                                         </div>
                                         <div>
                                             <div class="fw-medium">{{ student.get_full_name() }}</div>
-                                            <small class="text-muted">Student ID: {{ student.id }}</small>
+                                            <small class="text-secondary">Student ID: {{ student.id }}</small>
                                         </div>
                                     </div>
                                 </td>
@@ -174,7 +178,7 @@
                 <div class="empty-state">
                     <i class="bi bi-people"></i>
                     <h5>No Students Found</h5>
-                    <p class="text-muted">No students are currently registered in the system.</p>
+                    <p class="text-secondary">No students are currently registered in the system.</p>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                         <i class="bi bi-person-plus"></i> Add First Student
                     </button>
@@ -185,7 +189,7 @@
         <div class="card-footer">
             <div class="row align-items-center">
                 <div class="col">
-                    <div class="bulk-actions" style="display: none;">
+                    <div class="bulk-actions d-none">
                         <button class="btn btn-outline-danger btn-sm" id="bulk-remove">
                             <i class="bi bi-trash"></i> Remove Selected
                         </button>
@@ -195,7 +199,7 @@
                     </div>
                 </div>
                 <div class="col-auto">
-                    <small class="text-muted">{{ students|length }} student(s) total</small>
+                    <small class="text-secondary">{{ students|length }} student(s) total</small>
                 </div>
             </div>
         </div>
@@ -238,68 +242,4 @@
         </div>
     </div>
 </div>
-
-<script>
-// Search functionality
-document.getElementById('studentSearch').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#studentsTable tbody tr');
-    
-    rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
-        row.style.display = text.includes(searchTerm) ? '' : 'none';
-    });
-});
-
-// Select all functionality
-document.getElementById('select-all').addEventListener('change', function() {
-    const checkboxes = document.querySelectorAll('.student-checkbox');
-    checkboxes.forEach(cb => cb.checked = this.checked);
-    toggleBulkActions();
-});
-
-// Individual checkbox handling
-document.querySelectorAll('.student-checkbox').forEach(cb => {
-    cb.addEventListener('change', toggleBulkActions);
-});
-
-function toggleBulkActions() {
-    const checked = document.querySelectorAll('.student-checkbox:checked');
-    const bulkActions = document.querySelector('.bulk-actions');
-    bulkActions.style.display = checked.length > 0 ? 'block' : 'none';
-}
-
-// Action functions
-function viewStudent(id) {
-    // Implement view student details
-    console.log('View student:', id);
-}
-
-function assignScenario(id) {
-    // Implement assign scenario
-    console.log('Assign scenario to student:', id);
-}
-
-function editStudent(id) {
-    // Implement edit student
-    console.log('Edit student:', id);
-}
-
-function removeStudent(id) {
-    // Implement remove student
-    if (confirm('Are you sure you want to remove this student?')) {
-        console.log('Remove student:', id);
-    }
-}
-
-function addStudent() {
-    // Implement add student
-    const form = document.getElementById('addStudentForm');
-    if (form.checkValidity()) {
-        console.log('Add new student');
-        // Close modal after success
-        bootstrap.Modal.getInstance(document.getElementById('addStudentModal')).hide();
-    }
-}
-</script>
 {% endblock %}

@@ -2,344 +2,15 @@
 {% block title %}{{ scenario.name }} - ASL Scenario{% endblock %}
 
 {% block styles %}
-<style>
-    .scenario-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .info-alert {
-        background-color: #d1ecf1;
-        border: 1px solid #bee5eb;
-        border-left: 4px solid #17a2b8;
-        border-radius: 0.5rem;
-        padding: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .info-alert .bi {
-        color: #17a2b8;
-        margin-right: 0.5rem;
-    }
-    
-    .section-card {
-        background: white;
-        border: 1px solid #dee2e6;
-        border-radius: 0.75rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    
-    .section-title {
-        color: #495057;
-        font-size: 1.1rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 2px solid #e9ecef;
-    }
-    
-    .instruction-list li {
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-    }
-    
-    /* Enhanced Patient Card Styles */
-    .patient-details-card {
-        background: linear-gradient(145deg, #ffffff 0%, #f8f9ff 100%);
-        border-radius: 1rem !important;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    
-    .patient-details-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 20px 40px rgba(0,0,0,0.15) !important;
-    }
-    
-    .patient-icon {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-        border: 3px solid #fff;
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
-        transition: transform 0.2s ease;
-    }
-    
-    .patient-icon:hover {
-        transform: scale(1.1);
-    }
-    
-    .patient-name {
-        color: #2c3e50;
-        font-size: 1.8rem;
-        font-weight: 700;
-        letter-spacing: -0.5px;
-    }
-    
-    .patient-basic-info .badge {
-        font-size: 0.85rem;
-        padding: 0.5rem 0.75rem;
-        border-radius: 0.5rem;
-    }
-    
-    .info-card {
-        background: #ffffff;
-        border-radius: 0.75rem;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-    }
-    
-    .info-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    
-    .bg-primary-light {
-        background-color: rgba(13, 110, 253, 0.1) !important;
-    }
-    
-    .bg-success-light {
-        background-color: rgba(25, 135, 84, 0.1) !important;
-    }
-    
-    .action-panel {
-        background: linear-gradient(145deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 1rem;
-        padding: 1.5rem;
-        border: 1px solid #dee2e6;
-    }
-    
-    .action-panel .btn {
-        border-radius: 0.75rem;
-        font-weight: 600;
-        padding: 0.875rem 1.5rem;
-        transition: all 0.3s ease;
-        border: none;
-        position: relative;
-        overflow: hidden;
-    }
-    
-    .action-panel .btn:before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-        transition: left 0.5s;
-    }
-    
-    .action-panel .btn:hover:before {
-        left: 100%;
-    }
-    
-    .action-panel .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-    
-    .action-panel .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
-    }
-    
-    .action-panel .btn-success {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.4);
-    }
-    
-    .action-panel .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.5);
-    }
-    
-    .patient-stats {
-        background: rgba(255,255,255,0.8);
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-    }
-    
-    /* Student-specific improvements */
-    .student-view .section-card {
-        border: none;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
-    
-    .patient-name {
-        color: #2c3e50;
-        font-weight: 700;
-    }
-    
-    .patient-card {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-    }
-    
-    .patient-name {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: #212529;
-        margin-bottom: 0.5rem;
-    }
-    
-    .patient-dob {
-        color: #6c757d;
-        margin-bottom: 1rem;
-    }
-    
-    .btn-asl {
-        background-color: #28a745;
-        border-color: #28a745;
-        color: white;
-        font-weight: 500;
-        padding: 0.5rem 1.5rem;
-        margin-right: 0.5rem;
-    }
-    
-    .btn-asl:hover {
-        background-color: #218838;
-        border-color: #1e7e34;
-        color: white;
-    }
-    
-    .btn-dashboard {
-        background-color: #6c757d;
-        border-color: #6c757d;
-        color: white;
-        font-weight: 500;
-        padding: 0.5rem 1.5rem;
-    }
-    
-    .btn-dashboard:hover {
-        background-color: #5a6268;
-        border-color: #545b62;
-        color: white;
-    }
-    
-    .action-buttons {
-        display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-        flex-wrap: wrap;
-    }
-    
-    .btn-action {
-        font-weight: 500;
-        padding: 0.75rem 2rem;
-        border-radius: 0.5rem;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .btn-create-question {
-        background-color: #007bff;
-        color: white;
-    }
-    
-    .btn-create-question:hover {
-        background-color: #0056b3;
-        transform: translateY(-1px);
-        color: white;
-    }
-    
-    .btn-assign {
-        background-color: #ffc107;
-        color: #212529;
-    }
-    
-    .btn-assign:hover {
-        background-color: #e0a800;
-        transform: translateY(-1px);
-        color: #212529;
-    }
-    
-    .btn-edit {
-        background-color: #17a2b8;
-        color: white;
-    }
-    
-    .btn-edit:hover {
-        background-color: #138496;
-        transform: translateY(-1px);
-        color: white;
-    }
-    
-    .btn-delete {
-        background-color: #dc3545;
-        color: white;
-    }
-    
-    .btn-delete:hover {
-        background-color: #c82333;
-        transform: translateY(-1px);
-        color: white;
-    }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/scenario_dashboard.css') }}">
+{% endblock %}
 
-    /* Edit Name Button Styling */
-    .edit-name-btn {
-        background: none;
-        border: none;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 1.1rem;
-        padding: 0.25rem;
-        margin-left: 0.5rem;
-        border-radius: 0.25rem;
-        transition: all 0.2s ease;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-    }
-    
-    .edit-name-btn:hover {
-        color: white;
-        background-color: rgba(255, 255, 255, 0.1);
-        transform: scale(1.1);
-    }
-    
-    .edit-name-btn:active {
-        transform: scale(0.95);
-    }
-
-    /* Responsive adjustments */
-    @media (max-width: 768px) {
-        .action-buttons {
-            flex-direction: column;
-        }
-        
-        .btn-action {
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .d-flex.gap-2 {
-            flex-direction: column;
-            gap: 0.5rem !important;
-        }
-        
-        .btn-asl, .btn-dashboard {
-            width: 100%;
-            margin-right: 0;
-        }
-    }
-</style>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/scenario_dashboard.js') }}"></script>
 {% endblock %}
 
 {% block body %}
-<div class="container mt-3 {% if current_user.is_student() %}student-view{% endif %}">
+<div class="container {% if current_user.is_student() %}student-view{% endif %}">
     <!-- Flash Messages -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
@@ -355,11 +26,11 @@
     <!-- Header Section -->
     <div class="scenario-header">
         <div class="d-flex justify-content-between align-items-start">
-            <div>
+            <div class="mw-75">
                 <div class="d-flex align-items-center mb-3">
                     <!-- Name Display Mode -->
-                    <div id="name-display">
-                        <h1 class="mb-0 me-3">
+                    <div id="name-display" class="mw-100">
+                        <h1 class="mb-0 me-3 text-truncate">
                             {{ scenario.name }}
                             {% if scenario.version > 1 %}
                                 <span class="badge bg-light text-dark ms-2">v{{ scenario.version }}</span>
@@ -373,10 +44,10 @@
                     </div>
                     
                     <!-- Name Edit Mode (initially hidden) -->
-                    <div id="name-edit" style="display: none;" class="flex-grow-1">
+                    <div id="name-edit" class="flex-grow-1 d-none">
                         <form method="POST" action="{{ url_for('views.update_scenario_name', scenario_id=scenario.id) }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <input type="text" class="form-control" name="scenario_name" value="{{ scenario.name }}" required style="max-width: 300px;">
+                            <input type="text" class="form-control mw-100" name="scenario_name" value="{{ scenario.name }}" required>
                             <button type="submit" class="btn btn-sm btn-success">Save</button>
                             <button type="button" class="btn btn-sm btn-secondary" onclick="cancelNameEdit()">Cancel</button>
                         </form>
@@ -405,7 +76,7 @@
 
     <!-- Description Edit Mode (initially hidden) -->
     {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-    <div id="description-edit" style="display: none;" class="section-card">
+    <div id="description-edit" class="section-card d-none">
         <form method="POST" action="{{ url_for('views.update_scenario_description', scenario_id=scenario.id) }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="mb-3">
@@ -423,7 +94,7 @@
     {% endif %}
     
     <!-- Information Alert -->
-    <div class="info-alert">
+    <div class="info-alert text-dark">
         <i class="bi bi-info-circle"></i>
         <strong>Each patient has exactly one Active Script List (ASL).</strong> Students can only dispense medicines; they cannot edit the ASL. Repeats auto-decrement in real time.
     </div>
@@ -436,7 +107,7 @@
             </h2>
             {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
             <button class="btn btn-sm btn-outline-primary" onclick="toggleQuestionEdit()">
-                <i class="bi bi-pencil"></i> Edit
+                <i class="bi bi-pencil"></i> Edit Questions
             </button>
             {% endif %}
         </div>
@@ -444,10 +115,10 @@
         <!-- Question Display Mode -->
         <div id="question-display">
             {% if scenario.question_text %}
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; white-space: pre-wrap;">{{ scenario.question_text|nl2br|safe }}</div>
+                <div class="scenario-question-text">{{ scenario.question_text|nl2br|safe }}</div>
             {% else %}
-                <p class="mb-3">Complete the following tasks when working with your assigned patient:</p>
-                <ul class="instruction-list">
+                <p class="mb-3 text-dark">Complete the following tasks when working with your assigned patient:</p>
+                <ul class="instruction-list text-dark">
                     <li>Dispense the prescribed medicines.</li>
                     <li>Track remaining repeats and advise the patient.</li>
                     <li>Answer scenario-specific questions set by the instructor.</li>
@@ -457,14 +128,14 @@
 
         <!-- Question Edit Mode (initially hidden) -->
         {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-        <div id="question-edit" style="display: none;">
+        <div id="question-edit" class="d-none">
             <form method="POST" action="{{ url_for('views.update_scenario_question', scenario_id=scenario.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
-                    <label for="question_text" class="form-label">Scenario Questions/Instructions:</label>
+                    <label for="question_text" class="form-label text-dark">Scenario Questions/Instructions:</label>
                     <textarea class="form-control" id="question_text" name="question_text" rows="6" 
                               placeholder="Enter questions or instructions for students...">{{ scenario.question_text or '' }}</textarea>
-                    <div class="form-text">You can write multiple questions or instructions. Students will see this when they access the scenario.</div>
+                    <div class="form-text text-dark">You can write multiple questions or instructions. Students will see this when they access the scenario.</div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Save Questions</button>
@@ -485,7 +156,7 @@
                 <i class="bi bi-pencil"></i>
                 Edit Scenario
             </a>
-            <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" style="display: inline;">
+            <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" class="d-none">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn-action btn-delete" onclick="return confirm('Are you sure you want to delete this scenario?')">
                     <i class="bi bi-trash"></i>
@@ -519,7 +190,7 @@
                                     <strong>{{ student.first_name }} {{ student.last_name }}</strong>
                                     <br><small class="text-muted">Student ID: {{ student.id }}</small>
                                 </div>
-                                <form method="POST" action="{{ url_for('views.unassign_student_from_scenario', scenario_id=scenario.id, student_id=student.id) }}" style="display: inline;">
+                                <form method="POST" action="{{ url_for('views.unassign_student_from_scenario', scenario_id=scenario.id, student_id=student.id) }}" class="d-none">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                     <button type="submit" class="btn btn-sm btn-outline-danger" 
                                             onclick="return confirm('Remove {{ student.first_name }} {{ student.last_name }} from this scenario?')">
@@ -535,7 +206,7 @@
             
             {% if assigned_students|length > 1 %}
             <div class="mt-3">
-                <form method="POST" action="{{ url_for('views.unassign_all_students', scenario_id=scenario.id) }}" style="display: inline;">
+                <form method="POST" action="{{ url_for('views.unassign_all_students', scenario_id=scenario.id) }}" class="d-none">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <button type="submit" class="btn btn-sm btn-outline-danger" 
                             onclick="return confirm('Remove ALL students from this scenario? This cannot be undone.')">
@@ -545,7 +216,7 @@
             </div>
             {% endif %}
         {% else %}
-            <p class="text-muted">No students are currently assigned to this scenario.</p>
+            <p class="text-dark">No students are currently assigned to this scenario.</p>
         {% endif %}
     </div>
     {% endif %}
@@ -603,7 +274,7 @@
                             </a>
                             {% endif %}
                             {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-                            <form method="POST" action="{{ url_for('views.remove_active_patient', scenario_id=scenario.id) }}" style="display: inline;">
+                            <form method="POST" action="{{ url_for('views.remove_active_patient', scenario_id=scenario.id) }}" class="d-none">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                                 <button type="submit" class="btn btn-sm btn-outline-danger" 
                                         onclick="return confirm('Remove this patient from the scenario?')">
@@ -615,7 +286,7 @@
                     </div>
                 </div>
             {% else %}
-                <div class="info-alert">
+                <div class="info-alert text-dark">
                     <i class="bi bi-info-circle"></i>
                     No patient assigned to this scenario yet. 
                     {% if scenario.teacher_id == current_user.id %}
@@ -629,7 +300,7 @@
 
         <!-- Patient Selection Mode (initially hidden) -->
         {% if scenario.teacher_id == current_user.id %}
-        <div id="patient-selection" style="display: none;">
+        <div id="patient-selection" class="d-none">
             <form method="POST" action="{{ url_for('views.set_active_patient', scenario_id=scenario.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
@@ -669,8 +340,8 @@
                         <div class="col-md-8">
                             <div class="d-flex align-items-center mb-4">
                                 <div class="patient-avatar me-4">
-                                    <div class="rounded-circle bg-gradient-primary d-flex align-items-center justify-content-center patient-icon" style="width: 80px; height: 80px;">
-                                        <i class="bi bi-person-fill text-white" style="font-size: 2.5rem;"></i>
+                                    <div class="rounded-circle bg-gradient-primary d-flex align-items-center justify-content-center patient-icon">
+                                        <i class="bi bi-person-fill text-white fs-1"></i>
                                     </div>
                                 </div>
                                 <div class="patient-header">
@@ -703,12 +374,12 @@
                                     <div class="info-card p-4 h-100 border-start border-primary border-4">
                                         <div class="d-flex align-items-center">
                                             <div class="info-icon me-3">
-                                                <div class="rounded-circle bg-primary-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                                <div class="rounded-circle bg-primary-light d-flex align-items-center justify-content-center patient-icon">
                                                     <i class="bi bi-credit-card text-primary fs-5"></i>
                                                 </div>
                                             </div>
                                             <div class="info-content">
-                                                <small class="text-muted text-uppercase fw-semibold">Medicare Number</small>
+                                                <small class="text-dark text-uppercase fw-semibold">Medicare Number</small>
                                                 <div class="fw-bold text-dark fs-6">{{ assigned_patient.medicare }}</div>
                                             </div>
                                         </div>
@@ -721,12 +392,12 @@
                                     <div class="info-card p-4 h-100 border-start border-success border-4">
                                         <div class="d-flex align-items-center">
                                             <div class="info-icon me-3">
-                                                <div class="rounded-circle bg-success-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                                <div class="rounded-circle bg-success-light d-flex align-items-center justify-content-center patient-icon">
                                                     <i class="bi bi-geo-alt text-success fs-5"></i>
                                                 </div>
                                             </div>
                                             <div class="info-content">
-                                                <small class="text-muted text-uppercase fw-semibold">Address</small>
+                                                <small class="text-dark text-uppercase fw-semibold">Address</small>
                                                 <div class="fw-bold text-dark fs-6">{{ assigned_patient.address }}</div>
                                             </div>
                                         </div>
@@ -750,7 +421,7 @@
                                 </div>
                                 
                                 <div class="mt-4 pt-3 border-top">
-                                    <small class="text-muted d-block mb-2">
+                                    <small class="text-dark d-block mb-2">
                                         <i class="bi bi-info-circle me-1"></i>
                                         Patient Information
                                     </small>
@@ -758,11 +429,11 @@
                                         <div class="d-flex justify-content-between text-center">
                                             <div class="flex-fill">
                                                 <div class="fw-bold text-primary">Active</div>
-                                                <small class="text-muted">Status</small>
+                                                <small class="text-dark">Status</small>
                                             </div>
                                             <div class="flex-fill">
                                                 <div class="fw-bold text-success">Available</div>
-                                                <small class="text-muted">ASL</small>
+                                                <small class="text-dark">ASL</small>
                                             </div>
                                         </div>
                                     </div>
@@ -776,7 +447,7 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center py-5">
                     <div class="empty-state">
-                        <i class="bi bi-person-x text-muted mb-3" style="font-size: 4rem;"></i>
+                        <i class="bi bi-person-x text-muted mb-3 fs-1"></i>
                         <h5 class="text-muted mb-3">No Patient Assigned</h5>
                         <p class="text-muted mb-4">
                             No patient has been assigned to you for this scenario yet.<br>
@@ -809,7 +480,7 @@
             <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-info me-2">
                 <i class="bi bi-clipboard-check me-1"></i>View Submissions
             </a>
-            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}" style="display: inline;">
+            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-copy me-1"></i>Duplicate Scenario
@@ -819,89 +490,4 @@
         {% endif %}
     </div>
 </div>
-
-<script>
-function toggleNameEdit() {
-    const displayDiv = document.getElementById('name-display');
-    const editDiv = document.getElementById('name-edit');
-    const editBtn = document.getElementById('edit-name-btn');
-    
-    if (displayDiv.style.display === 'none') {
-        displayDiv.style.display = 'block';
-        editDiv.style.display = 'none';
-        editBtn.style.display = 'block';
-    } else {
-        displayDiv.style.display = 'none';
-        editDiv.style.display = 'block';
-        editBtn.style.display = 'none';
-    }
-}
-
-function cancelNameEdit() {
-    const displayDiv = document.getElementById('name-display');
-    const editDiv = document.getElementById('name-edit');
-    const editBtn = document.getElementById('edit-name-btn');
-    
-    displayDiv.style.display = 'block';
-    editDiv.style.display = 'none';
-    editBtn.style.display = 'block';
-}
-
-function toggleQuestionEdit() {
-    const displayDiv = document.getElementById('question-display');
-    const editDiv = document.getElementById('question-edit');
-    
-    if (displayDiv.style.display === 'none') {
-        displayDiv.style.display = 'block';
-        editDiv.style.display = 'none';
-    } else {
-        displayDiv.style.display = 'none';
-        editDiv.style.display = 'block';
-    }
-}
-
-function cancelQuestionEdit() {
-    const displayDiv = document.getElementById('question-display');
-    const editDiv = document.getElementById('question-edit');
-    
-    displayDiv.style.display = 'block';
-    editDiv.style.display = 'none';
-}
-
-function toggleDescriptionEdit() {
-    const editDiv = document.getElementById('description-edit');
-    
-    if (editDiv.style.display === 'none') {
-        editDiv.style.display = 'block';
-    } else {
-        editDiv.style.display = 'none';
-    }
-}
-
-function cancelDescriptionEdit() {
-    const editDiv = document.getElementById('description-edit');
-    editDiv.style.display = 'none';
-}
-
-function togglePatientSelection() {
-    const displayDiv = document.getElementById('patient-display');
-    const selectionDiv = document.getElementById('patient-selection');
-    
-    if (displayDiv.style.display === 'none') {
-        displayDiv.style.display = 'block';
-        selectionDiv.style.display = 'none';
-    } else {
-        displayDiv.style.display = 'none';
-        selectionDiv.style.display = 'block';
-    }
-}
-
-function cancelPatientSelection() {
-    const displayDiv = document.getElementById('patient-display');
-    const selectionDiv = document.getElementById('patient-selection');
-    
-    displayDiv.style.display = 'block';
-    selectionDiv.style.display = 'none';
-}
-</script>
 {% endblock %}

@@ -2,94 +2,10 @@
 {% block title %}Edit Scenario - {{ scenario.name }}{% endblock %}
 
 {% block styles %}
-<style>
-    .form-container {
-        max-width: 800px;
-        margin: 2rem auto;
-        background: white;
-        padding: 2rem;
-        border-radius: 1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    .form-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: #495057;
-    }
-    
-    .form-control, .form-select {
-        border: 2px solid #e9ecef;
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        transition: border-color 0.2s;
-    }
-    
-    .form-control:focus, .form-select:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    }
-    
-    .btn-custom {
-        padding: 0.75rem 2rem;
-        border-radius: 0.5rem;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .btn-save {
-        background: linear-gradient(135deg, #28a745, #20c997);
-        color: white;
-    }
-    
-    .btn-save:hover {
-        background: linear-gradient(135deg, #218838, #1abc96);
-        transform: translateY(-1px);
-    }
-    
-    .btn-cancel {
-        background: #6c757d;
-        color: white;
-    }
-    
-    .btn-cancel:hover {
-        background: #5a6268;
-        transform: translateY(-1px);
-    }
-    
-    .password-toggle {
-        position: relative;
-    }
-    
-    .password-toggle .form-control {
-        padding-right: 3rem;
-    }
-    
-    .password-toggle .toggle-btn {
-        position: absolute;
-        right: 10px;
-        top: 50%;
-        transform: translateY(-50%);
-        background: none;
-        border: none;
-        color: #6c757d;
-        cursor: pointer;
-    }
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/edit_scenario.css') }}">
+{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/toggle_password.js') }}"></script>
 {% endblock %}
 
 {% block body %}
@@ -151,7 +67,7 @@
                            class="form-control" 
                            value="{{ scenario.password or '' }}" 
                            placeholder="Leave blank for no password protection">
-                    <button type="button" class="toggle-btn" onclick="togglePassword()">
+                    <button type="button" class="toggle-btn" id="password-view-toggle">
                         <i class="bi bi-eye" id="password-icon"></i>
                     </button>
                 </div>
@@ -228,19 +144,4 @@
         </form>
     </div>
 </div>
-
-<script>
-function togglePassword() {
-    const passwordField = document.getElementById('password');
-    const passwordIcon = document.getElementById('password-icon');
-    
-    if (passwordField.type === 'password') {
-        passwordField.type = 'text';
-        passwordIcon.className = 'bi bi-eye-slash';
-    } else {
-        passwordField.type = 'password';
-        passwordIcon.className = 'bi bi-eye';
-    }
-}
-</script>
 {% endblock %}
