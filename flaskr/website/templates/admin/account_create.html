@@ -1,15 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account</title>
+{% extends "base.html" %}
+
+{% block title %}Create Account{% endblock %}
+
+{% block head %}
     <script>
-        // Prevent form resubmission on browser back
-        if (window.history.replaceState) {
-            window.history.replaceState(null, null, window.location.href);
-        }
-        
         // Track form submission to prevent duplicate submissions
         let formSubmitted = false;
         
@@ -19,95 +13,183 @@
                 return false;
             }
             formSubmitted = true;
+            
+            // Disable the submit button and show loading state
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Creating Account...';
+                submitBtn.style.opacity = '0.6';
+            }
+            
             return true;
         }
         
-        // Disable browser undo on this page
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
-                e.preventDefault();
-                alert('Undo is not allowed on this page.');
+        // Always reset to fresh state when page loads (including back navigation)
+        window.addEventListener('load', function() {
+            resetToFreshState();
+        });
+        
+        // Reset form when user navigates back using browser cache
+        window.addEventListener('pageshow', function(event) {
+            // This fires when page is shown, including from back/forward cache
+            resetToFreshState();
+        });
+        
+        function resetToFreshState() {
+            // Reset form submission state
+            formSubmitted = false;
+            
+            // Reset submit button
+            const submitBtn = document.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+                submitBtn.style.opacity = '1';
             }
+            
+            // Clear all form fields for a fresh start
+            const form = document.querySelector('form');
+            if (form) {
+                // Clear all input fields except CSRF token
+                const inputs = form.querySelectorAll('input:not([name="csrf_token"]), select');
+                inputs.forEach(function(input) {
+                    if (input.type === 'text' || input.type === 'email' || input.type === 'password' || input.type === 'number') {
+                        input.value = '';
+                    } else if (input.tagName === 'SELECT') {
+                        input.selectedIndex = 0; // Reset to first option
+                    }
+                });
+            }
+            
+            // Reset student number field state
+            toggleStudentNumber();
+            
+            console.log('Account creation form reset to fresh state');
+        }
+        
+        // Function to toggle student number field based on role
+        function toggleStudentNumber() {
+            const roleSelect = document.getElementById('role');
+            const studentNumberField = document.getElementById('studentnumber');
+            const studentNumberLabel = document.querySelector('label[for="studentnumber"]');
+            
+            if (roleSelect && studentNumberField) {
+                if (roleSelect.value === 'student') {
+                    studentNumberField.disabled = false;
+                    studentNumberField.style.backgroundColor = '';
+                    studentNumberField.style.color = '';
+                    studentNumberField.required = true;
+                    if (studentNumberLabel) {
+                        studentNumberLabel.style.color = '';
+                    }
+                } else {
+                    studentNumberField.disabled = true;
+                    studentNumberField.style.backgroundColor = '#f5f5f5';
+                    studentNumberField.style.color = '#999';
+                    studentNumberField.value = '';
+                    studentNumberField.required = false;
+                    if (studentNumberLabel) {
+                        studentNumberLabel.style.color = '#999';
+                    }
+                }
+            }
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', function() {
+            toggleStudentNumber();
         });
     </script>
-</head>
-<body>
-    <h1>Create Account</h1>
-    
-    <!-- Flash Messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div>{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    
-    <form method="POST" onsubmit="return preventDuplicateSubmission()">
-        {{ form.hidden_tag() }}
+{% endblock %}
+
+{% block body %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="mb-4">Create Account</h1>
+                
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                
+                <form method="POST" onsubmit="return preventDuplicateSubmission()" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
         
-        <div>
-            {{ form.studentnumber.label() }}
-            {{ form.studentnumber() }}
-            {% if form.studentnumber.errors %}
-                {% for error in form.studentnumber.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div>
-            {{ form.first_name.label() }}
-            {{ form.first_name() }}
-            {% if form.first_name.errors %}
-                {% for error in form.first_name.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div>
-            {{ form.last_name.label() }}
-            {{ form.last_name() }}
-            {% if form.last_name.errors %}
-                {% for error in form.last_name.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div>
-            {{ form.email.label() }}
-            {{ form.email() }}
-            {% if form.email.errors %}
-                {% for error in form.email.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div>
-            {{ form.password.label() }}
-            {{ form.password() }}
-            {% if form.password.errors %}
-                {% for error in form.password.errors %}
-                    <div>{{ error }}</div>
-                {% endfor %}
-            {% endif %}
-        </div>
-        
-        <div>
-            {{ form.role.label() }}
-            {{ form.role() }}
+        <div class="mb-3">
+            {{ form.role.label(class="form-label") }}
+            {{ form.role(id='role', onchange='toggleStudentNumber()', class="form-select") }}
             {% if form.role.errors %}
                 {% for error in form.role.errors %}
-                    <div>{{ error }}</div>
+                    <div class="text-danger small">{{ error }}</div>
                 {% endfor %}
             {% endif %}
         </div>
         
-        <button type="submit">Create Account</button>
-        <a href="{{ url_for('admin.admin_dashboard') }}">Cancel</a>
+        <div class="mb-3">
+            {{ form.studentnumber.label(id='studentnumber-label', class="form-label") }}
+            {{ form.studentnumber(id='studentnumber', class="form-control") }}
+            {% if form.studentnumber.errors %}
+                {% for error in form.studentnumber.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.first_name.label(class="form-label") }}
+            {{ form.first_name(class="form-control") }}
+            {% if form.first_name.errors %}
+                {% for error in form.first_name.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.last_name.label(class="form-label") }}
+            {{ form.last_name(class="form-control") }}
+            {% if form.last_name.errors %}
+                {% for error in form.last_name.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-primary">Create Account</button>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </div>
     </form>
-</body>
-</html>
+            </div>
+        </div>
+    </div>
+{% endblock %}

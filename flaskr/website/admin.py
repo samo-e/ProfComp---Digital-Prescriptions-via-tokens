@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, make_response
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, Length, NumberRange
@@ -6,9 +6,68 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
 from datetime import datetime
+from functools import wraps
 
 
 admin = Blueprint('admin', __name__)
+
+# Admin-only decorator
+def admin_required(f):
+    """
+    Decorator to ensure only users with admin role can access the route.
+    Must be used after @login_required.
+    """
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Please log in to access this page.', 'error')
+            return redirect(url_for('auth.login'))
+        
+        if current_user.role != 'admin':
+            flash('Access denied. Admin privileges required.', 'error')
+            
+            # Redirect based on user role to their appropriate dashboard
+            if current_user.role == 'teacher':
+                return redirect(url_for('views.teacher_dashboard'))
+            elif current_user.role == 'student':
+                return redirect(url_for('views.student_dashboard'))
+            else:
+                # Fallback to home for any other role
+                return redirect(url_for('views.home'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+def verify_admin_access():
+    """
+    Helper function to verify admin access.
+    Returns True if current user is admin, False otherwise.
+    """
+    if not current_user.is_authenticated:
+        return False
+    return current_user.role == 'admin'
+
+# Make verify_admin_access available in templates
+@admin.app_template_global()
+def is_admin():
+    """Template function to check if current user is admin"""
+    return verify_admin_access()
+
+# Route to handle unauthorized access
+@admin.route('/admin/unauthorized')
+def unauthorized():
+    """Handle unauthorized access attempts"""
+    flash('Access denied. Admin privileges required.', 'error')
+    
+    # Redirect based on user role if authenticated
+    if current_user.is_authenticated:
+        if current_user.role == 'teacher':
+            return redirect(url_for('views.teacher_dashboard'))
+        elif current_user.role == 'student':
+            return redirect(url_for('views.student_dashboard'))
+    
+    # Fallback to home
+    return redirect(url_for('views.home'))
 
 # Simple form for CSRF protection
 class AssignStudentForm(FlaskForm):
@@ -50,16 +109,60 @@ class CreateAccountForm(FlaskForm):
         ('admin', 'Admin')
     ], validators=[DataRequired('Role is required')])
 
+# Before request handler for admin blueprint
+@admin.before_request
+def require_admin():
+    """
+    Ensure all admin routes require admin access.
+    This runs before every request to admin routes.
+    """
+    # Allow unauthorized route for redirect purposes
+    if request.endpoint == 'admin.unauthorized':
+        return
+    
+    # Check if user is authenticated
+    if not current_user.is_authenticated:
+        flash('Please log in to access admin pages.', 'error')
+        return redirect(url_for('auth.login'))
+    
+    # Check if user has admin role - redirect to their appropriate page
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        
+        # Redirect based on user role to their appropriate dashboard
+        if current_user.role == 'teacher':
+            return redirect(url_for('views.teacher_dashboard'))
+        elif current_user.role == 'student':
+            return redirect(url_for('views.student_dashboard'))
+        else:
+            # Fallback to home for any other role
+            return redirect(url_for('views.home'))
+
 @admin.route('/admin')
+@login_required
 def admin_dashboard():
+	# Admin access already verified by before_request handler
 	teachers = User.query.filter_by(role=UserRole.TEACHER.value).all()
 	students = User.query.filter_by(role=UserRole.STUDENT.value).all()
 	admins = User.query.filter_by(role=UserRole.ADMIN.value).all()
-	return render_template('admin/admin.html', teachers=teachers, students=students, admins=admins)
+	
+	# Create response with no-cache headers to prevent browser caching
+	response = make_response(render_template('admin/admin.html', 
+		teachers=teachers, students=students, admins=admins))
+	response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+	response.headers['Pragma'] = 'no-cache'
+	response.headers['Expires'] = '0'
+	return response
 
 # User profile page (blank for now)
 @admin.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def teacher_profile(user_id):
+	# Only admins can access user profiles
+	if current_user.role != 'admin':
+		flash('Access denied. Admin privileges required.', 'error')
+		return redirect(url_for('views.home'))
+		
 	user = User.query.get_or_404(user_id)
 	students = []
 	form = AssignStudentForm()
@@ -69,10 +172,13 @@ def teacher_profile(user_id):
 	return render_template('admin/teacher_profile.html', user=user, students=students, form=form, password_form=password_form)
 
 # Route to assign a student to a teacher
-
-
 @admin.route('/admin/assign_student', methods=['POST'])
+@login_required
 def assign_student():
+	# Only admins can assign students
+	if current_user.role != 'admin':
+		flash('Access denied. Admin privileges required.', 'error')
+		return redirect(url_for('views.home'))
 	teacher_id = int(request.form['teacher_id'])
 	student_id = int(request.form['student_id'])
 	teacher = User.query.get_or_404(teacher_id)
@@ -102,7 +208,12 @@ def assign_student():
 
 # Route to unassign a student from a teacher
 @admin.route('/admin/unassign_student', methods=['POST'])
+@login_required
 def unassign_student():
+	# Only admins can unassign students
+	if current_user.role != 'admin':
+		flash('Access denied. Admin privileges required.', 'error')
+		return redirect(url_for('views.home'))
 	teacher_id = int(request.form['teacher_id'])
 	student_id = int(request.form['student_id'])
 	teacher = User.query.get_or_404(teacher_id)
@@ -121,7 +232,13 @@ def unassign_student():
 
 # Route to change user password
 @admin.route('/admin/change_password/<int:user_id>', methods=['POST'])
+@login_required
 def change_password(user_id):
+	# Only admins can change passwords
+	if current_user.role != 'admin':
+		flash('Access denied. Admin privileges required.', 'error')
+		return redirect(url_for('views.home'))
+		
 	user = User.query.get_or_404(user_id)
 	password_form = ChangePasswordForm()
 	
@@ -140,7 +257,13 @@ def change_password(user_id):
 
 # Student profile route
 @admin.route('/admin/student/<int:user_id>')
+@login_required
 def student_profile(user_id):
+	# Only admins can access student profiles
+	if current_user.role != 'admin':
+		flash('Access denied. Admin privileges required.', 'error')
+		return redirect(url_for('views.home'))
+		
 	user = User.query.get_or_404(user_id)
 	password_form = ChangePasswordForm()
 	return render_template('admin/student_profile.html', user=user, password_form=password_form)
@@ -148,7 +271,12 @@ def student_profile(user_id):
 
 # Account creation route
 @admin.route('/admin/create_account', methods=['GET', 'POST'])
+@login_required
 def create_account():
+    # Only admins can create accounts
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
     
     form = CreateAccountForm()
     
@@ -196,10 +324,10 @@ def create_account():
             db.session.add(new_user)
             db.session.commit()
             
-            # Store success info in session to prevent browser back issues
-            flash(f'Account created successfully for {new_user.get_full_name()} ({email})', 'success')
-            # Clear the form by redirecting to success page
-            return redirect(url_for('admin.account_creation_success', user_id=new_user.id))
+            # Store success info and redirect to admin dashboard (industry standard)
+            flash(f'Account created successfully for {new_user.get_full_name()} ({email}) - Role: {new_user.role.title()}', 'success')
+            # Redirect to admin dashboard to see the new account in the list
+            return redirect(url_for('admin.admin_dashboard'))
             
         except Exception as e:
             db.session.rollback()
@@ -210,7 +338,50 @@ def create_account():
 
 # Account creation success page to prevent browser back issues
 @admin.route('/admin/account_creation_success/<int:user_id>')
+@login_required
 def account_creation_success(user_id):
+    # Only admins can access account creation success page
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+        
     user = User.query.get_or_404(user_id)
     return render_template('admin/account_success.html', user=user)
+
+# Delete user account route
+@admin.route('/admin/delete_user/<int:user_id>', methods=['POST'])
+@login_required
+def delete_user(user_id):
+    # Only admins can delete accounts
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+    
+    user_to_delete = User.query.get_or_404(user_id)
+    
+    # Prevent admin from deleting themselves
+    if user_to_delete.id == current_user.id:
+        flash('You cannot delete your own account.', 'error')
+        return redirect(url_for('admin.admin_dashboard'))
+    
+    try:
+        # Store user info for flash message before deletion
+        user_name = user_to_delete.get_full_name()
+        user_role = user_to_delete.role
+        
+        # If deleting a teacher, unassign all their students first
+        if user_to_delete.role == 'teacher':
+            user_to_delete.students.clear()
+        
+        # Delete the user
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        
+        flash(f'Successfully deleted {user_role} account: {user_name}', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting account: {str(e)}', 'error')
+    
+    return redirect(url_for('admin.admin_dashboard'))
 

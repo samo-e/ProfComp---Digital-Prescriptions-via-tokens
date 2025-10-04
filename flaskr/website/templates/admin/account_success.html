@@ -10,6 +10,13 @@
             window.history.replaceState(null, null, window.location.href);
         }
         
+        // Add additional history manipulation to prevent back navigation
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function(event) {
+            window.history.pushState(null, null, window.location.href);
+            alert('Navigation back is not allowed. Account has been created permanently.');
+        });
+        
         // Clear any form data from browser cache
         window.addEventListener('pageshow', function(event) {
             if (event.persisted) {
@@ -19,10 +26,40 @@
         
         // Prevent Ctrl+Z or any undo operations
         document.addEventListener('keydown', function(e) {
+            // Prevent undo operations
             if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
                 e.preventDefault();
-                alert('Undo is not allowed on this page.');
+                alert('Undo is not allowed. The account has been created permanently in the database.');
+                return false;
             }
+            
+            // Prevent browser refresh that might cause confusion
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault();
+                alert('Page refresh disabled. Use the navigation links below.');
+                return false;
+            }
+            
+            // Prevent browser back shortcut
+            if (e.altKey && e.key === 'ArrowLeft') {
+                e.preventDefault();
+                alert('Back navigation is disabled. The account has been created permanently.');
+                return false;
+            }
+        });
+        
+        // Disable right-click context menu to prevent confusion
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('Right-click disabled. The account has been created permanently. Use the links below for navigation.');
+        });
+        
+        // Additional protection against browser back button
+        window.addEventListener('beforeunload', function(e) {
+            // This doesn't prevent navigation but gives a warning
+            const message = 'The account has been created successfully and permanently saved to the database.';
+            e.returnValue = message;
+            return message;
         });
     </script>
 </head>

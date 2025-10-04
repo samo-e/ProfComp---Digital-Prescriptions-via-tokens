@@ -58,7 +58,15 @@ def login():
             return render_template("auth/login.html")
         
         # Check if role matches
-        role_value = 'teacher' if role == 'Teacher' else 'student'
+        if role == 'Teacher':
+            role_value = 'teacher'
+        elif role == 'Student':
+            role_value = 'student'
+        elif role == 'Admin':
+            role_value = 'admin'
+        else:
+            role_value = 'student'  # Default fallback
+            
         if user.role != role_value:
             flash(f'This account is not registered as a {role}', 'error')
             return render_template("auth/login.html")
@@ -87,7 +95,9 @@ def login():
         if next_page:
             return redirect(next_page)
         
-        if user.is_teacher():
+        if user.role == 'admin':
+            return redirect(url_for('admin.admin_dashboard'))
+        elif user.is_teacher():
             return redirect(url_for('views.teacher_dashboard'))
         else:
             return redirect(url_for('views.student_dashboard'))

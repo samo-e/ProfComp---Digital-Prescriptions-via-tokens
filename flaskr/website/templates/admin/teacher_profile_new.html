@@ -83,7 +83,7 @@
                                 <ul id="students-list" class="list-group">
                                 {% for student in students %}
                                     {% set is_assigned = student in user.students %}
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center" style="opacity: {{ '0.5' if is_assigned else '1' }};">
                                         <span class="student-name">{{ student.get_full_name() }} ({{ student.email }})</span>
                                         <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
                                             {{ form.csrf_token }}
