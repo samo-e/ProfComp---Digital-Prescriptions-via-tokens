@@ -140,7 +140,12 @@
                                 </th>
                                 <th class="border-0 text-center" width="120">
                                     <div class="th-content">
-                                        <i class="bi bi-person-heart me-2 text-warning"></i>Patients
+                                        <i class="bi bi-file-earmark-text me-2 text-warning"></i>Submissions
+                                    </div>
+                                </th>
+                                <th class="border-0 text-center" width="120">
+                                    <div class="th-content">
+                                        <i class="bi bi-check-circle me-2 text-success"></i>Marked
                                     </div>
                                 </th>
                                 <th class="border-0 text-center" width="200">
@@ -195,10 +200,34 @@
                                     </div>
                                 </td>
                                 <td class="border-0 align-middle text-center">
-                                    <div class="stat-badge stat-patients">
-                                        <span class="stat-number">{{ scenario.patients|length if scenario.patients else 0 }}</span>
-                                        <small class="stat-label">Patients</small>
-                                    </div>
+                                    {% if scenario.submissions and scenario.submissions|length > 0 %}
+                                        <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="text-decoration-none">
+                                            <div class="stat-badge stat-submissions">
+                                                <span class="stat-number">{{ scenario.submissions|length }}</span>
+                                                <small class="stat-label">Submissions</small>
+                                            </div>
+                                        </a>
+                                    {% else %}
+                                        <div class="stat-badge stat-submissions">
+                                            <span class="stat-number">0</span>
+                                            <small class="stat-label">Submissions</small>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td class="border-0 align-middle text-center">
+                                    {% if scenario.graded_count and scenario.graded_count > 0 %}
+                                        <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="text-decoration-none">
+                                            <div class="stat-badge stat-marked">
+                                                <span class="stat-number">{{ scenario.graded_count }}</span>
+                                                <small class="stat-label">Marked</small>
+                                            </div>
+                                        </a>
+                                    {% else %}
+                                        <div class="stat-badge stat-marked">
+                                            <span class="stat-number">0</span>
+                                            <small class="stat-label">Marked</small>
+                                        </div>
+                                    {% endif %}
                                 </td>
                                 <td class="border-0 align-middle">
                                     <div class="action-buttons">
@@ -215,6 +244,12 @@
                                                class="btn btn-outline-success btn-action" title="Assign students">
                                                 <i class="bi bi-person-plus"></i>
                                             </a>
+                                            {% if scenario.submissions and scenario.submissions|length > 0 %}
+                                            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" 
+                                               class="btn btn-outline-warning btn-action" title="View submissions ({{ scenario.submissions|length }})">
+                                                <i class="bi bi-file-earmark-text"></i>
+                                            </a>
+                                            {% endif %}
                                             <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" 
                                                   class="d-inline" id="delete-form-{{ scenario.id }}">
                                                 {{ form.hidden_tag() }}

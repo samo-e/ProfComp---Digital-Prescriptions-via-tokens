@@ -8,8 +8,8 @@
 {% block body %}
 <div class="container">
     <!-- Dashboard Header -->
-    <div class="dashboard-header">
-        <h2><i class="bi bi-person-workspace"></i> Student Dashboard</h2>
+    <div class="dashboard-header mb-4">
+        <h2><i class="bi bi-person-workspace me-2"></i>Student Dashboard</h2>
         <p class="mb-0">Welcome back, {{ current_user.get_full_name() }}!</p>
     </div>
 
@@ -26,110 +26,158 @@
     {% endwith %}
 
     <!-- Stats Cards -->
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="card stats-card text-center">
-                <div class="card-body">
-                    <i class="fas fa-clipboard-list fa-2x text-primary mb-3"></i>
-                    <h3 class="text-primary">{{ scenarios|length if scenarios else 0 }}</h3>
-                    <p class="text-muted mb-0">Assigned Scenarios</p>
+    <div class="row g-4 mb-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-primary text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Assigned Scenarios</h5>
+                            <h2 class="mb-0 fw-bold">{{ scenario_data|length if scenario_data else 0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-journal-text fs-1 opacity-75"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center">
-                <div class="card-body">
-                    <i class="fas fa-hourglass-half fa-2x text-warning mb-3"></i>
-                    <h3 class="text-warning">{{ scenarios|selectattr('completed_at', 'none')|list|length if scenarios else 0 }}</h3>
-                    <p class="text-muted mb-0">In Progress</p>
+        
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-info text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Submitted</h5>
+                            <h2 class="mb-0 fw-bold">{{ scenario_data|selectattr('student_scenario.status', 'in', ['submitted', 'graded'])|list|length if scenario_data else 0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-send fs-1 opacity-75"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card stats-card text-center">
-                <div class="card-body">
-                    <i class="fas fa-trophy fa-2x text-success mb-3"></i>
-                    <h3 class="text-success">{{ scenarios|rejectattr('completed_at', 'none')|list|length if scenarios else 0 }}</h3>
-                    <p class="text-muted mb-0">Completed</p>
+        
+        <div class="col-lg-4 col-md-6">
+            <div class="card stats-card bg-success text-white h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="card-title mb-2">Marked</h5>
+                            <h2 class="mb-0 fw-bold">{{ scenario_data|selectattr('student_scenario.status', 'equalto', 'graded')|list|length if scenario_data else 0 }}</h2>
+                        </div>
+                        <div>
+                            <i class="bi bi-check-circle fs-1 opacity-75"></i>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Assigned Scenarios Section -->
-    <div class="card">
-        <div class="card-header bg-light">
-            <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Your Assigned Scenarios</h4>
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-gradient border-0">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h5 class="mb-0 fw-bold text-dark">
+                        <i class="bi bi-journal-text me-2"></i>Your Assigned Scenarios
+                        <span class="badge bg-primary ms-2">{{ scenario_data|length if scenario_data else 0 }}</span>
+                    </h5>
+                </div>
+            </div>
         </div>
         <div class="card-body">
-            {% if scenarios and scenarios|length > 0 %}
-                <div class="row">
-                    {% for scenario in scenarios %}
-                    <div class="col-lg-6 col-xl-4 mb-3">
-                        <div class="card scenario-card h-100">
-                            <div class="scenario-header">
-                                <h6 class="scenario-title">{{ scenario.name }}</h6>
-                                <div class="d-flex gap-2">
-                                    {% if scenario.version > 1 %}
-                                        <span class="badge bg-info">v{{ scenario.version }}</span>
-                                    {% endif %}
-                                    {% if scenario.password %}
-                                        <span class="badge bg-warning"><i class="fas fa-lock"></i> Protected</span>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="card-body py-2">
-                                <p class="card-text text-muted small">{{ scenario.description|default('No description available', true) }}</p>
-                                
-                                <div class="mb-1">
-                                    <small class="text-muted">
-                                        <i class="fas fa-user me-1"></i>{{ scenario.creator.get_full_name() if scenario.creator else 'Unknown' }}
-                                    </small>
-                                </div>
-                                
-                                <div class="mb-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-calendar me-1"></i>{{ scenario.created_at.strftime('%d/%m/%Y') if scenario.created_at else 'Unknown' }}
-                                    </small>
-                                </div>
-                                
-                                <!-- Assigned Patient Information -->
-                                {% if scenario_patients.get(scenario.id) %}
-                                <div class="patient-info-card">
-                                    <div class="patient-name small">
-                                        <i class="fas fa-user-injured me-1"></i>Your Patient:
+            {% if scenario_data and scenario_data|length > 0 %}
+                <div class="row g-3">
+                    {% for data in scenario_data %}
+                    <div class="col-lg-6 col-xl-4">
+                        <div class="card scenario-card h-100 border-0 shadow-sm">
+                            <div class="card-body p-3">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="scenario-icon">
+                                        <i class="bi bi-journal-text fs-2 text-primary"></i>
                                     </div>
-                                    <div class="fw-bold text-primary small">
-                                        {{ (scenario_patients[scenario.id].title.upper() + ' ' if scenario_patients[scenario.id].title else '') + 
-                                           (scenario_patients[scenario.id].given_name + ' ' if scenario_patients[scenario.id].given_name else '') + 
-                                           (scenario_patients[scenario.id].last_name if scenario_patients[scenario.id].last_name else 'Unnamed Patient') }}
+                                    <div class="flex-grow-1 ms-3">
+                                        <h6 class="card-title mb-2 fw-bold">{{ data.scenario.name }}</h6>
+                                        <div class="d-flex gap-1 flex-wrap mb-2">
+                                            <!-- Submission Status Badge -->
+                                            {% if data.student_scenario.status == 'assigned' %}
+                                                <span class="badge bg-secondary">Not Submitted</span>
+                                            {% elif data.student_scenario.status == 'submitted' %}
+                                                <span class="badge bg-warning">Pending Grade</span>
+                                            {% elif data.student_scenario.status == 'graded' %}
+                                                <span class="badge bg-success">Graded
+                                                {% if data.student_scenario.score %} ({{ data.student_scenario.score }}){% endif %}</span>
+                                            {% endif %}
+                                            
+                                            {% if data.scenario.version > 1 %}
+                                                <span class="badge bg-info">v{{ data.scenario.version }}</span>
+                                            {% endif %}
+                                            {% if data.scenario.password %}
+                                                <span class="badge bg-warning"><i class="bi bi-lock-fill"></i> Protected</span>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        {% if data.scenario.description %}
+                                        <p class="card-text text-muted small mb-2">{{ data.scenario.description[:60] }}{% if data.scenario.description|length > 60 %}...{% endif %}</p>
+                                        {% endif %}
+                                        
+                                        <div class="scenario-meta">
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-person me-1"></i>{{ data.scenario.creator.get_full_name() if data.scenario.creator else 'Unknown' }}
+                                            </small>
+                                            <small class="text-muted d-block">
+                                                <i class="bi bi-calendar me-1"></i>{{ data.scenario.created_at.strftime('%d/%m/%Y') if data.scenario.created_at else 'Unknown' }}
+                                            </small>
+                                        </div>
+                                        
+                                        <!-- Assigned Patient Information -->
+                                        {% if data.patient %}
+                                        <div class="patient-info mt-3 p-2 bg-light rounded">
+                                            <div class="small fw-medium text-primary">
+                                                <i class="bi bi-person-heart me-1"></i>Patient:
+                                                {{ (data.patient.title.upper() + ' ' if data.patient.title else '') + 
+                                                   (data.patient.given_name + ' ' if data.patient.given_name else '') + 
+                                                   (data.patient.last_name if data.patient.last_name else 'Unnamed Patient') }}
+                                            </div>
+                                            {% if data.patient.dob %}
+                                            <small class="text-muted d-block">DOB: {{ data.patient.dob }}</small>
+                                            {% endif %}
+                                            {% if data.patient.medicare %}
+                                            <small class="text-muted d-block">Medicare: {{ data.patient.medicare }}</small>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                        
+                                        <div class="action-buttons mt-3">
+                                            <div class="d-grid gap-2">
+                                                <a href="{{ url_for('views.scenario_dashboard', scenario_id=data.scenario.id) }}" 
+                                                   class="btn btn-outline-primary btn-sm">
+                                                    <i class="bi bi-eye me-1"></i>View Details
+                                                </a>
+                                                {% if data.patient %}
+                                                    <a href="{{ url_for('views.asl', pt=data.patient.id) }}" 
+                                                       class="btn btn-outline-info btn-sm">
+                                                        <i class="bi bi-file-medical me-1"></i>View ASL
+                                                    </a>
+                                                    
+                                                    {% if data.can_submit %}
+                                                    <a href="{{ url_for('views.submit_work', scenario_id=data.scenario.id, patient_id=data.patient.id) }}" 
+                                                       class="btn btn-success btn-sm">
+                                                        <i class="bi bi-send me-1"></i>
+                                                        {% if data.student_scenario.status == 'submitted' %}
+                                                            View Submission
+                                                        {% else %}
+                                                            Submit Work
+                                                        {% endif %}
+                                                    </a>
+                                                    {% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
                                     </div>
-                                    {% if scenario_patients[scenario.id].dob %}
-                                    <small class="text-muted">DOB: {{ scenario_patients[scenario.id].dob }}</small>
-                                    {% endif %}
-                                    {% if scenario_patients[scenario.id].medicare %}
-                                    <br><small class="text-muted">Medicare: {{ scenario_patients[scenario.id].medicare }}</small>
-                                    {% endif %}
-                                </div>
-                                {% endif %}
-                            </div>
-                            <div class="card-footer bg-transparent py-2">
-                                <div class="d-grid gap-1">
-                                    <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
-                                       class="btn btn-scenario btn-sm">
-                                        <i class="fas fa-play me-2"></i>View Details
-                                    </a>
-                                    {% if scenario_patients.get(scenario.id) %}
-                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario_patients[scenario.id].id) }}" 
-                                           class="btn btn-asl btn-sm">
-                                            <i class="fas fa-hands me-2"></i>View ASL
-                                        </a>
-                                    {% elif scenario.active_patient %}
-                                        <a href="{{ url_for('views.patient_asl_form', patient_id=scenario.active_patient.id) }}" 
-                                           class="btn btn-asl btn-sm">
-                                            <i class="fas fa-hands me-2"></i>View ASL
-                                        </a>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -137,60 +185,19 @@
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="empty-state">
-                    <i class="fas fa-clipboard-list"></i>
-                    <h5>No Scenarios Assigned</h5>
-                    <p class="text-muted">You don't have any scenarios assigned yet. Please contact your teacher for assignments.</p>
+                <div class="empty-state py-5">
+                    <div class="text-center">
+                        <div class="empty-icon mb-4">
+                            <i class="bi bi-journal-x text-muted"></i>
+                        </div>
+                        <h5 class="text-muted mb-3">No scenarios assigned yet</h5>
+                        <p class="text-muted mb-4">You don't have any scenarios assigned yet. Please contact your teacher for assignments.</p>
+                    </div>
                 </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Practice Section -->
-    {% if not scenarios or scenarios|length == 0 %}
-    <div class="practice-section">
-        <div class="row">
-            <div class="col-12">
-                <h5 class="mb-3"><i class="fas fa-users me-2"></i>Practice Patients</h5>
-                <p class="text-muted mb-3">You can practice with these sample patients while waiting for assigned scenarios:</p>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body py-2">
-                                <h6 class="card-title">Draga Diaz</h6>
-                                <p class="card-text">
-                                    <small class="text-muted">DOB: 26/01/1998 | Medicare: 49502864011</small>
-                                </p>
-                                <span class="badge bg-success mb-2"><i class="fas fa-check-circle"></i> ASL Access Granted</span>
-                                <div class="d-grid">
-                                    <a href="{{ url_for('views.asl', pt=1) }}" class="btn btn-success btn-sm">
-                                        <i class="fas fa-hands me-2"></i>Practice ASL
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card h-100">
-                            <div class="card-body py-2">
-                                <h6 class="card-title">John Smith</h6>
-                                <p class="card-text">
-                                    <small class="text-muted">DOB: 15/03/1985 | Medicare: 12345678901</small>
-                                </p>
-                                <span class="badge bg-warning mb-2"><i class="fas fa-clock"></i> ASL Pending</span>
-                                <div class="d-grid">
-                                    <a href="{{ url_for('views.asl', pt=2) }}" class="btn btn-success btn-sm">
-                                        <i class="fas fa-hands me-2"></i>Practice ASL
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
+
 </div>
 {% endblock %}

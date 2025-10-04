@@ -110,8 +110,31 @@ class StudentScenario(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
     assigned_at = db.Column(db.DateTime, default=datetime.now)
+    submitted_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
     score = db.Column(db.Float)
+    feedback = db.Column(db.Text)
+    status = db.Column(db.String(20), default='assigned')  # assigned, submitted, graded
+    
+    # Relationships
+    student = db.relationship('User', foreign_keys=[student_id])
+    scenario = db.relationship('Scenario', foreign_keys=[scenario_id])
+
+
+class Submission(db.Model):
+    """Student submissions for ASL scenarios"""
+    __tablename__ = 'submissions'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    student_scenario_id = db.Column(db.Integer, db.ForeignKey('student_scenarios.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    submitted_at = db.Column(db.DateTime, default=datetime.now)
+    submission_data = db.Column(db.JSON)  # Store the ASL form data snapshot
+    notes = db.Column(db.Text)  # Student's notes about their submission
+    
+    # Relationships
+    student_scenario = db.relationship('StudentScenario', backref='submissions')
+    patient = db.relationship('Patient')
     
 
 
