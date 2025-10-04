@@ -283,16 +283,16 @@ def init_asl_database():
             db.session.add(prescription)
 
         db.session.commit()
-        print("ASL database initialized successfully")
+        # print("ASL database initialized successfully")
         # Update message
-        print(
-            f"Created: 4 patients, 1 prescriber, {len(asl_prescriptions + alr_prescriptions + other_patient_prescriptions)} prescriptions"
-        )
-        print("Patient ASL statuses:")
-        print("- Patient 1 (Draga): GRANTED - can view ASL")
-        print("- Patient 2 (John): PENDING - waiting for SMS/email reply")
-        print("- Patient 3 (Sarah): REJECTED - patient denied access")
-        print("- Patient 4 (Michael): NO_CONSENT - never requested access before")
+        # print(
+        #     f"Created: 4 patients, 1 prescriber, {len(asl_prescriptions + alr_prescriptions + other_patient_prescriptions)} prescriptions"
+        # )
+        # print("Patient ASL statuses:")
+        # print("- Patient 1 (Draga): GRANTED - can view ASL")
+        # print("- Patient 2 (John): PENDING - waiting for SMS/email reply")
+        # print("- Patient 3 (Sarah): REJECTED - patient denied access")
+        # print("- Patient 4 (Michael): NO_CONSENT - never requested access before")
 
 
 if __name__ == "__main__":

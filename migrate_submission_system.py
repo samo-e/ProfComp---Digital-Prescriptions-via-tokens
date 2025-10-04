@@ -16,25 +16,25 @@ def migrate_database():
     db_path = os.path.join("flaskr", "instance", "asl_simulation.db")
 
     if not os.path.exists(db_path):
-        print(f"Database not found at {db_path}")
-        print("Make sure you're running this from the project root directory.")
+        # print(f"Database not found at {db_path}")
+        # print("Make sure you're running this from the project root directory.")
         return False
 
     try:
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        print("Starting database migration for submission system...")
+        # print("Starting database migration for submission system...")
 
         # Check if student_scenarios table exists
         cursor.execute(
             "SELECT name FROM sqlite_master WHERE type='table' AND name='student_scenarios';"
         )
         if not cursor.fetchone():
-            print("student_scenarios table not found. Creating tables...")
+            # print("student_scenarios table not found. Creating tables...")
             create_missing_tables(cursor)
         else:
-            print("student_scenarios table found. Adding missing columns...")
+            # print("student_scenarios table found. Adding missing columns...")
             add_missing_columns(cursor)
 
         # Check if submissions table exists
@@ -42,7 +42,7 @@ def migrate_database():
             "SELECT name FROM sqlite_master WHERE type='table' AND name='submissions';"
         )
         if not cursor.fetchone():
-            print("Creating submissions table...")
+            # print("Creating submissions table...")
             cursor.execute(
                 """
                 CREATE TABLE submissions (
@@ -57,17 +57,17 @@ def migrate_database():
                 )
             """
             )
-            print("✅ submissions table created")
+            # print("✅ submissions table created")
 
         conn.commit()
-        print("🎉 Database migration completed successfully!")
+        # print("🎉 Database migration completed successfully!")
         return True
 
     except sqlite3.Error as e:
-        print(f"❌ Database error: {e}")
+        # print(f"❌ Database error: {e}")
         return False
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
+        # print(f"❌ Unexpected error: {e}")
         return False
     finally:
         if conn:
@@ -80,7 +80,7 @@ def add_missing_columns(cursor):
     # Get current columns
     cursor.execute("PRAGMA table_info(student_scenarios)")
     existing_columns = [row[1] for row in cursor.fetchall()]
-    print(f"Existing columns: {existing_columns}")
+    # print(f"Existing columns: {existing_columns}")
 
     # Add missing columns one by one
     columns_to_add = [
@@ -95,11 +95,13 @@ def add_missing_columns(cursor):
                 cursor.execute(
                     f"ALTER TABLE student_scenarios ADD COLUMN {column_name} {column_type}"
                 )
-                print(f"✅ Added column: {column_name}")
+                # print(f"✅ Added column: {column_name}")
             except sqlite3.Error as e:
-                print(f"⚠️  Could not add {column_name}: {e}")
+                pass
+                # print(f"⚠️  Could not add {column_name}: {e}")
         else:
-            print(f"✅ Column {column_name} already exists")
+            pass
+            # print(f"✅ Column {column_name} already exists")
 
 
 def create_missing_tables(cursor):
@@ -123,7 +125,7 @@ def create_missing_tables(cursor):
         )
     """
     )
-    print("✅ student_scenarios table created")
+    # print("✅ student_scenarios table created")
 
     # Create scenario_patients table if it doesn't exist
     cursor.execute(
@@ -140,7 +142,7 @@ def create_missing_tables(cursor):
         )
     """
     )
-    print("✅ scenario_patients table created")
+    # print("✅ scenario_patients table created")
 
 
 def verify_migration(cursor):
@@ -148,27 +150,27 @@ def verify_migration(cursor):
     try:
         # Test the problematic query from the error
         cursor.execute("SELECT submitted_at FROM student_scenarios LIMIT 1")
-        print("✅ submitted_at column is accessible")
+        # print("✅ submitted_at column is accessible")
         return True
     except sqlite3.Error as e:
-        print(f"❌ Migration verification failed: {e}")
+        # print(f"❌ Migration verification failed: {e}")
         return False
 
 
 if __name__ == "__main__":
-    print("🔧 Database Migration Tool for Submission System")
-    print("=" * 50)
+    # print("🔧 Database Migration Tool for Submission System")
+    # print("=" * 50)
 
     success = migrate_database()
 
-    if success:
-        print("\n🎉 Migration completed! You can now:")
-        print("1. Restart your Flask application")
-        print("2. Test the submission system")
-        print("3. Students can submit work and teachers can grade it")
-    else:
-        print("\n❌ Migration failed. Please check the errors above.")
-        print("You may need to:")
-        print("1. Check database permissions")
-        print("2. Ensure Flask app is not running")
-        print("3. Run this script from the project root directory")
+    # if success:
+        # print("\n🎉 Migration completed! You can now:")
+        # print("1. Restart your Flask application")
+        # print("2. Test the submission system")
+        # print("3. Students can submit work and teachers can grade it")
+    # else:
+        # print("\n❌ Migration failed. Please check the errors above.")
+        # print("You may need to:")
+        # print("1. Check database permissions")
+        # print("2. Ensure Flask app is not running")
+        # print("3. Run this script from the project root directory")

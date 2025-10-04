@@ -1183,7 +1183,7 @@ def print_selected_prescriptions():
                     jsonify(
                         {
                             "success": False,
-                            "error": f"Cannot print - no access to {prescription.patient.name} ASL",
+                            "error": f"Canno  # print - no access to {prescription.patient.name} ASL",
                         }
                     ),
                     403,
@@ -1947,7 +1947,7 @@ def bulk_delete_scenarios():
 @views.route("/asl/ingest", methods=["POST"])
 def asl_ingest():
     pt_data = request.get_json(force=True)
-    print("DEBUG pt_data:", pt_data)
+    # print("DEBUG pt_data:", pt_data)
     try:
         pt_data = request.get_json(force=True)
         result = ingest_pt_data_contract(pt_data, db.session, commit=True)
@@ -1965,7 +1965,7 @@ def asl_ingest():
     except Exception as e:
         import traceback
 
-        print("Error in asl_ingest:", str(e))
+        # print("Error in asl_ingest:", str(e))
         traceback.print_exc()
         return jsonify({"status": "error", "message": str(e)}), 400
 
@@ -1976,8 +1976,8 @@ def asl_form(patient_id):
     patient = Patient.query.get_or_404(patient_id)
 
     if request.method == "POST":
-        print(f"DEBUG: ASL form POST received for patient {patient_id}")
-        print(f"DEBUG: Form data keys: {list(request.form.keys())}")
+        # print(f"DEBUG: ASL form POST received for patient {patient_id}")
+        # print(f"DEBUG: Form data keys: {list(request.form.keys())}")
         # Handle form submission
         try:
             # Extract patient data from form
@@ -2351,24 +2351,24 @@ def asl_form(patient_id):
     }
 
     # Debug information
-    print(f"DEBUG: Patient {patient_id}")
-    print(
-        f"  - sfty_net: {patient.sfty_net_entitlement_cardholder} -> {pt_data['sfty-net-entitlement-cardholder']}"
-    )
-    print(
-        f"  - rpbs: {patient.rpbs_ben_entitlement_cardholder} -> {pt_data['rpbs-ben-entitlement-cardholder']}"
-    )
-    print(f"  - can_view_asl: {patient.can_view_asl()} -> {pt_data['can_view_asl']}")
-    print(
-        f"  - is_registered: {patient.is_registered} -> {pt_data['consent-status']['is-registered']}"
-    )
-    print(
-        f"  - asl_status: {patient.get_asl_status().name} -> {pt_data['consent-status']['status']}"
-    )
-    print(f"DEBUG: ASL record exists: {asl_record is not None}")
-    if asl_record:
-        print(f"  - carer_name: '{asl_record.carer_name}'")
-        print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
+    # print(f"DEBUG: Patient {patient_id}")
+    # print(
+    #     f"  - sfty_net: {patient.sfty_net_entitlement_cardholder} -> {pt_data['sfty-net-entitlement-cardholder']}"
+    # )
+    # print(
+    #     f"  - rpbs: {patient.rpbs_ben_entitlement_cardholder} -> {pt_data['rpbs-ben-entitlement-cardholder']}"
+    # )
+    # print(f"  - can_view_asl: {patient.can_view_asl()} -> {pt_data['can_view_asl']}")
+    # print(
+    #     f"  - is_registered: {patient.is_registered} -> {pt_data['consent-status']['is-registered']}"
+    # )
+    # print(
+    #     f"  - asl_status: {patient.get_asl_status().name} -> {pt_data['consent-status']['status']}"
+    # )
+    # print(f"DEBUG: ASL record exists: {asl_record is not None}")
+    # if asl_record:
+        # print(f"  - carer_name: '{asl_record.carer_name}'")
+        # print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
 
     # Process existing prescriptions into ASL and ALR data
     for prescription in prescriptions:
@@ -2420,17 +2420,17 @@ def asl_form(patient_id):
             prescription_data["dispensed-date"] = prescription.dispensed_date or ""
             prescription_data["remaining-repeats"] = prescription.remaining_repeats or 0
             pt_data["alr-data"].append(prescription_data)
-            print(
-                f"DEBUG: Added ALR prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
-            )
+            # print(
+            #     f"DEBUG: Added ALR prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
+            # )
         else:
             # This is ASL data
             pt_data["asl-data"].append(prescription_data)
-            print(
-                f"DEBUG: Added ASL prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
-            )
+            # print(
+            #     f"DEBUG: Added ASL prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
+            # )
 
-    print(f"DEBUG: Final pt_data structure: {pt_data}")
+    # print(f"DEBUG: Final pt_data structure: {pt_data}")
     return render_template("asl_form.html", patient=patient, pt_data=pt_data)
 
 

@@ -18,16 +18,17 @@ try:
         cursor.execute(
             "ALTER TABLE scenarios ADD COLUMN active_patient_id INTEGER REFERENCES patients(id)"
         )
-        print("Added active_patient_id column to scenarios table")
+        # print("Added active_patient_id column to scenarios table")
     else:
-        print("active_patient_id column already exists in scenarios table")
+        pass
+        # print("active_patient_id column already exists in scenarios table")
 
     # Commit the changes
     conn.commit()
-    print("Database updated successfully!")
+    # print("Database updated successfully!")
 
 except Exception as e:
-    print(f"Error updating database: {e}")
+    # print(f"Error updating database: {e}")
     conn.rollback()
 
 finally:

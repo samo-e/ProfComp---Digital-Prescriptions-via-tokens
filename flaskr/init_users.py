@@ -14,20 +14,20 @@ def init_users():
         # Check if users already exist
         existing_users = User.query.all()
         if existing_users:
-            print(
-                f"Users already exist in database ({len(existing_users)} users found)"
-            )
+            # print(
+            #     f"Users already exist in database ({len(existing_users)} users found)"
+            # )
             response = input(
                 "Do you want to delete existing users and create new ones? (y/n): "
             )
             if response.lower() != "y":
-                print("Skipping user creation")
+                # print("Skipping user creation")
                 return
             else:
                 # Delete existing users
                 User.query.delete()
                 db.session.commit()
-                print("Existing users deleted")
+                # print("Existing users deleted")
 
         # Create test users
         test_users = [
@@ -89,25 +89,25 @@ def init_users():
             user.set_password(user_data["password"])
             db.session.add(user)
             created_users.append(user)
-            print(
-                f"Created {user_data['role']}: {user_data['email']} (password: {user_data['password']})"
-            )
+            # print(
+            #     f"Created {user_data['role']}: {user_data['email']} (password: {user_data['password']})"
+            # )
 
         db.session.commit()
 
-        print("\n" + "=" * 50)
-        print("Test users created successfully!")
-        print("=" * 50)
-        print("\nTeacher accounts:")
-        print("  - teacher1@test.com / teacher123")
-        print("  - teacher2@test.com / teacher123")
-        print("  - admin@test.com / admin123 (admin teacher)")
-        print("\nStudent accounts:")
-        print("  - student1@test.com / student123")
-        print("  - student2@test.com / student123")
-        print("  - student3@test.com / student123")
-        print("\nYou can now login with any of these accounts.")
-        print("=" * 50)
+        # print("\n" + "=" * 50)
+        # print("Test users created successfully!")
+        # print("=" * 50)
+        # print("\nTeacher accounts:")
+        # print("  - teacher1@test.com / teacher123")
+        # print("  - teacher2@test.com / teacher123")
+        # print("  - admin@test.com / admin123 (admin teacher)")
+        # print("\nStudent accounts:")
+        # print("  - student1@test.com / student123")
+        # print("  - student2@test.com / student123")
+        # print("  - student3@test.com / student123")
+        # print("\nYou can now login with any of these accounts.")
+        # print("=" * 50)
 
 
 if __name__ == "__main__":
