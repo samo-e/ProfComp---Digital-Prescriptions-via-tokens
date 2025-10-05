@@ -8,8 +8,79 @@ from .models import db, User, UserRole
 from datetime import datetime
 from functools import wraps
 
-
 admin = Blueprint('admin', __name__)
+
+# Batch account creation endpoint
+@admin.route('/admin/batch_create_accounts', methods=['POST'])
+@login_required
+def batch_create_accounts():
+    print("[DEBUG] batch_create_accounts called by:", current_user.email)
+    if current_user.role != 'admin':
+        print("[DEBUG] Access denied: not admin")
+        return jsonify(success=False, message='Admin privileges required.'), 403
+    data = request.get_json()
+    print("[DEBUG] Received data:", data)
+    accounts = data.get('accounts', [])
+    print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
+    created_emails = []
+    errors = []
+    for acc in accounts:
+        print("[DEBUG] Processing account:", acc)
+        # Check for required fields
+        role = acc.get('role')
+        first_name = acc.get('first_name')
+        last_name = acc.get('last_name')
+        email = acc.get('email')
+        password = acc.get('password')
+        studentnumber = acc.get('studentnumber')
+        if not (role and first_name and last_name and email and password):
+            print(f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}")
+            errors.append(f"Missing fields for {email or '[no email]' }.")
+            continue
+        if role == 'student':
+            if not studentnumber:
+                print(f"[DEBUG] Student number missing for {email}")
+                errors.append(f"Student number required for {email}.")
+                continue
+        # Check for duplicates
+        if User.query.filter_by(email=email).first():
+            print(f"[DEBUG] Duplicate email: {email}")
+            errors.append(f"Email {email} already exists.")
+            continue
+        if role == 'student' and User.query.filter_by(studentnumber=studentnumber).first():
+            print(f"[DEBUG] Duplicate student number: {studentnumber}")
+            errors.append(f"Student number {studentnumber} already exists.")
+            continue
+        try:
+            new_user = User(
+                email=email,
+                role=role,
+                first_name=first_name,
+                last_name=last_name,
+                created_at=datetime.now(),
+                is_active=True
+            )
+            if role == 'student':
+                new_user.studentnumber = studentnumber
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.commit()
+            print(f"[DEBUG] Created user: {email}")
+            created_emails.append(email)
+        except Exception as e:
+            db.session.rollback()
+            print(f"[DEBUG] Error creating {email}: {str(e)}")
+            errors.append(f"Error creating {email}: {str(e)}")
+    if created_emails:
+        msg = f"Created accounts: {', '.join(created_emails)}."
+        if errors:
+            msg += "<br>Some errors: " + '<br>'.join(errors)
+        print(f"[DEBUG] Success: {msg}")
+        return jsonify(success=True, message=msg, created_emails=created_emails)
+    else:
+        print(f"[DEBUG] Failure: No accounts created. Errors: {errors}")
+        return jsonify(success=False, message='No accounts created. ' + '<br>'.join(errors), created_emails=[])
+
 
 # Admin-only decorator
 def admin_required(f):
@@ -154,22 +225,42 @@ def admin_dashboard():
 	response.headers['Expires'] = '0'
 	return response
 
-# User profile page (blank for now)
+
+# User profile dispatcher: redirects to the correct profile view
 @admin.route('/admin/user/<int:user_id>', methods=['GET', 'POST'])
 @login_required
+def user_profile(user_id):
+    # Only admins can access user profiles
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+
+    user = User.query.get_or_404(user_id)
+    if user.is_teacher():
+        return redirect(url_for('admin.teacher_profile', user_id=user.id))
+    elif user.is_student():
+        return redirect(url_for('admin.student_profile', user_id=user.id))
+    else:
+        # Optionally handle admin profile or fallback
+        flash('Admin profile view not implemented.', 'info')
+        return redirect(url_for('admin.admin_dashboard'))
+
+# Teacher profile view (for teachers only)
+@admin.route('/admin/teacher_profile/<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def teacher_profile(user_id):
-	# Only admins can access user profiles
-	if current_user.role != 'admin':
-		flash('Access denied. Admin privileges required.', 'error')
-		return redirect(url_for('views.home'))
-		
-	user = User.query.get_or_404(user_id)
-	students = []
-	form = AssignStudentForm()
-	password_form = ChangePasswordForm()
-	if user.is_teacher():
-		students = User.query.filter_by(role=UserRole.STUDENT.value).all()
-	return render_template('admin/teacher_profile.html', user=user, students=students, form=form, password_form=password_form)
+    # Only admins can access teacher profiles
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+
+    user = User.query.get_or_404(user_id)
+    students = []
+    form = AssignStudentForm()
+    password_form = ChangePasswordForm()
+    if user.is_teacher():
+        students = User.query.filter_by(role=UserRole.STUDENT.value).all()
+    return render_template('admin/teacher_profile.html', user=user, students=students, form=form, password_form=password_form)
 
 # Route to assign a student to a teacher
 @admin.route('/admin/assign_student', methods=['POST'])
@@ -191,12 +282,13 @@ def assign_student():
 			return jsonify(
 				success=True,
 				message='Student assigned successfully!',
-				student={
-					'id': student.id,
-					'name': student.get_full_name(),
-					'email': student.email,
-					'teacher_id': teacher.id
-				},
+                   student={
+                       'id': student.id,
+                       'name': student.get_full_name(),
+                       'email': student.email,
+                       'studentnumber': student.studentnumber,
+                       'teacher_id': teacher.id
+                   },
 				csrf_token=request.form.get('csrf_token')
 			)
 		flash('Student assigned successfully!', 'success')
@@ -255,18 +347,25 @@ def change_password(user_id):
 	else:
 		return redirect(url_for('admin.student_profile', user_id=user_id))
 
+
+
 # Student profile route
 @admin.route('/admin/student/<int:user_id>')
 @login_required
+@admin_required
 def student_profile(user_id):
-	# Only admins can access student profiles
-	if current_user.role != 'admin':
-		flash('Access denied. Admin privileges required.', 'error')
-		return redirect(url_for('views.home'))
-		
-	user = User.query.get_or_404(user_id)
-	password_form = ChangePasswordForm()
-	return render_template('admin/student_profile.html', user=user, password_form=password_form)
+    # Only admins can access student profiles
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+
+    user = User.query.get_or_404(user_id)
+    password_form = ChangePasswordForm()
+    # Ensure teachers is a list, not a query
+    assigned_teachers = user.teachers.all() if hasattr(user.teachers, 'all') else list(user.teachers)
+    # Get all teachers for the assign modal
+    all_teachers = User.query.filter_by(role=UserRole.TEACHER.value).all()
+    return render_template('admin/student_profile.html', user=user, password_form=password_form, assigned_teachers=assigned_teachers, all_teachers=all_teachers)
 
 
 # Account creation route

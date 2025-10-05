@@ -1,8 +1,8 @@
-{% extends "base.html" %}
+{% extends "admin/adminbase.html" %}
 
-{% block title %}User Profile{% endblock %}
+{% block title %}Teacher Profile{% endblock %}
 
-{% block body %}
+{% block admin_content %}
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -30,23 +30,6 @@
                     </div>
                 </div>
 
-                <!-- Delete Account Button -->
-                <div class="card border-danger mb-4">
-                    <div class="card-header bg-danger text-white">
-                        <h3 class="card-title mb-0">Danger Zone</h3>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">Once you delete this account, there is no going back. Please be certain.</p>
-                        <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" 
-                                    class="btn btn-danger">
-                                Delete Account
-                            </button>
-                        </form>
-                    </div>
-                </div>
-
                 {% if user.is_teacher() %}
                 <div class="card mt-4">
                     <div class="card-header">
@@ -56,7 +39,7 @@
                         <ul id="assigned-students-list" class="list-group list-group-flush">
                         {% for student in user.students %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>{{ student.get_full_name() }} ({{ student.email }})</span>
+                                <span>{{ student.studentnumber }} {{ student.get_full_name() }}</span>
                                 <form class="unassign-student-form" method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
                                     {{ form.csrf_token }}
                                     <input type="hidden" name="teacher_id" value="{{ user.id }}">
@@ -81,22 +64,41 @@
                                 <!-- Search bar -->
                                 <input type="text" id="student-search" placeholder="Search students..." class="form-control mb-3">
                                 <ul id="students-list" class="list-group">
-                                {% for student in students %}
-                                    {% set is_assigned = student in user.students %}
+                                {# Unassigned students first #}
+                                {% for student in students|sort(attribute='studentnumber') if student not in user.students %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        <span class="student-name">{{ student.get_full_name() }} ({{ student.email }})</span>
+                                        <span class="student-name">
+                                            {{ student.studentnumber }} {{ student.get_full_name() }}
+                                        </span>
                                         <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
                                             {{ form.csrf_token }}
                                             <input type="hidden" name="teacher_id" value="{{ user.id }}">
                                             <input type="hidden" name="student_id" value="{{ student.id }}">
-                                            <button type="submit" class="btn btn-sm btn-outline-primary" {% if is_assigned %}disabled{% endif %}>
-                                                {% if is_assigned %}Already Assigned{% else %}Assign{% endif %}
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                                Assign
                                             </button>
                                         </form>
                                     </li>
-                                {% else %}
-                                    <li class="list-group-item text-muted">No students found.</li>
                                 {% endfor %}
+                                {# Assigned students at the bottom #}
+                                {% for student in students|sort(attribute='studentnumber') if student in user.students %}
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span class="student-name">
+                                            {{ student.studentnumber }} {{ student.get_full_name() }}
+                                        </span>
+                                        <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                                            {{ form.csrf_token }}
+                                            <input type="hidden" name="teacher_id" value="{{ user.id }}">
+                                            <input type="hidden" name="student_id" value="{{ student.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-primary" disabled>
+                                                Already Assigned
+                                            </button>
+                                        </form>
+                                    </li>
+                                {% endfor %}
+                                {% if students|length == 0 %}
+                                    <li class="list-group-item text-muted">No students found.</li>
+                                {% endif %}
                                 </ul>
                             </div>
                         </div>
@@ -180,6 +182,23 @@
                     </div>
                 </div>
                 {% endif %}
+                
+                <!-- Delete Account Button -->
+                <div class="card border-danger mb-4">
+                    <div class="card-header bg-danger text-white">
+                        <h3 class="card-title mb-0">Danger Zone</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Once you delete this account, there is no going back. Please be certain.</p>
+                        <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" 
+                                    class="btn btn-danger">
+                                Delete Account
+                            </button>
+                        </form>
+                    </div>
+                </div>
                 
                 <script>
                     function confirmDelete(userName, userRole) {

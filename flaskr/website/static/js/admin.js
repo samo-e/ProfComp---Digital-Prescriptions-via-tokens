@@ -51,14 +51,26 @@
         .then(r => r.json())
         .then(data => {
           if (data && data.success && data.student) {
-            // Update assign button and source item
+            // Update assign button and source item to match server-rendered style
             if (button) {
-              button.textContent = 'Assigned';
+              button.textContent = 'Already Assigned';
               button.disabled = true;
-              button.style.opacity = '0.5';
+              button.classList.remove('btn-secondary', 'text-muted', 'btn-success', 'btn-primary');
+              button.classList.add('btn-outline-primary');
+              button.style.opacity = '1';
             }
             if (li) {
-              li.style.opacity = '0.5';
+              li.classList.remove('text-muted');
+              li.style.opacity = '';
+              li.classList.remove('active', 'bg-primary', 'bg-success');
+              var btns = li.querySelectorAll('button');
+              btns.forEach(function(btn) {
+                btn.classList.remove('btn-secondary', 'text-muted', 'btn-success', 'btn-primary');
+                btn.classList.add('btn-outline-primary');
+                btn.disabled = true;
+                btn.textContent = 'Already Assigned';
+                btn.style.opacity = '1';
+              });
             }
 
             // Update assigned list live
@@ -69,13 +81,16 @@
                 assignedList.removeChild(firstLi);
               }
               const newLi = document.createElement('li');
+              newLi.className = 'list-group-item d-flex justify-content-between align-items-center';
+              newLi.style.opacity = '';
+              // Use studentnumber and name, no email
               newLi.innerHTML = `
-                ${data.student.name} (${data.student.email})
+                <span>${data.student.studentnumber ? data.student.studentnumber : ''} ${data.student.name}</span>
                 <form class="unassign-student-form" method="post" action="/admin/unassign_student" style="display:inline;">
                   <input type="hidden" name="csrf_token" value="${data.csrf_token}">
                   <input type="hidden" name="teacher_id" value="${data.student.teacher_id}">
                   <input type="hidden" name="student_id" value="${data.student.id}">
-                  <button type="submit">Unassign</button>
+                  <button type="submit" class="btn btn-sm btn-outline-danger">Unassign</button>
                 </form>
               `;
               assignedList.appendChild(newLi);
@@ -145,6 +160,7 @@
           const assignedList = document.getElementById('assigned-students-list');
           if (assignedList && assignedList.children.length === 0) {
             const placeholder = document.createElement('li');
+            placeholder.className = 'list-group-item text-muted';
             placeholder.textContent = 'No students assigned.';
             assignedList.appendChild(placeholder);
           }
@@ -195,7 +211,7 @@
     // --- Modal search filter ---
     console.log('[DEBUG] Setting up search filter');
     const searchInput = document.getElementById('student-search');
-    
+
     const studentsList = document.getElementById('students-list');
     if (searchInput && studentsList) {
       console.log('[DEBUG] Search filter elements found, attaching listener');

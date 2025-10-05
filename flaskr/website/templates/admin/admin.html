@@ -1,40 +1,10 @@
-{% extends "base.html" %}
 
+{% extends "admin/adminbase.html" %}
 {% block title %}Admin Dashboard{% endblock %}
 
-{% block styles %}
+{% block head %}
+{{ super() }}
 <style>
-	body {
-		font-family: Arial, sans-serif;
-		margin: 0;
-		padding: 20px;
-		background-color: #f5f5f5;
-	}
-	
-	h1 {
-		text-align: center;
-		color: #333;
-		margin-bottom: 30px;
-	}
-	
-	.create-account-btn {
-		display: block;
-		width: 200px;
-		margin: 0 auto 30px;
-		background-color: #007bff;
-		color: white;
-		padding: 12px 20px;
-		text-decoration: none;
-		border-radius: 6px;
-		font-weight: bold;
-		text-align: center;
-		transition: background-color 0.3s;
-	}
-	
-	.create-account-btn:hover {
-		background-color: #0056b3;
-	}
-	
 	.container {
 		display: grid;
 		grid-template-columns: 1fr 1fr 1fr;
@@ -42,158 +12,141 @@
 		max-width: 1400px;
 		margin: 0 auto;
 	}
-	
 	.column {
-		background: white;
+		background: var(--bs-body-bg, #fff);
+		color: var(--bs-body-color, #212529);
 		border-radius: 8px;
 		padding: 20px;
 		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-		min-height: 400px;
+		height: 500px; /* Fixed height for consistent columns */
+		display: flex;
+		flex-direction: column;
 	}
-	
 	.column h2 {
 		margin-top: 0;
 		margin-bottom: 20px;
-		color: #333;
+		color: var(--bs-body-color, #212529);
 		border-bottom: 2px solid #eee;
 		padding-bottom: 10px;
+		flex-shrink: 0; /* Prevent header from shrinking */
 	}
-	
 	.user-list {
 		list-style: none;
 		padding: 0;
 		margin: 0;
+		overflow-y: auto; /* Enable vertical scrolling */
+		flex: 1; /* Take remaining space */
+		max-height: calc(100% - 70px); /* Account for header height */
+		padding-right: 8px; /* Space for scrollbar */
 	}
-	
+	.user-list::-webkit-scrollbar {
+		width: 8px;
+	}
+	.user-list::-webkit-scrollbar-track {
+		background: #f1f1f1;
+		border-radius: 4px;
+	}
+	.user-list::-webkit-scrollbar-thumb {
+		background: #007bff;
+		border-radius: 4px;
+	}
+	.user-list::-webkit-scrollbar-thumb:hover {
+		background: #0056b3;
+	}
 	.user-item {
-		margin-bottom: 15px;
-		padding: 12px;
-		background: #f8f9fa;
-		border-radius: 6px;
-		border-left: 4px solid #007bff;
-		transition: transform 0.2s;
-		cursor: pointer;
 		display: block;
+		padding: 12px 16px;
+		margin-bottom: 12px;
+		border: 2px solid #1976d2;
+		border-radius: 14px;
+		color: var(--bs-body-color, #212529);
 		text-decoration: none;
-		color: inherit;
+		background: var(--bs-body-bg, #fff);
+		transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 	}
-	
 	.user-item:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-		text-decoration: none;
-		color: inherit;
+		background: #f8f9fa;
+		box-shadow: 0 2px 8px rgba(25,118,210,0.13);
+		border-color: #1565c0;
 	}
-	
 	.user-name {
-		font-weight: bold;
-		color: #333;
-		text-decoration: none;
-		display: block;
-		margin-bottom: 5px;
+		font-weight: 500;
 	}
-	
-	.user-item:hover .user-name {
-		color: #007bff;
-	}
-	
 	.user-email {
-		font-size: 0.9em;
-		color: #666;
+		font-size: 13px;
+		color: #888;
 	}
-	
 	.user-count {
 		background: #007bff;
 		color: white;
-		padding: 4px 8px;
 		border-radius: 12px;
-		font-size: 0.8em;
-		margin-left: 10px;
+		padding: 2px 10px;
+		font-size: 13px;
+		margin-left: 8px;
 	}
-	
 	.no-users {
-		text-align: center;
-		color: #999;
-		font-style: italic;
-		padding: 40px 20px;
-	}
-	
-	/* Search bar styles */
-	.search-container {
-		max-width: 1400px;
-		margin: 0 auto 30px;
-		position: relative;
-	}
-	
-	.search-bar {
-		width: 100%;
-		padding: 15px 20px;
-		font-size: 16px;
-		border: 2px solid #ddd;
-		border-radius: 25px;
-		outline: none;
-		transition: border-color 0.3s;
-		box-sizing: border-box;
-	}
-	
-	.search-bar:focus {
-		border-color: #007bff;
-		box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-	}
-	
-	.search-icon {
-		position: absolute;
-		right: 20px;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #666;
-		font-size: 18px;
-	}
-	
-	.search-results-count {
-		text-align: center;
 		margin: 10px 0;
 		color: #666;
 		font-size: 14px;
 	}
-	
-	/* Mobile responsive design */
+	.search-container {
+		margin-bottom: 20px;
+		position: relative;
+		max-width: 400px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.search-bar {
+		width: 100%;
+		padding: 10px 36px 10px 14px;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 16px;
+		outline: none;
+		transition: border-color 0.2s;
+	}
+	.search-bar:focus {
+		border-color: #007bff;
+	}
+	.search-icon {
+		position: absolute;
+		top: 50%;
+		right: 12px;
+		transform: translateY(-50%);
+		font-size: 18px;
+		color: #888;
+		pointer-events: none;
+	}
+	.search-results-count {
+		text-align: center;
+		color: #007bff;
+		font-size: 15px;
+		margin-bottom: 10px;
+	}
+	#refresh-indicator {
+		position: fixed;
+		top: 10px;
+		right: 10px;
+		background: #17a2b8;
+		color: white;
+		padding: 8px 12px;
+		border-radius: 4px;
+		display: none;
+		z-index: 1000;
+	}
 	@media (max-width: 768px) {
 		.container {
 			grid-template-columns: 1fr;
 			gap: 15px;
 		}
-		
 		.column {
 			padding: 15px;
+			height: 400px; /* Slightly smaller height on mobile */
 		}
-		
-		body {
-			padding: 10px;
+		.column {
+			height: 450px; /* Maintain consistent height on tablet */
 		}
-		
-		.create-account-btn {
-			width: 100%;
-			margin-bottom: 20px;
-		}
-		
-		.search-container {
-			margin-bottom: 20px;
-		}
-		
-		.search-bar {
-			font-size: 14px;
-			padding: 12px 18px;
-		}
-	}
-	
-	/* Tablet responsive design */
-	@media (max-width: 1024px) and (min-width: 769px) {
-		.container {
-			grid-template-columns: 1fr 1fr;
-			gap: 15px;
-		}
-		
 		.column:last-child {
 			grid-column: 1 / -1;
 		}
@@ -203,124 +156,106 @@
 
 {% block scripts %}
 <script>
-// Prevent browser caching of this page
-window.addEventListener('pageshow', function(event) {
-    // If the page was loaded from cache (back/forward button), reload it
-    if (event.persisted) {
-        console.log('Page loaded from cache, refreshing to get latest data...');
-        const indicator = document.getElementById('refresh-indicator');
-        if (indicator) {
-            indicator.style.display = 'block';
-            indicator.textContent = 'Loading latest data...';
-        }
-        setTimeout(function() {
-            window.location.reload(true);
-        }, 300);
-    }
-});
-
 // Track navigation to prevent unnecessary reloads
 window.addEventListener('beforeunload', function() {
-    window.navigationInProgress = true;
+	window.navigationInProgress = true;
 });
-
 // Reset navigation flag when page loads
 window.addEventListener('load', function() {
-    window.navigationInProgress = false;
+	window.navigationInProgress = false;
 });
-
 // Auto-refresh every 60 seconds to keep data current
 setInterval(function() {
-    // Only auto-refresh if user is not actively interacting and page is visible
-    if (!document.hidden && !window.navigationInProgress) {
-        console.log('Auto-refreshing data...');
-        const indicator = document.getElementById('refresh-indicator');
-        if (indicator) {
-            indicator.style.display = 'block';
-            indicator.textContent = 'Auto-updating...';
-        }
-        setTimeout(function() {
-            window.location.reload(true);
-        }, 800);
-    }
+	// Only auto-refresh if user is not actively interacting and page is visible
+	if (!document.hidden && !window.navigationInProgress) {
+		console.log('Auto-refreshing data...');
+		const indicator = document.getElementById('refresh-indicator');
+		if (indicator) {
+			indicator.style.display = 'block';
+			indicator.textContent = 'Auto-updating...';
+		}
+		setTimeout(function() {
+			window.location.reload(true);
+		}, 800);
+	}
 }, 60000);
-
 // Hide refresh indicator on page load
 window.addEventListener('load', function() {
-    const indicator = document.getElementById('refresh-indicator');
-    if (indicator) {
-        setTimeout(function() {
-            indicator.style.display = 'none';
-        }, 1000);
-    }
+	const indicator = document.getElementById('refresh-indicator');
+	if (indicator) {
+		setTimeout(function() {
+			indicator.style.display = 'none';
+		}, 1000);
+	}
 });
-
 // Search functionality
 function searchUsers() {
-    const searchTerm = document.getElementById('user-search').value.toLowerCase();
-    let totalVisible = 0;
-    
-    // Search in all columns
-    const columns = ['teachers', 'students', 'admins'];
-    
-    columns.forEach(function(columnType) {
-        const userItems = document.querySelectorAll(`.${columnType}-column .user-item`);
-        let columnVisible = 0;
-        
-        userItems.forEach(function(item) {
-            const userName = item.querySelector('.user-name').textContent.toLowerCase();
-            
-            // Only check if search term matches name (which may include student number)
-            // Ignore email addresses
-            if (userName.includes(searchTerm)) {
-                item.style.display = 'block';
-                columnVisible++;
-                totalVisible++;
-            } else {
-                item.style.display = 'none';
-            }
-        });
-        
-        // Show/hide "no users" message
-        const noUsersMsg = document.querySelector(`.${columnType}-column .no-users`);
-        const hasUsers = document.querySelectorAll(`.${columnType}-column .user-item`).length > 0;
-        
-        if (noUsersMsg && hasUsers) {
-            noUsersMsg.style.display = columnVisible === 0 && searchTerm !== '' ? 'block' : 'none';
-        }
-    });
-    
-    // Update search results count
-    const resultsCount = document.getElementById('search-results-count');
-    if (searchTerm === '') {
-        resultsCount.textContent = '';
-    } else {
-        resultsCount.textContent = `Found ${totalVisible} user(s) matching "${searchTerm}"`;
-    }
+	const searchTerm = document.getElementById('user-search').value.toLowerCase();
+	let totalVisible = 0;
+	// Search in all columns
+	const columns = ['teachers', 'students', 'admins'];
+	columns.forEach(function(columnType) {
+		const userItems = document.querySelectorAll(`.${columnType}-column .user-item`);
+		let columnVisible = 0;
+		userItems.forEach(function(item) {
+			let match = false;
+			const userName = item.querySelector('.user-name').textContent.toLowerCase();
+			if (userName.includes(searchTerm)) {
+				match = true;
+			}
+			// For students, also check student number
+			if (columnType === 'students') {
+				const studentNumberEl = item.querySelector('.user-studentnumber');
+				if (studentNumberEl) {
+					const studentNumber = studentNumberEl.textContent.toLowerCase();
+					if (studentNumber.includes(searchTerm)) {
+						match = true;
+					}
+				}
+			}
+			if (match) {
+				item.style.display = 'block';
+				columnVisible++;
+				totalVisible++;
+			} else {
+				item.style.display = 'none';
+			}
+		});
+		// Show/hide "no users" message
+		const noUsersMsg = document.querySelector(`.${columnType}-column .no-users`);
+		const hasUsers = document.querySelectorAll(`.${columnType}-column .user-item`).length > 0;
+		if (noUsersMsg && hasUsers) {
+			noUsersMsg.style.display = columnVisible === 0 && searchTerm !== '' ? 'block' : 'none';
+		}
+	});
+	// Update search results count
+	const resultsCount = document.getElementById('search-results-count');
+	if (searchTerm === '') {
+		resultsCount.textContent = '';
+	} else {
+		resultsCount.textContent = `Found ${totalVisible} user(s) matching "${searchTerm}"`;
+	}
 }
-
 // Clear search function
 function clearSearch() {
-    document.getElementById('user-search').value = '';
-    searchUsers();
+	document.getElementById('user-search').value = '';
+	searchUsers();
 }
 </script>
 {% endblock %}
 
-{% block body %}
+{% block admin_content %}
 <h1>Admin Dashboard</h1>
-
-<a href="{{ url_for('admin.create_account') }}" class="create-account-btn" onclick="window.navigationInProgress = true;">Create New Account</a>
 
 <!-- Search Bar -->
 <div class="search-container">
-    <input type="text" 
-           id="user-search" 
-           class="search-bar" 
-           placeholder="Search users by name or student number..." 
-           oninput="searchUsers()"
-           autocomplete="off">
-    <span class="search-icon">🔍</span>
+	<input type="text" 
+		   id="user-search" 
+		   class="search-bar" 
+		   placeholder="Search users by name or student number..." 
+		   oninput="searchUsers()"
+		   autocomplete="off">
+	<span class="search-icon">🔍</span>
 </div>
 
 <!-- Search Results Count -->
@@ -328,7 +263,7 @@ function clearSearch() {
 
 <!-- Auto-refresh indicator -->
 <div id="refresh-indicator" style="position: fixed; top: 10px; right: 10px; background: #17a2b8; color: white; padding: 8px 12px; border-radius: 4px; display: none; z-index: 1000;">
-    Updating data...
+	Updating data...
 </div>
 
 <div class="container">
@@ -337,46 +272,44 @@ function clearSearch() {
 		<h2>Teachers <span class="user-count">{{ teachers|length }}</span></h2>
 		<ul class="user-list">
 			{% for teacher in teachers %}
-			<a href="{{ url_for('admin.teacher_profile', user_id=teacher.id) }}" class="user-item">
-				<div class="user-name">
-					{{ teacher.get_full_name() if teacher.get_full_name() else teacher.email }}
-				</div>
-				<div class="user-email">{{ teacher.email }}</div>
-			</a>
+			   <a href="{{ url_for('admin.teacher_profile', user_id=teacher.id) }}" class="user-item">
+				   <div class="user-name">
+					   {{ teacher.get_full_name() if teacher.get_full_name() else teacher.email }}
+				   </div>
+			   </a>
 			{% else %}
 			<div class="no-users">No teachers found.</div>
 			{% endfor %}
 		</ul>
 	</div>
-	
+
 	<!-- Students Column -->
 	<div class="column students-column">
-		<h2>Students <span class="user-count">{{ students|length }}</span></h2>
-		<ul class="user-list">
-			{% for student in students %}
-			<a href="{{ url_for('admin.student_profile', user_id=student.id) }}" class="user-item">
-				<div class="user-name">
-					{{ student.studentnumber if student.studentnumber else "########" }} - {{ student.get_full_name() if student.get_full_name() else student.email }}
-				</div>
-				<div class="user-email">{{ student.email }}</div>
-			</a>
-			{% else %}
-			<div class="no-users">No students found.</div>
-			{% endfor %}
-		</ul>
+		   <h2>Students <span class="user-count">{{ students|length }}</span></h2>
+		   <ul class="user-list">
+			   {% for student in students %}
+			   <a href="{{ url_for('admin.student_profile', user_id=student.id) }}" class="user-item">
+				   <div style="display: flex; align-items: center; gap: 8px;">
+					   <span class="user-studentnumber" style="font-size: 16px; font-weight: 500; color: var(--bs-body-color);">{{ student.studentnumber }}</span>
+					   <span class="user-name" style="font-size: 16px; font-weight: 500; color: var(--bs-body-color);">{{ student.get_full_name() if student.get_full_name() else student.email }}</span>
+				   </div>
+			   </a>
+			   {% else %}
+			   <div class="no-users">No students found.</div>
+			   {% endfor %}
+		   </ul>
 	</div>
-	
+
 	<!-- Admins Column -->
 	<div class="column admins-column">
 		<h2>Admins <span class="user-count">{{ admins|length }}</span></h2>
 		<ul class="user-list">
 			{% for admin_user in admins %}
-			<a href="{{ url_for('admin.teacher_profile', user_id=admin_user.id) }}" class="user-item">
-				<div class="user-name">
-					{{ admin_user.get_full_name() if admin_user.get_full_name() else admin_user.email }}
-				</div>
-				<div class="user-email">{{ admin_user.email }}</div>
-			</a>
+			   <a href="{{ url_for('admin.teacher_profile', user_id=admin_user.id) }}" class="user-item">
+				   <div class="user-name">
+					   {{ admin_user.get_full_name() if admin_user.get_full_name() else admin_user.email }}
+				   </div>
+			   </a>
 			{% else %}
 			<div class="no-users">No admins found.</div>
 			{% endfor %}
