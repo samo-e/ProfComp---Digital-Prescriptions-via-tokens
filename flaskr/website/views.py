@@ -521,26 +521,42 @@ def student_dashboard():
 @teacher_required
 def student_management():
     """Student management dashboard for teachers"""
-    # Get all students
-    students = User.query.filter_by(role='student').all()
-    
-    # Calculate stats
-    active_students = len([s for s in students if s.assigned_scenarios])
-    total_assignments = sum(len(s.assigned_scenarios) for s in students)
-    
-    # Add helper attributes for template
-    for student in students:
-        student.completed_scenarios = [
-            scenario for scenario in student.assigned_scenarios 
-            if hasattr(scenario, 'status') and scenario.status == 'graded'
-        ]
-    
-    return render_template(
-        "views/student_management.html",
-        students=students,
-        active_students=active_students,
-        total_assignments=total_assignments
-    )
+    try:
+        # Get all students
+        students = User.query.filter_by(role='student').all()
+        
+        # Calculate stats
+        active_students = 0
+        total_assignments = 0
+        
+        for student in students:
+            # Check if student has assigned_scenarios attribute
+            if hasattr(student, 'assigned_scenarios') and student.assigned_scenarios:
+                student_scenarios = student.assigned_scenarios
+                if len(student_scenarios) > 0:
+                    active_students += 1
+                total_assignments += len(student_scenarios)
+                
+                # Add completed scenarios count
+                student.completed_scenarios = [
+                    ss for ss in student_scenarios 
+                    if hasattr(ss, 'status') and ss.status == 'graded'
+                ]
+            else:
+                student.completed_scenarios = []
+        
+        return render_template(
+            "views/student_management.html",
+            students=students,
+            active_students=active_students,
+            total_assignments=total_assignments
+        )
+    except Exception as e:
+        print(f"Error in student_management: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading student management: {str(e)}', 'error')
+        return redirect(url_for('views.teacher_dashboard'))
 
 @views.route('/students/add', methods=['POST'])
 @teacher_required
