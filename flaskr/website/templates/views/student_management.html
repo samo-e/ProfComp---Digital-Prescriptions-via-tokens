@@ -5,6 +5,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/student_management.css') }}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/student_management.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container mt-4">
     <!-- Loading Overlay -->
@@ -75,7 +79,7 @@
         <div class="card-body p-0">
             {% if students and students|length > 0 %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
+                    <table class="table table-hover mb-0 table-light" id="studentsTable">
                         <thead>
                             <tr>
                                 <th>Name</th>
@@ -121,7 +125,7 @@
                 <div class="empty-state">
                     <i class="bi bi-people"></i>
                     <h5>No Students Found</h5>
-                    <p class="text-muted">No students are currently registered in the system.</p>
+                    <p class="text-secondary">No students are currently registered in the system.</p>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                         <i class="bi bi-person-plus"></i> Add First Student
                     </button>

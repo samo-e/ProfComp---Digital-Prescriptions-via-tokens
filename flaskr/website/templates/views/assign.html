@@ -79,9 +79,8 @@
 
 <!-- JS for "Select All" and Patient Assignment Logic -->
 <script>
-document.getElementById("selectAllStudents").addEventListener("change", function(e) {
-    const checkboxes = document.querySelectorAll("tbody input[type='checkbox']");
-    checkboxes.forEach(cb => cb.checked = e.target.checked);
+$('#selectAllStudents').change(function() {
+    $('tbody input[type="checkbox"]').prop('checked', this.checked);
 });
 
 // Function to update patient dropdown availability

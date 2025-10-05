@@ -3,6 +3,7 @@
 {% block title %}Submit Work - {{ scenario.name }}{% endblock %}
 
 {% block body %}
+<div class="container">
 <div class="container-fluid py-4">
     <div class="row">
         <div class="col-12">
@@ -69,7 +70,7 @@
                             </div>
                             
                             <!-- File preview area -->
-                            <div id="file-preview" class="mt-3" style="display: none;">
+                            <div id="file-preview" class="mt-3 d-none">
                                 <h6 class="fw-medium">Selected Files:</h6>
                                 <ul id="file-list" class="list-group">
                                     <!-- Files will be listed here -->
@@ -116,6 +117,7 @@
         </div>
     </div>
 </div>
+</div>
 
 <script>
 // File upload preview and validation
@@ -129,7 +131,7 @@ document.getElementById('pdf_file').addEventListener('change', function(e) {
     fileList.innerHTML = '';
     
     if (files.length > 0) {
-        filePreview.style.display = 'block';
+        $(filePreview).removeClass('d-none');
         
         Array.from(files).forEach(function(file, index) {
             const listItem = document.createElement('li');

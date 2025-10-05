@@ -9,29 +9,34 @@ import enum
 
 db = SQLAlchemy()
 
+
 # Enums stored as integers (0,1,2,3), we can add more in the future if needed
-class PrescriptionStatus(Enum): 
+class PrescriptionStatus(Enum):
     PENDING = 0
     AVAILABLE = 1
     DISPENSED = 2
     CANCELLED = 3
 
+
 # Updated ASL Status combining consent and access status
 class ASLStatus(Enum):
-    NO_CONSENT = 0    
-    PENDING = 1      
-    GRANTED = 2       
+    NO_CONSENT = 0
+    PENDING = 1
+    GRANTED = 2
     REJECTED = 3
+
 
 # User roles enum
 class UserRole(Enum):
     TEACHER = "teacher"
     STUDENT = "student"
 
+
 class User(db.Model, UserMixin):
     """User model for authentication - supports both teachers and students"""
-    __tablename__ = 'users'
-    
+
+    __tablename__ = "users"
+
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
@@ -41,120 +46,132 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.now)
     last_login = db.Column(db.DateTime)
     is_active = db.Column(db.Boolean, default=True)
-    
+
     # Relationships
-    created_scenarios = db.relationship('Scenario', backref='creator', lazy=True, 
-                                       foreign_keys='Scenario.teacher_id')
-    assigned_scenarios = db.relationship('Scenario', secondary='student_scenarios', 
-                                        backref='assigned_students', lazy=True)
-    
+    created_scenarios = db.relationship(
+        "Scenario", backref="creator", lazy=True, foreign_keys="Scenario.teacher_id"
+    )
+    assigned_scenarios = db.relationship(
+        "Scenario",
+        secondary="student_scenarios",
+        backref="assigned_students",
+        lazy=True,
+    )
+
     def set_password(self, password):
         """Hash and set the user's password"""
         self.password_hash = generate_password_hash(password)
-    
+
     def check_password(self, password):
         """Check if provided password matches the hash"""
         return check_password_hash(self.password_hash, password)
-    
+
     def is_teacher(self):
         """Check if user is a teacher"""
         return self.role == UserRole.TEACHER.value
-    
+
     def is_student(self):
         """Check if user is a student"""
         return self.role == UserRole.STUDENT.value
-    
+
     def get_full_name(self):
         """Get user's full name"""
         if self.first_name and self.last_name:
             return f"{self.first_name} {self.last_name}"
         return self.email
-    
+
     def __repr__(self):
-        return f'<User {self.email} ({self.role})>'
+        return f"<User {self.email} ({self.role})>"
 
 
 class Scenario(db.Model):
     """Scenario model for managing teaching scenarios"""
-    __tablename__ = 'scenarios'
-    
+
+    __tablename__ = "scenarios"
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
     question_text = db.Column(db.Text)  # Long string for questions/instructions
-    teacher_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    active_patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=True)
+    teacher_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    active_patient_id = db.Column(
+        db.Integer, db.ForeignKey("patients.id"), nullable=True
+    )
     password = db.Column(db.String(50))  # Optional password protection
     version = db.Column(db.Integer, default=1)
-    parent_scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'))
+    parent_scenario_id = db.Column(db.Integer, db.ForeignKey("scenarios.id"))
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
     is_archived = db.Column(db.Boolean, default=False)
-    
+
     # Patient data for this scenario
-    patient_data = db.relationship('ScenarioPatient', backref='scenario', 
-                                  cascade='all, delete-orphan', lazy=True)
-    
+    patient_data = db.relationship(
+        "ScenarioPatient", backref="scenario", cascade="all, delete-orphan", lazy=True
+    )
+
     # Active patient relationship
-    active_patient = db.relationship('Patient', foreign_keys=[active_patient_id])
-    
+    active_patient = db.relationship("Patient", foreign_keys=[active_patient_id])
+
     def __repr__(self):
-        return f'<Scenario {self.name} v{self.version}>'
+        return f"<Scenario {self.name} v{self.version}>"
 
 
 class StudentScenario(db.Model):
     """Association table for student-scenario assignments"""
-    __tablename__ = 'student_scenarios'
-    
+
+    __tablename__ = "student_scenarios"
+
     id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
+    student_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    scenario_id = db.Column(db.Integer, db.ForeignKey("scenarios.id"), nullable=False)
     assigned_at = db.Column(db.DateTime, default=datetime.now)
     submitted_at = db.Column(db.DateTime)
     completed_at = db.Column(db.DateTime)
     score = db.Column(db.Float)
     feedback = db.Column(db.Text)
-    status = db.Column(db.String(20), default='assigned')  # assigned, submitted, graded
-    
+    status = db.Column(db.String(20), default="assigned")  # assigned, submitted, graded
+
     # Relationships
-    student = db.relationship('User', foreign_keys=[student_id])
-    scenario = db.relationship('Scenario', foreign_keys=[scenario_id])
+    student = db.relationship("User", foreign_keys=[student_id])
+    scenario = db.relationship("Scenario", foreign_keys=[scenario_id])
 
 
 class Submission(db.Model):
     """Student submissions for ASL scenarios"""
-    __tablename__ = 'submissions'
-    
+
+    __tablename__ = "submissions"
+
     id = db.Column(db.Integer, primary_key=True)
-    student_scenario_id = db.Column(db.Integer, db.ForeignKey('student_scenarios.id'), nullable=False)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    student_scenario_id = db.Column(
+        db.Integer, db.ForeignKey("student_scenarios.id"), nullable=False
+    )
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
     submitted_at = db.Column(db.DateTime, default=datetime.now)
     submission_data = db.Column(db.JSON)  # Store the ASL form data snapshot
     notes = db.Column(db.Text)  # Student's notes about their submission
-    
-    # Relationships
-    student_scenario = db.relationship('StudentScenario', backref='submissions')
-    patient = db.relationship('Patient')
-    
 
+    # Relationships
+    student_scenario = db.relationship("StudentScenario", backref="submissions")
+    patient = db.relationship("Patient")
 
 
 class ScenarioPatient(db.Model):
     """Patient assignments for students within scenarios"""
-    __tablename__ = 'scenario_patients'
-    
+
+    __tablename__ = "scenario_patients"
+
     id = db.Column(db.Integer, primary_key=True)
-    scenario_id = db.Column(db.Integer, db.ForeignKey('scenarios.id'), nullable=False)
-    student_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)  # Make nullable for existing data
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    scenario_id = db.Column(db.Integer, db.ForeignKey("scenarios.id"), nullable=False)
+    student_id = db.Column(
+        db.Integer, db.ForeignKey("users.id"), nullable=True
+    )  # Make nullable for existing data
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
     assigned_at = db.Column(db.DateTime, default=datetime.now)
-    
-    
-    
+
 
 class Patient(db.Model):
-    __tablename__ = 'patients'
-    
+    __tablename__ = "patients"
+
     id = db.Column(db.Integer, primary_key=True)
     medicare = db.Column(db.String(11))
     pharmaceut_ben_entitlement_no = db.Column(db.String(20))
@@ -173,7 +190,9 @@ class Patient(db.Model):
     sex = db.Column(db.String(20), nullable=True)  # Male/Female
     pt_number = db.Column(db.String(50), nullable=True)
     suburb = db.Column(db.String(100), nullable=True)
-    state = db.Column(db.String(10), nullable=True)  # act, nt, nsw, qld, sa, tas, vic, wa
+    state = db.Column(
+        db.String(10), nullable=True
+    )  # act, nt, nsw, qld, sa, tas, vic, wa
     postcode = db.Column(db.Integer, nullable=True)
     phone = db.Column(db.String(30), nullable=True)
     mobile = db.Column(db.String(30), nullable=True)
@@ -204,19 +223,21 @@ class Patient(db.Model):
     consented_to_upload = db.Column(db.Boolean, default=False)
     # Combined status=
     asl_status = db.Column(db.Integer, default=ASLStatus.GRANTED.value)
-    consent_last_updated = db.Column(db.String(20), default=lambda: datetime.now().strftime('%d/%m/%Y %I:%M %p'))
+    consent_last_updated = db.Column(
+        db.String(20), default=lambda: datetime.now().strftime("%d/%m/%Y %I:%M %p")
+    )
     is_registered = db.Column(db.Boolean, default=True)
 
     def get_asl_status(self):
         return ASLStatus(self.asl_status)
-    
+
     def can_view_asl(self):
         return self.asl_status == ASLStatus.GRANTED.value
 
 
 class Prescriber(db.Model):
-    __tablename__ = 'prescribers'
-    
+    __tablename__ = "prescribers"
+
     id = db.Column(db.Integer, primary_key=True)
     fname = db.Column(db.String(50))
     lname = db.Column(db.String(50))
@@ -231,11 +252,13 @@ class Prescriber(db.Model):
 
 
 class Prescription(db.Model):
-    __tablename__ = 'prescriptions'
-    
+    __tablename__ = "prescriptions"
+
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    prescriber_id = db.Column(db.Integer, db.ForeignKey('prescribers.id'), nullable=False)
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    prescriber_id = db.Column(
+        db.Integer, db.ForeignKey("prescribers.id"), nullable=False
+    )
     DSPID = db.Column(db.String(50), nullable=True)
     status = db.Column(db.Integer, default=PrescriptionStatus.AVAILABLE.value)
     brand_sub_not_prmt = db.Column(db.Boolean, default=False)
@@ -249,25 +272,22 @@ class Prescription(db.Model):
     paperless = db.Column(db.Boolean, default=True)
     remaining_repeats = db.Column(db.Integer, nullable=True)
     dispensed_at_this_pharmacy = db.Column(db.Boolean, default=False)
-    
+
     # DB Relationships
-    patient = db.relationship('Patient', backref='prescriptions')
-    prescriber = db.relationship('Prescriber', backref='prescriptions')
-    
+    patient = db.relationship("Patient", backref="prescriptions")
+    prescriber = db.relationship("Prescriber", backref="prescriptions")
+
     def get_status(self):
         return PrescriptionStatus(self.status)
+
 
 class ASL(db.Model):
     __tablename__ = "asls"
     id = db.Column(db.Integer, primary_key=True)
-    patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
-    consent_status = db.Column(db.Integer, default=ASLStatus.PENDING.value)  
+    patient_id = db.Column(db.Integer, db.ForeignKey("patients.id"), nullable=False)
+    consent_status = db.Column(db.Integer, default=ASLStatus.PENDING.value)
     carer_name = db.Column(db.String(100))
     carer_relationship = db.Column(db.String(100))
-    carer_mobile = db.Column(db.String(30))       # NEW
-    carer_email = db.Column(db.String(120))       # NEW
+    carer_mobile = db.Column(db.String(30))  # NEW
+    carer_email = db.Column(db.String(120))  # NEW
     notes = db.Column(db.Text)
-    
-
-
-

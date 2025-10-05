@@ -10,8 +10,7 @@
        class="dropdown-item {{ 'disabled' if disabled else '' }} {{ 'd-none' if active else '' }}"
        href="#{{ target }}"
        data-bs-toggle="tab"
-       onclick="document.getElementById('{{id}}-tab').click();"
-       {{ 'style="display:none;"' if active else '' }}>
+       onclick="document.getElementById('{{id}}-tab').click();">
        {{ label }}
     </a>
 </li>

@@ -198,10 +198,10 @@
                                         </a>
                                         <form method="POST"
                                             action="{{ url_for('views.delete_patient', patient_id=patient.id) }}"
-                                            style="display:inline;"
+                                            class="d-inline;"
                                             onsubmit="return confirm('Are you sure you want to delete {{ (patient.given_name + ' ' + patient.last_name) if patient.given_name and patient.last_name else 'this patient' }}?');">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-outline-danger" title="Delete Patient">
+                                            <button type="submit" class="btn btn-outline-danger delete-btn" title="Delete Patient">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>
@@ -228,7 +228,8 @@
             <div class="row align-items-center">
                 <div class="col">
                     <div class="bulk-actions" style="display: none;">
-                        <form id="bulk-delete-form" method="POST" action="{{ url_for('views.bulk_delete_patients') }}" style="display: inline;">
+                    <div class="bulk-actions d-none">
+                        <form id="bulk-delete-form" method="POST" action="{{ url_for('views.bulk_delete_patients') }}" class="d-inline">
                             {{ delete_form.hidden_tag() }}
                             <button type="button" class="btn btn-outline-danger btn-sm" id="bulk-delete">
                                 <i class="bi bi-trash"></i> Delete Selected
@@ -281,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const checked = document.querySelectorAll('.patient-checkbox:checked');
         const bulkActions = document.querySelector('.bulk-actions');
         if (bulkActions) {
-            bulkActions.style.display = checked.length > 0 ? 'block' : 'none';
+            $(bulkActions).toggleClass('d-none', checked.length === 0);
         }
     }
 
