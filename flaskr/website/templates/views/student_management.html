@@ -336,14 +336,19 @@ function searchStudents() {
 
 // Add student
 async function addStudent() {
-    const firstName = document.getElementById('newFirstName').value;
-    const lastName = document.getElementById('newLastName').value;
-    const email = document.getElementById('newEmail').value;
+    const firstName = document.getElementById('newFirstName').value.trim();
+    const lastName = document.getElementById('newLastName').value.trim();
+    const email = document.getElementById('newEmail').value.trim();
     const password = document.getElementById('newPassword').value;
-    const studentId = document.getElementById('newStudentId').value;
+    const studentId = document.getElementById('newStudentId').value.trim();
     
     if (!firstName || !lastName || !email || !password) {
         showAlert('Please fill in all required fields', 'danger');
+        return;
+    }
+    
+    if (password.length < 8) {
+        showAlert('Password must be at least 8 characters long', 'danger');
         return;
     }
     
@@ -360,9 +365,15 @@ async function addStudent() {
                 last_name: lastName,
                 email: email,
                 password: password,
-                student_id: studentId
+                student_id: studentId || null
             })
         });
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Server returned non-JSON response');
+        }
         
         const result = await response.json();
         
@@ -374,7 +385,7 @@ async function addStudent() {
             showAlert(result.message || 'Failed to add student', 'danger');
         }
     } catch (error) {
-        showAlert('An error occurred. Please try again.', 'danger');
+        showAlert('An error occurred. Please try again. ' + error.message, 'danger');
         console.error('Error:', error);
     } finally {
         hideLoading();
@@ -448,7 +459,7 @@ async function deleteStudent(id) {
     
     try {
         const response = await fetch(`/students/${id}/delete`, {
-            method: 'POST',
+            method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
             }
