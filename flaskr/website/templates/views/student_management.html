@@ -299,6 +299,30 @@
 </div>
 
 <script>
+// Get CSRF token from meta tag or cookie
+function getCSRFToken() {
+    // Try to get from meta tag first
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) {
+        return metaTag.getAttribute('content');
+    }
+    
+    // Fallback: get from cookie
+    const name = 'csrf_token=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for(let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return '';
+}
+
 // Utility functions
 function showLoading() {
     document.getElementById('loadingOverlay').classList.add('active');
@@ -355,10 +379,12 @@ async function addStudent() {
     showLoading();
     
     try {
+        const csrfToken = getCSRFToken();
         const response = await fetch('/students/add', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({
                 first_name: firstName,
@@ -458,10 +484,12 @@ async function deleteStudent(id) {
     showLoading();
     
     try {
+        const csrfToken = getCSRFToken();
         const response = await fetch(`/students/${id}/delete`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             }
         });
         
