@@ -554,7 +554,6 @@ body > .container {
   background: white;
   border-collapse: separate;
   border-spacing: 0;
-  border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
@@ -568,14 +567,6 @@ body > .container {
   letter-spacing: 0.5px;
   position: relative;
   border: none;
-}
-
-.table-header th:first-child {
-  border-top-left-radius: 1rem;
-}
-
-.table-header th:last-child {
-  border-top-right-radius: 1rem;
 }
 
 .th-content {
@@ -749,7 +740,6 @@ body > .container {
 .empty-state {
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   border-radius: 1rem;
-  margin: 2rem 0;
   position: relative;
   overflow: hidden;
 }

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block title %}Student Management{% endblock %}
 
 {% block styles %}
@@ -10,51 +10,84 @@
 {% endblock %}
 
 {% block body %}
+<div class="container">
 <div class="container mt-4">
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="spinner-border text-light" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 mb-0">Student Management</h1>
-            <p class="text-muted">Manage student accounts and assignments</p>
-        </div>
-        <div>
-            <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
+        <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h2><i class="bi bi-mortarboard me-3"></i>Student Management</h2>
+                <p class="mb-0">Manage students, their assignments, and monitor their progress.</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Statistics Row -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ students|length }}</div>
-                <div class="stats-label">Total Students</div>
+            <div class="stats-card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title stats-label">Total Students</h5>
+                            <h2 class="mb-0 stats-number">{{ students|length if students else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-people fs-1"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ active_students }}</div>
-                <div class="stats-label">Active Students</div>
+            <div class="card stats-card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Active Students</h5>
+                            <h2 class="mb-0">{{ active_students if active_students else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-person-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ total_assignments }}</div>
-                <div class="stats-label">Total Assignments</div>
+            <div class="card stats-card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Assignments<br></h5>
+                            <h2 class="mb-0">{{ total_assignments if total_assignments else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clipboard-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="stats-card">
-                <div class="stats-number">{{ (total_assignments / students|length)|round(1) if students|length > 0 else 0 }}</div>
-                <div class="stats-label">Avg Assignments</div>
+            <div class="card stats-card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h5 class="card-title">Avg Assignments</h5>
+                            <h2 class="mb-0">{{ (total_assignments // students|length)|round(1) if students|length > 0 else 0 }}</h2>
+                        </div>
+                        <div class="align-self-center">
+                            <i class="bi bi-clipboard-check fs-1"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -64,13 +97,15 @@
         <div class="card-header bg-white border-bottom">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <div class="search-box">
-                        <i class="bi bi-search"></i>
-                        <input type="text" class="form-control" id="searchInput" placeholder="Search students by name, email, or ID..." onkeyup="searchStudents()">
+                    <div class="input-group input-group-sm">
+                        <input type="text" class="form-control form-control-lg btn-add-student" placeholder="Search students..." id="searchInput" oninput="searchStudents()">
+                        <button class="btn btn-outline-secondary" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-6 text-end">
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                <div class="col-auto text-end ms-auto">
+                    <button class="btn btn-primary btn-add-student" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                         <i class="bi bi-person-plus"></i> Add Student
                     </button>
                 </div>
@@ -82,37 +117,49 @@
                     <table class="table table-hover mb-0 table-light" id="studentsTable">
                         <thead>
                             <tr>
+                                <th class="text-center">
+                                    <input class="form-check-input" type="checkbox" id="select-all" oninput="toggle_all_students_check_boxes(true)">
+                                </th>
                                 <th>Name</th>
                                 <th>Email</th>
-                                <th>Scenarios</th>
-                                <th>Status</th>
-                                <th width="150">Actions</th>
+                                <th class="text-center">Scenarios</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center" width="150">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody">
                             {% for student in students %}
                             <tr class="student-row" data-student-id="{{ student.id }}">
+                                <td class="text-center">
+                                    <input class="form-check-input student-checkbox" type="checkbox" value="{{ student.id }}" oninput="toggle_all_students_check_boxes(false)">
+                                </td>
                                 <td>{{ student.first_name }} {{ student.last_name }}</td>
                                 <td>{{ student.email }}</td>
-                                <td>
+                                <td class="text-center">
                                     {% if student.assigned_scenarios %}
                                         {{ student.assigned_scenarios|length }}
                                     {% else %}
                                         0
                                     {% endif %}
                                 </td>
-                                <td>
+                                <td class="text-center">
                                     {% if student.assigned_scenarios and student.assigned_scenarios|length > 0 %}
                                         <span class="badge bg-success">Active</span>
                                     {% else %}
                                         <span class="badge bg-secondary">Inactive</span>
                                     {% endif %}
                                 </td>
-                                <td>
-                                    <button class="btn btn-sm btn-info" onclick="viewStudent({{ student.id }})" data-bs-toggle="modal" data-bs-target="#viewStudentModal">
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-info"
+                                            title="View student details"
+                                            onclick="viewStudent({{ student.id }})"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#viewStudentModal">
                                         <i class="bi bi-eye"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteStudent({{ student.id }})">
+                                    <button class="btn btn-sm btn-danger"
+                                            title="Remove Student"
+                                            onclick="deleteStudent({{ student.id }})">
                                         <i class="bi bi-trash"></i>
                                     </button>
                                 </td>
@@ -126,9 +173,6 @@
                     <i class="bi bi-people"></i>
                     <h5>No Students Found</h5>
                     <p class="text-secondary">No students are currently registered in the system.</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                        <i class="bi bi-person-plus"></i> Add First Student
-                    </button>
                 </div>
             {% endif %}
         </div>
@@ -190,10 +234,5 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
-<!-- Add CSRF token as meta tag for JavaScript to access -->
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<script src="{{ url_for('static', filename='js/student_management.js') }}"></script>
+</div>
 {% endblock %}

@@ -176,7 +176,7 @@
                                                     </a>
                                                 </h6>
                                                 <div class="scenario-meta">
-                                                    <small class="text-muted me-3">
+                                                    <small class="me-3">
                                                         <i class="bi bi-calendar3 me-1"></i>
                                                         {{ scenario.created_at.strftime('%d %b %Y') if scenario.created_at else 'Unknown' }}
                                                     </small>
@@ -268,12 +268,12 @@
                 </div>
             {% else %}
                 <div class="empty-state py-5">
-                    <div class="text-center">
+                    <div class="text-center text-dark">
                         <div class="empty-icon mb-4">
-                            <i class="bi bi-journal-x text-muted"></i>
+                            <i class="bi bi-journal-x "></i>
                         </div>
-                        <h5 class="text-muted mb-3">No scenarios created yet</h5>
-                        <p class="text-muted mb-4">Create your first scenario to get started with managing student assignments.</p>
+                        <h5 class=" mb-3">No scenarios created yet</h5>
+                        <p class=" mb-4">Create your first scenario to get started with managing student assignments.</p>
                         <form method="POST" action="{{ url_for('views.create_scenario') }}" class="d-inline">
                             {{ form.hidden_tag() }}
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -298,7 +298,7 @@
                 </button>
             </div>
             <div>
-                <small class="text-muted">
+                <small class="">
                     <i class="bi bi-info-circle"></i> 
                     Select scenarios to perform bulk actions
                 </small>

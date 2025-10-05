@@ -585,7 +585,7 @@ def student_dashboard():
 
     return render_template("views/student_dash.html", scenario_data=scenario_data)
 
-  
+
 @views.route("/students/manage")
 @teacher_required
 def student_management():
@@ -2646,8 +2646,8 @@ def asl_form(patient_id):
     # )
     # print(f"DEBUG: ASL record exists: {asl_record is not None}")
     # if asl_record:
-        # print(f"  - carer_name: '{asl_record.carer_name}'")
-        # print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
+    # print(f"  - carer_name: '{asl_record.carer_name}'")
+    # print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
 
     # Process existing prescriptions into ASL and ALR data
     for prescription in prescriptions:

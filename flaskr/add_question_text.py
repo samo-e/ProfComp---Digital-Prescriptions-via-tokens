@@ -26,11 +26,11 @@ try:
         "SELECT name FROM sqlite_master WHERE type='table' AND name='scenario_questions'"
     )
     # if cursor.fetchone():
-        # print(
-        #     "scenario_questions table still exists (you might want to migrate data first)"
-        # )
+    # print(
+    #     "scenario_questions table still exists (you might want to migrate data first)"
+    # )
     # else:
-        # print("scenario_questions table does not exist")
+    # print("scenario_questions table does not exist")
 
     # Commit the changes
     conn.commit()

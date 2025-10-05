@@ -183,8 +183,7 @@ async function deleteStudent(id) {
     }
 }
 
-// Initialize event listeners when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+(function() {
     // Reset form when modal is closed
     const addStudentModal = document.getElementById('addStudentModal');
     if (addStudentModal) {
@@ -193,3 +192,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+function toggle_all_students_check_boxes(is_main) {
+    var main_check = $("#select-all");
+    var other_checks = $(".student-checkbox");
+
+    if (is_main) {
+        var is_checked = main_check.prop("checked");
+        main_check.prop("indeterminate", false);
+        other_checks.prop("checked", is_checked);
+    } else {
+        var total = other_checks.length;
+        var checked = other_checks.filter(":checked").length;
+
+        if (checked === 0) {
+            main_check.prop({ checked: false, indeterminate: false });
+        } else if (checked === total) {
+            main_check.prop({ checked: true, indeterminate: false });
+        } else {
+            main_check.prop({ checked: false, indeterminate: true });
+        }
+    }
+}
+

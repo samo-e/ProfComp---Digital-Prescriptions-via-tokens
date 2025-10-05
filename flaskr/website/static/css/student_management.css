@@ -38,6 +38,7 @@ body > .container {
   letter-spacing: 0.5px;
   margin-bottom: 0.5rem;
   opacity: 0.9;
+  min-height: 2rem;
 }
 
 .stats-card h2 {
@@ -273,8 +274,11 @@ body > .container {
   border: none;
   border-radius: 0.5rem;
   font-weight: 600;
-  padding: 0.75rem 1.5rem;
   transition: all 0.3s ease;
+}
+
+.btn-add-student {
+  padding: 0.75rem 1.5rem;
 }
 
 /* Search Input Styling */
