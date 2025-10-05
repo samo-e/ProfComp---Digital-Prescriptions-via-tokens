@@ -183,7 +183,6 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Scenarios</th>
@@ -194,7 +193,6 @@
                         <tbody id="studentTableBody">
                             {% for student in students %}
                             <tr class="student-row" data-student-id="{{ student.id }}">
-                                <td>{{ student.student_id or 'N/A' }}</td>
                                 <td>{{ student.first_name }} {{ student.last_name }}</td>
                                 <td>{{ student.email }}</td>
                                 <td>
@@ -266,10 +264,6 @@
                         <input type="password" class="form-control" id="newPassword" required>
                         <div class="form-text">Minimum 8 characters</div>
                     </div>
-                    <div class="mb-3">
-                        <label for="newStudentId" class="form-label">Student ID (Optional)</label>
-                        <input type="text" class="form-control" id="newStudentId">
-                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -340,7 +334,6 @@ async function addStudent() {
     const lastName = document.getElementById('newLastName').value.trim();
     const email = document.getElementById('newEmail').value.trim();
     const password = document.getElementById('newPassword').value;
-    const studentId = document.getElementById('newStudentId').value.trim();
     
     if (!firstName || !lastName || !email || !password) {
         showAlert('Please fill in all required fields', 'danger');
@@ -366,7 +359,6 @@ async function addStudent() {
                 last_name: lastName,
                 email: email,
                 password: password,
-                student_id: studentId || null
             })
         });
         
@@ -412,7 +404,6 @@ async function viewStudent(id) {
                         <table class="table table-sm">
                             <tr><td><strong>Name:</strong></td><td>${student.first_name} ${student.last_name}</td></tr>
                             <tr><td><strong>Email:</strong></td><td>${student.email}</td></tr>
-                            <tr><td><strong>Student ID:</strong></td><td>${student.student_id || 'N/A'}</td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">

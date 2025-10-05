@@ -587,9 +587,6 @@ def add_student():
         # Set password
         new_student.set_password(data['password'])
         
-        # Add optional fields
-        if data.get('student_id'):
-            new_student.student_id = data['student_id']
         
         db.session.add(new_student)
         db.session.commit()
@@ -601,8 +598,7 @@ def add_student():
                 'id': new_student.id,
                 'email': new_student.email,
                 'first_name': new_student.first_name,
-                'last_name': new_student.last_name,
-                'student_id': new_student.student_id
+                'last_name': new_student.last_name
             }
         })
         
@@ -633,8 +629,6 @@ def edit_student(student_id):
             if existing:
                 return jsonify({'success': False, 'message': 'Email already exists'}), 400
             student.email = data['email']
-        if data.get('student_id'):
-            student.student_id = data['student_id']
         if data.get('password'):
             student.set_password(data['password'])
         
@@ -647,8 +641,7 @@ def edit_student(student_id):
                 'id': student.id,
                 'email': student.email,
                 'first_name': student.first_name,
-                'last_name': student.last_name,
-                'student_id': student.student_id
+                'last_name': student.last_name
             }
         })
         
@@ -715,7 +708,6 @@ def view_student(student_id):
                 'email': student.email,
                 'first_name': student.first_name,
                 'last_name': student.last_name,
-                'student_id': student.student_id,
                 'created_at': student.created_at.isoformat() if hasattr(student, 'created_at') and student.created_at else None,
                 'assigned_scenarios': assigned_scenarios,
                 'total_scenarios': len(assigned_scenarios),
