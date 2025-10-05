@@ -1,10 +1,10 @@
 // Utility functions
 function showLoading() {
-    document.getElementById('loadingOverlay').classList.add('active');
+    $('#loadingOverlay').show();
 }
 
 function hideLoading() {
-    document.getElementById('loadingOverlay').classList.remove('active');
+    $('#loadingOverlay').hide();
 }
 
 function showAlert(message, type = 'success') {
@@ -185,13 +185,13 @@ async function deleteStudent(id) {
 
 (function() {
     // Reset form when modal is closed
-    const addStudentModal = document.getElementById('addStudentModal');
-    if (addStudentModal) {
-        addStudentModal.addEventListener('hidden.bs.modal', function () {
-            document.getElementById('addStudentForm').reset();
+    const addStudentModal = $('#addStudentModal');
+    if (addStudentModal.length) {
+        addStudentModal.on('hidden.bs.modal', function () {
+            $('#addStudentForm')[0].reset();
         });
     }
-});
+})();
 
 function toggle_all_students_check_boxes(is_main) {
     var main_check = $("#select-all");
