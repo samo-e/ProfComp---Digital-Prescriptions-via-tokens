@@ -107,22 +107,10 @@
     .loading-overlay.active {
         display: flex;
     }
-    
-    .edit-inline {
-        display: none;
-    }
-    
-    .edit-mode .edit-inline {
-        display: inline-block;
-    }
-    
-    .edit-mode .view-mode {
-        display: none;
-    }
 </style>
 {% endblock %}
 
-{% block content %}
+{% block body %}
 <div class="container mt-4">
     <!-- Loading Overlay -->
     <div id="loadingOverlay" class="loading-overlay">
@@ -186,9 +174,6 @@
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
                         <i class="bi bi-person-plus"></i> Add Student
                     </button>
-                    <button class="btn btn-outline-danger ms-2" id="bulkDeleteBtn" style="display: none;" onclick="bulkDeleteStudents()">
-                        <i class="bi bi-trash"></i> Delete Selected
-                    </button>
                 </div>
             </div>
         </div>
@@ -198,63 +183,41 @@
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th width="40">
-                                    <input type="checkbox" class="form-check-input" id="selectAll" onchange="toggleSelectAll()">
-                                </th>
                                 <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Email</th>
                                 <th>Scenarios</th>
                                 <th>Status</th>
-                                <th width="200">Actions</th>
+                                <th width="150">Actions</th>
                             </tr>
                         </thead>
                         <tbody id="studentTableBody">
                             {% for student in students %}
                             <tr class="student-row" data-student-id="{{ student.id }}">
-                                <td>
-                                    <input type="checkbox" class="form-check-input student-checkbox" value="{{ student.id }}" onchange="updateBulkActions()">
-                                </td>
                                 <td>{{ student.student_id or 'N/A' }}</td>
+                                <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                <td>{{ student.email }}</td>
                                 <td>
-                                    <span class="view-mode">{{ student.first_name }} {{ student.last_name }}</span>
-                                    <input type="text" class="form-control form-control-sm edit-inline edit-first-name" value="{{ student.first_name }}" style="width: 100px; display: inline-block;">
-                                    <input type="text" class="form-control form-control-sm edit-inline edit-last-name" value="{{ student.last_name }}" style="width: 100px; display: inline-block;">
-                                </td>
-                                <td>
-                                    <span class="view-mode">{{ student.email }}</span>
-                                    <input type="email" class="form-control form-control-sm edit-inline edit-email" value="{{ student.email }}">
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ student.assigned_scenarios|length if student.assigned_scenarios else 0 }} assigned</span>
-                                    {% if student.completed_scenarios %}
-                                    <span class="badge bg-success">{{ student.completed_scenarios|length }} completed</span>
+                                    {% if student.assigned_scenarios %}
+                                        {{ student.assigned_scenarios|length }}
+                                    {% else %}
+                                        0
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <span class="badge badge-status {% if student.assigned_scenarios %}bg-success{% else %}bg-secondary{% endif %}">
-                                        {% if student.assigned_scenarios %}Active{% else %}Inactive{% endif %}
-                                    </span>
+                                    {% if student.assigned_scenarios and student.assigned_scenarios|length > 0 %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm view-mode" role="group">
-                                        <button class="btn btn-outline-primary" title="View Details" onclick="viewStudent({{ student.id }})">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button class="btn btn-outline-warning" title="Edit Student" onclick="editStudent({{ student.id }})">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button class="btn btn-outline-info" title="Assign Scenario" onclick="assignScenario({{ student.id }})">
-                                            <i class="bi bi-plus-circle"></i>
-                                        </button>
-                                        <button class="btn btn-outline-danger" title="Remove Student" onclick="removeStudent({{ student.id }})">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                    <div class="edit-inline">
-                                        <button class="btn btn-sm btn-success" onclick="saveStudentEdit({{ student.id }})">Save</button>
-                                        <button class="btn btn-sm btn-secondary" onclick="cancelEdit({{ student.id }})">Cancel</button>
-                                    </div>
+                                    <button class="btn btn-sm btn-info" onclick="viewStudent({{ student.id }})" data-bs-toggle="modal" data-bs-target="#viewStudentModal">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteStudent({{ student.id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -371,35 +334,18 @@ function searchStudents() {
     });
 }
 
-// Checkbox functions
-function toggleSelectAll() {
-    const selectAll = document.getElementById('selectAll');
-    const checkboxes = document.querySelectorAll('.student-checkbox');
-    checkboxes.forEach(cb => cb.checked = selectAll.checked);
-    updateBulkActions();
-}
-
-function updateBulkActions() {
-    const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
-    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-    bulkDeleteBtn.style.display = checkedBoxes.length > 0 ? 'inline-block' : 'none';
-}
-
-// CRUD Operations
+// Add student
 async function addStudent() {
-    const form = document.getElementById('addStudentForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
+    const firstName = document.getElementById('newFirstName').value;
+    const lastName = document.getElementById('newLastName').value;
+    const email = document.getElementById('newEmail').value;
+    const password = document.getElementById('newPassword').value;
+    const studentId = document.getElementById('newStudentId').value;
+    
+    if (!firstName || !lastName || !email || !password) {
+        showAlert('Please fill in all required fields', 'danger');
         return;
     }
-    
-    const data = {
-        first_name: document.getElementById('newFirstName').value,
-        last_name: document.getElementById('newLastName').value,
-        email: document.getElementById('newEmail').value,
-        password: document.getElementById('newPassword').value,
-        student_id: document.getElementById('newStudentId').value || null
-    };
     
     showLoading();
     
@@ -408,9 +354,14 @@ async function addStudent() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                password: password,
+                student_id: studentId
+            })
         });
         
         const result = await response.json();
@@ -430,6 +381,7 @@ async function addStudent() {
     }
 }
 
+// View student details
 async function viewStudent(id) {
     showLoading();
     
@@ -449,19 +401,17 @@ async function viewStudent(id) {
                             <tr><td><strong>Name:</strong></td><td>${student.first_name} ${student.last_name}</td></tr>
                             <tr><td><strong>Email:</strong></td><td>${student.email}</td></tr>
                             <tr><td><strong>Student ID:</strong></td><td>${student.student_id || 'N/A'}</td></tr>
-                            <tr><td><strong>Registered:</strong></td><td>${student.created_at ? new Date(student.created_at).toLocaleDateString() : 'N/A'}</td></tr>
                         </table>
                     </div>
                     <div class="col-md-6">
                         <h6>Statistics</h6>
                         <table class="table table-sm">
-                            <tr><td><strong>Total Scenarios:</strong></td><td>${student.total_scenarios}</td></tr>
-                            <tr><td><strong>Completed:</strong></td><td>${student.completed_scenarios}</td></tr>
-                            <tr><td><strong>In Progress:</strong></td><td>${student.total_scenarios - student.completed_scenarios}</td></tr>
+                            <tr><td><strong>Total Scenarios:</strong></td><td>${student.total_scenarios || 0}</td></tr>
+                            <tr><td><strong>Completed:</strong></td><td>${student.completed_scenarios || 0}</td></tr>
                         </table>
                     </div>
                 </div>
-                ${student.assigned_scenarios.length > 0 ? `
+                ${student.assigned_scenarios && student.assigned_scenarios.length > 0 ? `
                 <div class="mt-3">
                     <h6>Assigned Scenarios</h6>
                     <div class="list-group">
@@ -471,18 +421,14 @@ async function viewStudent(id) {
                                     <strong>${s.name}</strong>
                                     <span class="badge bg-${s.status === 'completed' ? 'success' : 'warning'}">${s.status}</span>
                                 </div>
-                                ${s.assigned_at ? `<small class="text-muted">Assigned: ${new Date(s.assigned_at).toLocaleDateString()}</small>` : ''}
                             </div>
                         `).join('')}
                     </div>
                 </div>
                 ` : '<p class="text-muted mt-3">No scenarios assigned yet.</p>'}
             `;
-            
-            const modal = new bootstrap.Modal(document.getElementById('viewStudentModal'));
-            modal.show();
         } else {
-            showAlert('Failed to load student details', 'danger');
+            showAlert(result.message || 'Failed to load student details', 'danger');
         }
     } catch (error) {
         showAlert('An error occurred. Please try again.', 'danger');
@@ -492,54 +438,9 @@ async function viewStudent(id) {
     }
 }
 
-function editStudent(id) {
-    const row = document.querySelector(`tr[data-student-id="${id}"]`);
-    row.classList.add('edit-mode');
-}
-
-function cancelEdit(id) {
-    const row = document.querySelector(`tr[data-student-id="${id}"]`);
-    row.classList.remove('edit-mode');
-}
-
-async function saveStudentEdit(id) {
-    const row = document.querySelector(`tr[data-student-id="${id}"]`);
-    const data = {
-        first_name: row.querySelector('.edit-first-name').value,
-        last_name: row.querySelector('.edit-last-name').value,
-        email: row.querySelector('.edit-email').value
-    };
-    
-    showLoading();
-    
-    try {
-        const response = await fetch(`/students/${id}/edit`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify(data)
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showAlert('Student updated successfully!', 'success');
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            showAlert(result.message || 'Failed to update student', 'danger');
-        }
-    } catch (error) {
-        showAlert('An error occurred. Please try again.', 'danger');
-        console.error('Error:', error);
-    } finally {
-        hideLoading();
-    }
-}
-
-async function removeStudent(id) {
-    if (!confirm('Are you sure you want to remove this student? This action cannot be undone.')) {
+// Delete student
+async function deleteStudent(id) {
+    if (!confirm('Are you sure you want to delete this student? This action cannot be undone.')) {
         return;
     }
     
@@ -547,69 +448,19 @@ async function removeStudent(id) {
     
     try {
         const response = await fetch(`/students/${id}/delete`, {
-            method: 'DELETE',
+            method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token() }}'
+                'Content-Type': 'application/json',
             }
         });
         
         const result = await response.json();
         
         if (result.success) {
-            showAlert('Student removed successfully!', 'success');
-            const row = document.querySelector(`tr[data-student-id="${id}"]`);
-            row.style.transition = 'opacity 0.3s';
-            row.style.opacity = '0';
-            setTimeout(() => {
-                row.remove();
-                // Update count if no more students
-                if (document.querySelectorAll('.student-row').length === 0) {
-                    location.reload();
-                }
-            }, 300);
-        } else {
-            showAlert(result.message || 'Failed to remove student', 'danger');
-        }
-    } catch (error) {
-        showAlert('An error occurred. Please try again.', 'danger');
-        console.error('Error:', error);
-    } finally {
-        hideLoading();
-    }
-}
-
-async function bulkDeleteStudents() {
-    const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
-    const studentIds = Array.from(checkedBoxes).map(cb => parseInt(cb.value));
-    
-    if (studentIds.length === 0) {
-        showAlert('Please select students to delete', 'warning');
-        return;
-    }
-    
-    if (!confirm(`Are you sure you want to remove ${studentIds.length} student(s)? This action cannot be undone.`)) {
-        return;
-    }
-    
-    showLoading();
-    
-    try {
-        const response = await fetch('/students/bulk-delete', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify({ student_ids: studentIds })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showAlert(result.message, 'success');
+            showAlert('Student deleted successfully!', 'success');
             setTimeout(() => location.reload(), 1500);
         } else {
-            showAlert(result.message || 'Failed to delete students', 'danger');
+            showAlert(result.message || 'Failed to delete student', 'danger');
         }
     } catch (error) {
         showAlert('An error occurred. Please try again.', 'danger');
@@ -617,24 +468,11 @@ async function bulkDeleteStudents() {
     } finally {
         hideLoading();
     }
-}
-
-function assignScenario(studentId) {
-    // Redirect to scenario assignment page or open a modal
-    window.location.href = `/scenarios/assign?student_id=${studentId}`;
 }
 
 // Reset form when modal is closed
 document.getElementById('addStudentModal').addEventListener('hidden.bs.modal', function () {
     document.getElementById('addStudentForm').reset();
-});
-
-// Initialize tooltips
-document.addEventListener('DOMContentLoaded', function() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
 });
 </script>
 {% endblock %}
