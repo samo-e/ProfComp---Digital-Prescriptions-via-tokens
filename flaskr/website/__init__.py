@@ -31,45 +31,59 @@ def create_app():
 
     db.init_app(app)
 
-    # Auto-seed database on startup
+    # Auto-seed database on startup (with file lock to prevent multiple workers from seeding)
+    import fcntl
+    import os
+    
     with app.app_context():
         # Create all database tables first
         db.create_all()
         
-        # Check if database is empty and seed if needed
-        user_count = User.query.count()
-        if user_count == 0:
-            print("Database is empty, auto-seeding...")
-            try:
-                # Clear any existing data first
-                User.query.delete()
-                db.session.commit()
+        # Use file lock to ensure only one process seeds the database
+        lock_file_path = os.path.join(os.path.dirname(__file__), '..', 'seed.lock')
+        
+        try:
+            with open(lock_file_path, 'w') as lock_file:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 
-                # Seed users
-                from init_users import init_users
-                init_users(auto_mode=True)
-                
-                # Verify users were created
+                # Check if database is empty and seed if needed
                 user_count = User.query.count()
-                if user_count > 0:
-                    print(f"Auto-seeding successful! ({user_count} users created)")
+                if user_count == 0:
+                    print("Database is empty, auto-seeding...")
+                    try:
+                        # Clear any existing data first
+                        User.query.delete()
+                        db.session.commit()
+                        
+                        # Seed users
+                        from init_users import init_users
+                        init_users(auto_mode=True)
+                        
+                        # Verify users were created
+                        user_count = User.query.count()
+                        if user_count > 0:
+                            print(f"Auto-seeding successful! ({user_count} users created)")
+                        else:
+                            print("ERROR: Auto-seeding failed - no users created!")
+                            
+                        # Seed patient data
+                        from init_data import init_asl_database
+                        init_asl_database()
+                        
+                        patient_count = Patient.query.count()
+                        if patient_count > 0:
+                            print(f"Patient data seeded! ({patient_count} patients created)")
+                        else:
+                            print("ERROR: No patients created!")
+                            
+                    except Exception as e:
+                        print(f"Auto-seeding error: {e}")
                 else:
-                    print("ERROR: Auto-seeding failed - no users created!")
+                    print(f"Database already has {user_count} users, skipping auto-seed")
                     
-                # Seed patient data
-                from init_data import init_asl_database
-                init_asl_database()
-                
-                patient_count = Patient.query.count()
-                if patient_count > 0:
-                    print(f"Patient data seeded! ({patient_count} patients created)")
-                else:
-                    print("ERROR: No patients created!")
-                    
-            except Exception as e:
-                print(f"Auto-seeding error: {e}")
-        else:
-            print(f"Database already has {user_count} users, skipping auto-seed")
+        except IOError:
+            # Another process is already seeding, skip
+            print("Another process is seeding the database, skipping...")
 
     # Initialize Flask-Login
     login_manager = LoginManager()
