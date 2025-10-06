@@ -41,6 +41,10 @@ def login():
         remember = request.form.get("remember") == "on"
         
         # Debug: List all users in database
+        from flask import current_app
+        import os
+        print(f"DEBUG: Login process - Database URI: {current_app.config['SQLALCHEMY_DATABASE_URI']}")
+        print(f"DEBUG: Login process - Working directory: {os.getcwd()}")
         all_users = User.query.all()
         print(f"DEBUG: Total users in database: {len(all_users)}")
         for u in all_users:
