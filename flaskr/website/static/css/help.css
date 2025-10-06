@@ -39,7 +39,8 @@ h1 {
 }
 
 #modalImage {
-  width: 75vw;
+  max-width: 75vw;
+  max-height: 75vh;
   height: auto;
   object-fit: contain;
 }

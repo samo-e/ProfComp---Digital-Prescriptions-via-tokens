@@ -27,9 +27,10 @@
             <a class="nav-link ms-3 mb-1" href="#usage-teacher">For Teachers</a>
             <nav class="nav nav-pills flex-column">
                <a class="nav-link ms-5 mb-1" href="#create-scenario">Create Scenarios</a>
-               <a class="nav-link ms-5 mb-1" href="#edit-scenario">Edit Scenarios</a>
-               <a class="nav-link ms-5 mb-1" href="#add-pt">Add new patients</a>
+               <a class="nav-link ms-5 mb-1" href="#edit-scenario">Edit or Delete Scenarios</a>
+               <a class="nav-link ms-5 mb-1" href="#add-pt">Create and Edit Patients</a>
                <a class="nav-link ms-5 mb-1" href="#assign-students">Assigning Students</a>
+               <a class="nav-link ms-5 mb-1" href="#submissions">Viewing Submissions</a>
                <a class="nav-link ms-5 mb-1" href="#manage-students">Managing Students</a>
             </nav><!-- TEACHER_ONLY_END -->
             <a class="nav-link ms-3 mb-1" href="#usage-student">For Students</a>
@@ -163,13 +164,13 @@ Now you can edit, add details and assign students to the scenario.
 
 ##### Viewing a Scenario
 
-To view a new scenario in more details, clicking a scenario's name or the blue view button to the right.  
+To view a new scenario in more details click a scenario's name in your dashboard or the blue view button to the right.  
 
 </div><div id="edit-scenario">
 
 ##### Edit or Delete Scenarios
 
-To delete a scenario, click the red trash icon. This will open a pop-up asking you to confirm. *Please note, that after deleting a scenario, it cannot be recovered.  
+To delete a scenario, click the red trash icon. This will open a pop-up asking you to confirm. *Please note that after deleting a scenario, it cannot be recovered.  
 You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
 
 ![Screenshot of Editing a Scenario](static/images/screenshots/teacher/ss-03-scenario-1.png)
@@ -178,38 +179,63 @@ You can make or edit changes by clicking a scenario's name or the blue edit butt
 
 ##### Create and Edit Patients
 
-From your dashboard, you can click the yellow "Manage Patients" button to take you to the manage patients menu.  
+From your dashboard, you can click the yellow "Manage Patients" button to take you to the manage patients menu:  
 
 ![Screenshot of Patient Management Dashboard](static/images/screenshots/teacher/ss-10-patient-management.png)
 
-From here, you can edit indivual patients, or add new ones.
+From here, you can edit individual patients, or add new ones.
 Clicking on a patient will take you to a page where you can update their details.  
-On the edit patient page, you can either fill the information in manually or generate it using the Generate Details button in the top right. After using this button, you can still edit the patient's details.
+On the edit patient page, you can either fill in the information manually or generate it using the Generate Details button in the top right. After using this button, you can still edit the patient's details.
 
 ![Screenshot of Creating a Patient](static/images/screenshots/teacher/ss-11-adding-new-patient.png)
 
-// TODO: Updating a Patient's Active Script List
-Back on the patient management dashboard, you can click 
+Back on the patient management dashboard, you can click the green eye icon to view a patient's ASL (this is what the student will see).
+
 ![Screenshot of Draga Diaz's Active Script List](static/images/screenshots/teacher/ss-13-viewing-a-patients-asl.png)
 
-![Screenshot of Editing an ASL](static/images/screenshots/teacher/ss-12-editing-a-patients-asl.png)
+Back on the patient management dashboard, you can click the blue clip board icon to update a patient's active script list and available local repeats.
 
+![Screenshot of Editing an ASL](static/images/screenshots/teacher/ss-12-editing-a-patients-asl.png)
 
 </div><div id="assign-students">
 
 ##### Assign students to scenarios
  
-// TODO - run through this
-![Screenshot of Assigning Students](static/images/screenshots/teacher/ss-04-assign-students.png)
-![Screenshot of Assigning Students](static/images/screenshots/teacher/ss-05-scenario-1-students-assigned.png)
+By clicking on the green "Assign Students" for a scenario, you will be navigated to a page where you can assign students to the scenario:  
+
+![Screenshot of Managing Students](static/images/screenshots/teacher/ss-04-assign-students.png)
+
+Here you can decide what tasks students should be allocated to and which patient each student should be allocated to. When you have done so, it will take you back to the scenario dashboard, where you can view the changes you have made.
+
+![Screenshot of Assigned Students](static/images/screenshots/teacher/ss-05-scenario-1-students-assigned.png)
+
+</div><div id="submissions">
+
+##### Viewing Submissions
+ 
+At the bottom of a scenario's dashboard, you can find the button for viewing students' submissions:  
+
+![Screenshot of all submissions](static/images/screenshots/teacher/ss-14-submissions.png)
+
+Clicking on an individual's submission will allow you to submit a grade.  
+
+![Screenshot of a specific students submission](static/images/screenshots/teacher/ss-15-grade-submission.png)
+
+You can see the final ASL the student submitted, any comments, and any documents the student has uploaded.
 
 </div><div id="manage-students">
 
 ##### Manage students
  
- // TODO - show how to manage students
+Click on the green "Manage Students" button in your dashboard to view the student management dashboard:  
+
 ![Screenshot of Student Management](static/images/screenshots/teacher/ss-06-student-management.png)
+
+Here you can add new students:  
+
 ![Screenshot of Adding a Student](static/images/screenshots/teacher/ss-07-add-student.png)
+
+You can also edit their details or reset their password using the associated buttons next to each student in the table.
 
 </div>
 </div>
@@ -244,7 +270,7 @@ Back in viewing a scenario, you can click Submit Work
 ![Screenshot of Submitting work for a scenario](static/images/screenshots/student/ss-22-submit-work.png)
 
 Here, you can:
- - Go back an review the patient's ASL
+ - Go back and review the patient's ASL
  - Review scenario instructions and your assigned tasks.
  - Submit your completed work, including explanations of your approach and any challenges.
  - Upload supporting documents (PDF, Word, or text; max 10MB each).
@@ -260,6 +286,8 @@ Here, you can:
 <div id="licence">
 
 ### Licence
+
+_Nil licence at this time._
 
 </div>
 </div>
