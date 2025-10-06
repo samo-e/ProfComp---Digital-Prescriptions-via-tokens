@@ -282,7 +282,6 @@ class PatientForm(FlaskForm):
     other = FormField(OtherSubForm)
 
 
-# forms.py
 class ASLForm(FlaskForm):
     # Contacts (Carer/Agent)
     carer_name = StringField("Carer Name", validators=[Optional()])

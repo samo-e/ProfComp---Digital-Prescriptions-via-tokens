@@ -3,6 +3,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
 from datetime import datetime
+from .auth_forms import LoginForm, ForgotPasswordForm
 
 auth = Blueprint("auth", __name__)
 
@@ -34,16 +35,16 @@ def login():
         if request.method == "GET":
             return render_template("auth/already_logged_in.html", user=current_user)
 
-    if request.method == "POST":
-        email = request.form.get("email")
-        password = request.form.get("password")
-        # role = request.form.get("role")  # 'teacher' or 'student'
-        remember = request.form.get("remember") == "on"
+    form = LoginForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+        remember = form.remember.data
 
         # Validate input
         if not email or not password:
             flash("Please fill in all fields", "error")
-            return render_template("auth/login.html")
+            return render_template("auth/login.html", form=form)
 
         # Find user
         user = User.query.filter_by(email=email).first()
@@ -51,11 +52,11 @@ def login():
         # Check credentials and role
         if not user:
             flash("Invalid email or password", "error")
-            return render_template("auth/login.html")
+            return render_template("auth/login.html", form=form)
 
         if not user.check_password(password):
             flash("Invalid email or password", "error")
-            return render_template("auth/login.html")
+            return render_template("auth/login.html", form=form)
 
         # Check if role matches
         # role_value = "teacher" if role == "Teacher" else "student"
@@ -69,7 +70,7 @@ def login():
                 "Your account has been deactivated. Please contact an administrator.",
                 "error",
             )
-            return render_template("auth/login.html")
+            return render_template("auth/login.html", form=form)
 
         # If a different user is trying to login, logout the current user first
         if current_user.is_authenticated and current_user.id != user.id:
@@ -95,7 +96,7 @@ def login():
         else:
             return redirect(url_for("views.student_dashboard"))
 
-    return render_template("auth/login.html")
+    return render_template("auth/login.html", form=form)
 
 
 @auth.route("/logout")
@@ -179,3 +180,74 @@ def toggle_user_status(user_id):
     flash(f"User {user.email} has been {status}", "success")
 
     return redirect(url_for("auth.admin_users"))
+
+
+def send_reset_password_email(user):
+    reset_password_url = url_for(
+        "auth.reset_password",
+        token=user.generate_reset_password_token(),
+        user_id=user.id,
+        _external=True,
+    )
+
+    email_body = render_template_string(
+        reset_password_email_html_content, reset_password_url=reset_password_url
+    )
+
+    message = EmailMessage(
+        subject="Reset your password",
+        body=email_body,
+        to=[user.email],
+    )
+    message.content_subtype = "html"
+
+    message.send()
+
+
+@auth.route("/reset_password", methods=["GET", "POST"])
+def reset_password_request():
+    if current_user.is_authenticated:
+        return redirect(url_for("main.index"))
+
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user_select = select(User).where(User.email == form.email.data)
+        user = db.session.scalar(user_select)
+
+        if user:
+            send_reset_password_email(user)
+
+        flash(
+            "Instructions to reset your password were sent to your email address,"
+            " if it exists in our system."
+        )
+
+        return redirect(url_for("auth.reset_password_request"))
+
+    return render_template(
+        "auth/reset_password_request.html", title="Reset Password", form=form
+    )
+
+@auth.route("/reset_password/<token>/<int:user_id>", methods=["GET", "POST"])
+def reset_password(token, user_id):
+    if current_user.is_authenticated:
+        return redirect(url_for("main.index"))
+
+    user = User.validate_reset_password_token(token, user_id)
+    if not user:
+        return render_template(
+            "auth/reset_password_error.html", title="Reset Password error"
+        )
+
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+
+        return render_template(
+            "auth/reset_password_success.html", title="Reset Password success"
+        )
+
+    return render_template(
+        "auth/reset_password.html", title="Reset Password", form=form
+    )

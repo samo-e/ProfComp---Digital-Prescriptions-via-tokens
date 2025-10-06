@@ -24,26 +24,37 @@
         {% endwith %}
         
         <form method="POST" action="{{ url_for('auth.login') }}">
-            <!-- CSRF Token -->
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            {{ form.csrf_token }}
             
             <div class="mb-3">
-                <label for="email" class="form-label">Email address</label>
-                <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
+                <label for="{{ form.email.id }}" class="form-label">{{ form.email.label }}</label>
+                {{ form.email(class="form-control", placeholder="Enter your email", required=True) }}
+                {% for error in form.email.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
             </div>
+
             <div class="mb-3">
-                <label for="password" class="form-label">Password</label>
-                <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>
+                <label for="{{ form.password.id }}" class="form-label">{{ form.password.label }}</label>
+                {{ form.password(class="form-control", placeholder="Enter your password", required=True) }}
+                {% for error in form.password.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
             </div>
+
             <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                <label class="form-check-label" for="remember">Remember me</label>
+                {{ form.remember(class="form-check-input", id="remember") }}
+                <label class="form-check-label" for="remember">{{ form.remember.label.text }}</label>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
+
+            <button type="submit" class="btn btn-primary w-100">
+                {{ form.submit.label.text }}
+            </button>
+
+            <div class="mt-2 text-center">
+                <a href="{{ url_for('auth.reset_password_request') }}">Forgot Password?</a>
+            </div>
         </form>
-        <div class="mt-3 text-center">
-            <a href="#">Forgot password?</a>
-        </div>
     </div>
 </div>
 {% endblock %}
