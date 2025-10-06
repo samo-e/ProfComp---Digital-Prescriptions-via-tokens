@@ -39,6 +39,12 @@ def login():
         password = request.form.get("password")
         # role = request.form.get("role")  # 'teacher' or 'student'
         remember = request.form.get("remember") == "on"
+        
+        # Debug: List all users in database
+        all_users = User.query.all()
+        print(f"DEBUG: Total users in database: {len(all_users)}")
+        for u in all_users:
+            print(f"DEBUG: User - Email: {u.email}, Role: {u.role}, Active: {u.is_active}")
 
         # Validate input
         if not email or not password:
@@ -47,9 +53,16 @@ def login():
 
         # Find user
         user = User.query.filter_by(email=email).first()
+        print(f"DEBUG: Looking for user with email: {email}")
+        print(f"DEBUG: Found user: {user}")
+        if user:
+            print(f"DEBUG: User is_active: {user.is_active}")
+            print(f"DEBUG: User role: {user.role}")
+            print(f"DEBUG: Password check result: {user.check_password(password)}")
 
         # Check credentials and role
         if not user:
+            print("DEBUG: No user found")
             flash("Invalid email or password", "error")
             return render_template("auth/login.html")
 
