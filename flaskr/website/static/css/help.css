@@ -37,3 +37,17 @@ h1 {
   position: sticky;
   top: 10%;
 }
+
+#modalImage {
+  width: 75vw;
+  height: auto;
+  object-fit: contain;
+}
+
+#imageModal {
+  cursor: zoom-out;
+}
+
+img:not(#modalImage) {
+  cursor: zoom-in;
+}
