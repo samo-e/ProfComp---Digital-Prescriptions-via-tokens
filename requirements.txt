@@ -4,7 +4,7 @@ Flask-Login==0.6.2
 Flask-WTF==1.1.1
 Werkzeug==2.3.7
 WTForms==3.0.1
-SQLAlchemy==2.0.20
+SQLAlchemy==2.0.35
 markdown-it-py==4.0.0
 Flask-Minify==0.50
 gunicorn==21.2.0
