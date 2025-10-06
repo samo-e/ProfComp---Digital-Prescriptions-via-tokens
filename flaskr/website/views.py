@@ -774,9 +774,12 @@ def view_student(student_id):
             return jsonify({"success": False, "message": "Student not found"}), 404
 
         # Get assigned scenarios
+        student_scenarios = StudentScenario.query.filter_by(student_id=student.id).all()
+
         assigned_scenarios = []
-        for ss in student.assigned_scenarios:
-            scenario = Scenario.query.get(ss.scenario_id)
+        for ss in student_scenarios:
+            print("ss.id=",ss.id)
+            scenario = Scenario.query.get(ss.id)
             if scenario:
                 assigned_scenarios.append(
                     {
