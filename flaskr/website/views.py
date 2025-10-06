@@ -593,17 +593,22 @@ def student_management():
     try:
         # Get all students
         students = User.query.filter_by(role="student").all()
+        active_students = []
 
         # Calculate stats
-        active_students = 0
+        active_students_count = 0
         total_assignments = 0
 
         for student in students:
             # Check if student has assigned_scenarios attribute
+            if not student.is_active:
+                continue
+            active_students.append(student)
+
             if hasattr(student, "assigned_scenarios") and student.assigned_scenarios:
                 student_scenarios = student.assigned_scenarios
                 if len(student_scenarios) > 0:
-                    active_students += 1
+                    active_students_count += 1
                 total_assignments += len(student_scenarios)
 
                 # Add completed scenarios count
@@ -617,8 +622,8 @@ def student_management():
 
         return render_template(
             "views/student_management.html",
-            students=students,
-            active_students=active_students,
+            students=active_students,
+            active_students=active_students_count,
             total_assignments=total_assignments,
         )
     except Exception as e:
