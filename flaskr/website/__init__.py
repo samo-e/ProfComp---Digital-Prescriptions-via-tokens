@@ -16,6 +16,9 @@ def create_app():
     import os
     db_path = os.path.join(os.path.dirname(__file__), '..', 'asl_simulation.db')
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+    print(f"DEBUG: Database path configured as: {db_path}")
+    print(f"DEBUG: Absolute database path: {os.path.abspath(db_path)}")
+    print(f"DEBUG: Database file exists: {os.path.exists(db_path)}")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Session configuration for better security
@@ -47,7 +50,10 @@ def create_app():
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 
                 # Check if database is empty and seed if needed
+                print(f"DEBUG: Seeding process - Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
+                print(f"DEBUG: Seeding process - Working directory: {os.getcwd()}")
                 user_count = User.query.count()
+                print(f"DEBUG: Seeding process - User count: {user_count}")
                 if user_count == 0:
                     print("Database is empty, auto-seeding...")
                     try:
