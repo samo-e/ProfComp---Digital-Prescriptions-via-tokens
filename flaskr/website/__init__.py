@@ -13,7 +13,9 @@ def create_app():
     app.config["SECRET_KEY"] = (
         "dev-secret-key-change-in-production"  # Change this in production!
     )
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///asl_simulation.db"
+    import os
+    db_path = os.path.join(os.path.dirname(__file__), '..', 'asl_simulation.db')
+    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Session configuration for better security
