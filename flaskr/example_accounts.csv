@@ -1,0 +1,6 @@
+studentnumber,first_name,last_name,email,password,role
+24219288,Emily,Davis,student23@test.com,studentpass1,student
+21882973,James,Wilson,student24@test.com,studentpass2,student
+,Michael,Brown,teacher10@test.com,teacherpass1,teacher
+,Olivia,Martinez,teacher11@test.com,teacherpass2,teacher
+,Sarah,Johnson,teacher12@test.com,teacherpass3,teacher

@@ -5,6 +5,11 @@
 {% block head %}
 {{ super() }}
     <style>
+    .card-header.clickable-card-header {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+    }
     /* Mini role badge styles for account card header */
     .account-role-badge {
         display: inline-block;
@@ -167,6 +172,19 @@
     <div class="row justify-content-center">
         <div class="col-md-10">
             <h1 class="mb-4">Create Accounts</h1>
+            <!-- CSV Upload Dropbox -->
+            <div class="mb-4">
+                <form id="csv-upload-form" method="POST" action="/admin/upload_accounts_csv" enctype="multipart/form-data" style="margin-bottom:0;">
+                    <label for="csv-file" class="form-label">Upload CSV file for batch account creation:</label>
+                    <!-- CSRF Token for CSV upload form -->
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <input type="file" id="csv-file" name="csv_file" accept=".csv" class="form-control w-100 mb-2" required>
+                    <div class="d-flex justify-content-between gap-2">
+                        <button type="button" id="upload-csv-btn" class="btn btn-outline-primary">Upload CSV</button>
+                        <button id="add-account-btn" class="btn btn-success" type="button" style="white-space:nowrap;">&#43; Add New Account</button>
+                    </div>
+                </form>
+            </div>
             <!-- Flash Messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
@@ -178,9 +196,6 @@
                     {% endfor %}
                 {% endif %}
             {% endwith %}
-            <button id="add-account-btn" class="btn btn-success mb-4" type="button">
-                <span style="font-size: 1.3em; font-weight: bold; margin-right: 6px;">+</span> Add New Account
-            </button>
             <div id="account-cards-container"></div>
             <button id="create-accounts-btn" class="btn btn-primary mt-3" style="display:none;" type="button">Create Account(s)</button>
             <div id="batch-create-feedback" class="mt-2"></div>
@@ -190,9 +205,10 @@
 </div>
 </div>
 <template id="account-card-template">
-    <div class="card mb-4 account-card" style="cursor:pointer;">
-        <div class="card-header d-flex align-items-center justify-content-between clickable-card-header" style="cursor:pointer;">
-            <span>
+    <div class="card mb-2 account-card" style="cursor:pointer;">
+    <div class="card-header clickable-card-header justify-content-between" style="cursor:pointer;">
+            <span style="display: flex; align-items: center; gap: 0.5em;">
+                <span class="account-header-studentnumber" style="font-size: 1em; font-weight: 500; color: var(--bs-body-color); display: none;"></span>
                 <span class="account-header-name">New Account</span>
                 <span class="account-header-role"></span>
             </span>
@@ -200,6 +216,8 @@
         </div>
         <div class="card-body card-body-collapsible">
             <form method="POST" class="account-create-form needs-validation" novalidate>
+                <!-- CSRF Token for account create form -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 {{ form.hidden_tag() }}
                 <div class="mb-3">
                     {{ form.role.label(class="form-label") }}
@@ -235,6 +253,48 @@
 </template>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Password generator
+    function generatePassword(length = 10) {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
+        let password = '';
+        for (let i = 0; i < length; i++) {
+            password += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return password;
+    }
+    // CSV upload logic
+    const csvUploadBtn = document.getElementById('upload-csv-btn');
+    const csvFileInput = document.getElementById('csv-file');
+    csvUploadBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const file = csvFileInput.files[0];
+        if (!file) {
+            alert('Please select a CSV file.');
+            return;
+        }
+        const formData = new FormData();
+        formData.append('csv_file', file);
+        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
+        fetch('/admin/upload_accounts_csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.accounts)) {
+                // Remove all current cards
+                container.innerHTML = '';
+                data.accounts.forEach(acc => addAccountCard(acc));
+                saveCardsToStorage();
+                updateCreateBtnVisibility();
+            } else {
+                alert(data.message || 'Error processing CSV.');
+            }
+        })
+        .catch(() => {
+            alert('Error uploading CSV.');
+        });
+    });
     const addBtn = document.getElementById('add-account-btn');
     const container = document.getElementById('account-cards-container');
     const template = document.getElementById('account-card-template');
@@ -291,7 +351,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const card = clone.querySelector('.card');
         const cardHeader = clone.querySelector('.clickable-card-header');
         const cardBody = clone.querySelector('.card-body-collapsible');
-        let expanded = true;
+        // Default to collapsed for new cards unless restoring from storage
+        let expanded = cardData && typeof cardData.expanded === 'boolean' ? cardData.expanded : false;
         function setExpanded(state) {
             expanded = state;
             if (expanded) {
@@ -310,8 +371,9 @@ document.addEventListener('DOMContentLoaded', function() {
             setExpanded(!expanded);
         });
         // Dynamic card header update (name and role)
-        const cardHeaderName = clone.querySelector('.account-header-name');
-        const cardHeaderRole = clone.querySelector('.account-header-role');
+    const cardHeaderStudentNumber = clone.querySelector('.account-header-studentnumber');
+    const cardHeaderName = clone.querySelector('.account-header-name');
+    const cardHeaderRole = clone.querySelector('.account-header-role');
         const firstNameInput = clone.querySelector('input[name="first_name"]');
         const lastNameInput = clone.querySelector('input[name="last_name"]');
         const roleSelect = clone.querySelector('.role-select');
@@ -321,6 +383,15 @@ document.addEventListener('DOMContentLoaded', function() {
             cardHeaderName.textContent = (first || last) ? `${first} ${last}`.trim() : 'New Account';
             const role = roleSelect.value;
             cardHeaderRole.innerHTML = '';
+            // Student number logic
+            const studentNumber = studentNumberField.value.trim();
+            if (role === 'student' && studentNumber) {
+                cardHeaderStudentNumber.style.display = '';
+                cardHeaderStudentNumber.textContent = studentNumber;
+            } else {
+                cardHeaderStudentNumber.style.display = 'none';
+                cardHeaderStudentNumber.textContent = '';
+            }
             if (role) {
                 let badgeClass = '';
                 if (role === 'admin') badgeClass = 'account-role-badge account-role-admin';
@@ -357,7 +428,7 @@ document.addEventListener('DOMContentLoaded', function() {
             saveCardsToStorage();
         }
         roleSelect.addEventListener('change', toggleStudentNumberField);
-        setExpanded(cardData && typeof cardData.expanded === 'boolean' ? cardData.expanded : true);
+        setExpanded(expanded);
         container.appendChild(clone);
         // Attach event listeners to all input/select fields in the newly added card (now in DOM)
         const newCard = container.lastElementChild;
@@ -366,26 +437,25 @@ document.addEventListener('DOMContentLoaded', function() {
             input.addEventListener('change', saveCardsToStorage);
         });
         // --- Restore card data if provided (after DOM insert and listeners) ---
+        const roleSelectNew = newCard.querySelector('.role-select');
+        const studentNumberFieldNew = newCard.querySelector('.studentnumber-field');
+        const firstNameInputNew = newCard.querySelector('input[name="first_name"]');
+        const lastNameInputNew = newCard.querySelector('input[name="last_name"]');
+        const emailInputNew = newCard.querySelector('input[name="email"]');
+        const passwordInputNew = newCard.querySelector('input[name="password"]');
         if (cardData) {
-            const roleSelectNew = newCard.querySelector('.role-select');
-            const studentNumberFieldNew = newCard.querySelector('.studentnumber-field');
-            const firstNameInputNew = newCard.querySelector('input[name="first_name"]');
-            const lastNameInputNew = newCard.querySelector('input[name="last_name"]');
-            const emailInputNew = newCard.querySelector('input[name="email"]');
-            const passwordInputNew = newCard.querySelector('input[name="password"]');
             if (roleSelectNew) roleSelectNew.value = cardData.role || '';
             if (studentNumberFieldNew) studentNumberFieldNew.value = cardData.studentnumber || '';
             if (firstNameInputNew) firstNameInputNew.value = cardData.first_name || '';
             if (lastNameInputNew) lastNameInputNew.value = cardData.last_name || '';
             if (emailInputNew) emailInputNew.value = cardData.email || '';
-            if (passwordInputNew) passwordInputNew.value = cardData.password || '';
-            // After setting values, update UI logic
-            if (typeof toggleStudentNumberField === 'function') toggleStudentNumberField.call(roleSelectNew);
-            if (typeof updateHeader === 'function') updateHeader.call(firstNameInputNew);
+            if (passwordInputNew) passwordInputNew.value = cardData.password || generatePassword();
         } else {
-            toggleStudentNumberField();
-            updateHeader();
+            if (passwordInputNew) passwordInputNew.value = generatePassword();
         }
+        // After setting values, update UI logic
+        if (typeof toggleStudentNumberField === 'function') toggleStudentNumberField.call(roleSelectNew);
+        if (typeof updateHeader === 'function') updateHeader.call(firstNameInputNew);
         updateCreateBtnVisibility();
     }
     addBtn.onclick = function() { addAccountCard(); saveCardsToStorage(); };

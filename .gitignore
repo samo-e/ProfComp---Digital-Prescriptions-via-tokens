@@ -1,1 +1,14 @@
-__pycache__/
+# OS junk
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# macOS folder settings
+.Icon
+.Trashes
+.Spotlight-V100
+.fseventsd

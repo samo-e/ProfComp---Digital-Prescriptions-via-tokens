@@ -10,8 +10,14 @@
                 <h1 class="mb-4">Student Profile</h1>
                 
                 <div class="card mb-4">
-                    <div class="card-header">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <h2 class="card-title mb-0">Student Information</h2>
+                        <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline; margin-left: 1rem;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm" title="Delete Account">
+                                Delete
+                            </button>
+                        </form>
                     </div>
                     <div class="card-body">
                         <p class="card-text"><strong>First Name:</strong> {{ user.first_name if user.first_name else '' }}</p>
@@ -30,13 +36,6 @@
                                 {% endif %}
                             </div>
                             <button type="submit" class="btn btn-primary" id="change-password-btn" disabled>Change Password</button>
-                        </form>
-                        <hr>
-                        <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger">
-                                Delete Account
-                            </button>
                         </form>
                         <script>
                         document.addEventListener('DOMContentLoaded', function() {

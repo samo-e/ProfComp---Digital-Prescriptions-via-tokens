@@ -23,29 +23,39 @@
 
 {% block body %}
 <div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Patient Dashboard
+            </a>
+        </div>
+    </div>
+    
     <h2>Active Script List</h2>
     <div class="row">
         <div id="customer-details" class="col">
-            <div class="row">
-                <h3>Customer Details (ASL)</h3>
-            </div>
-            <div class="row">
-                <div class="col">
-                    <h4>Name</h4>
-                    <p>{{ pt_data['name'] }}</p>
+            <div class="card card-body customer-card">
+                <div class="row">
+                    <h3>Customer Details (ASL)</h3>
                 </div>
-                <div class="col">
-                    <h4>Date of Birth</h4>
-                    <p>{{ pt_data['dob'] }}</p>
+                <div class="row">
+                    <div class="col">
+                        <h4>Name</h4>
+                        <p>{{ pt_data['name'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Date of Birth</h4>
+                        <p>{{ pt_data['dob'] }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Address</h4>
+                        <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                    </div>
                 </div>
-                <div class="col">
-                    <h4>Address</h4>
-                    <p>{{ pt_data['address-1'] }} {{ pt_data['address-2'] }}</p>
+                <div class="row">
+                    <h4>Preferred Contact</h4>
+                    <p>{{ pt_data['preferred-contact'] }}</p>
                 </div>
-            </div>
-            <div class="row">
-                <h4>Preferred Contact</h4>
-                <p>{{ pt_data['preferred-contact'] }}</p>
             </div>
         </div>
         
@@ -127,8 +137,8 @@
             <div class="col-1">
                 <!-- CHANGED: Use asl-data instead of asl_data -->
                 {% if pt_data['asl-data']|length > 0 %}
-                <button id="script-print" class="btn btn-primary">
-                    <i class="bi bi-printer-fill printer"></i>
+                <button id="script-print" class="btn btn-outline-secondary btn-sm" title="Print Selected">
+                    <i class="bi bi-printer-fill"></i>
                 </button>
                 {% endif %}
             </div>
@@ -149,10 +159,22 @@
             <tbody>
                 <!-- Use asl-data -->
                 {% for asl in pt_data['asl-data'] %}
-                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }}">
-                    <td class="asl-check"><input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}"></td>
+                <tr id="asl-{{ loop.index0 }}" class="asl-{{ 'paperless' if asl['paperless'] else 'paper' }} {% if asl['status'] == 'Dispensed' %}table-secondary{% endif %}">
+                    <td class="asl-check">
+                        {% if asl['status'] != 'Dispensed' %}
+                        <input class="form-check-input" type="checkbox" value="{{ asl['prescription_id'] }}" id="asl-scripts-check-{{ loop.index }}">
+                        {% else %}
+                        <span class="badge bg-success">Dispensed</span>
+                        {% endif %}
+                    </td>
                     <td class="asl-date">{{ asl['prescribed-date'] }}</td>
-                    <td class="asl-item">{{ asl['drug-name'] }}<p>{{ asl['DSPID'] }}</p></td>
+                    <td class="asl-item">
+                        {{ asl['drug-name'] }}
+                        <p>{{ asl['DSPID'] }}</p>
+                        {% if asl['status'] == 'Dispensed' %}
+                        <small class="text-muted">Status: Dispensed</small>
+                        {% endif %}
+                    </td>
                     <td class="asl-qty">{{ asl['dose-qty'] }}</td>
                     <td class="asl-prescriber">{{ asl['prescriber']['lname'] }}, {{ asl['prescriber']['fname'] }}<br>{{ asl['prescriber']['id'] }}</td>
                     <td class="asl-rpt">{{ asl['dose-rpt'] }}</td>
@@ -162,6 +184,18 @@
             </tbody>
         </table>
     </div>
+    
+    <!-- Dispense button - shows when prescriptions are selected -->
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-12 text-end">
+                <button id="dispense-selected" class="btn btn-success d-none">
+                    <i class="bi bi-capsule"></i> Dispense Selected
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <br>
     
     <div class="container">
@@ -193,7 +227,7 @@
                
                 {% for alr in pt_data['alr-data'] %}
                 <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
-                    <td class="alr-date">{{ alr['dispensed-date'] }}</td>
+                    <td class="alr-date">{{ alr['dispensed-date'] or "" }}</td>
                     <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
                     <td class="alr-qty">{{ alr['dose-qty'] }}</td>
                     <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
@@ -207,6 +241,59 @@
     </div>
     
     {% else %}
+    <div class="alert alert-warning">
+        <i class="bi bi-exclamation-triangle"></i> 
+        Access to ASL is restricted. Please check consent status.
+    </div>
     {% endif %}
+</div>
+
+<!-- Dispensing Modal -->
+<div class="modal fade" id="dispensingModal" tabindex="-1" aria-labelledby="dispensingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dispensingModalLabel">
+                    <i class="bi bi-capsule"></i> Dispense Prescriptions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="selected-prescriptions">
+                    <!-- Selected prescriptions will be populated here -->
+                </div>
+                <form id="dispensing-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="patient_id" value="{{ pt }}">
+                    <input type="hidden" id="prescription-ids" name="prescription_ids" value="">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="dispensed_by" class="form-label">Dispensed By</label>
+                            <input type="text" class="form-control" id="dispensed_by" name="dispensed_by" 
+                                   value="{{ current_user.get_full_name() if current_user.is_authenticated else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dispensed_date" class="form-label">Dispensed Date</label>
+                            <input type="text" class="form-control" id="dispensed_date" name="dispensed_date" 
+                                   value="" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="dispensing_notes" class="form-label">Dispensing Notes</label>
+                            <textarea class="form-control" id="dispensing_notes" name="dispensing_notes" 
+                                      rows="3" placeholder="Add any notes about the dispensing..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirm-dispense">
+                    <i class="bi bi-check-circle"></i> Confirm Dispensing
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 {% endblock %}

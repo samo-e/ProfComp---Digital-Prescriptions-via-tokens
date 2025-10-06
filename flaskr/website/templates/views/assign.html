@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container mt-4">
+    <h2>Assign Dashboard: {{ scenario.name if scenario else 'No Scenario Selected' }}</h2>
+    <p class="text-muted">{{ scenario.description if scenario and scenario.description else 'Scenario setup and student assignment' }}</p>
+
+    <!-- Scenario Instructions -->
+    <div class="card mt-3">
+        <div class="card-header">Scenario Instructions</div>
+        <div class="card-body">
+            <p>
+                Each selected student must be assigned a unique patient.  
+                Students can dispense medicines but cannot edit the ASL.  
+                Repeats auto-decrement in real time.
+            </p>
+        </div>
+    </div>
+
+    <!-- Student List -->
+    <div class="card mt-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Students</span>
+            <div>
+                <input class="form-check-input me-1" type="checkbox" id="selectAllStudents">
+                <label for="selectAllStudents" class="form-check-label">Select All</label>
+            </div>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="text-center">Select</th>
+                        <th>Student Name</th>
+                        <th>Student ID</th>
+                        <th>Assigned Patient</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students %}
+                        {% for student in students %}
+                        <tr>
+                            <td class="text-center">
+                                <input class="form-check-input" type="checkbox" value="{{ student.id }}">
+                            </td>
+                            <td>{{ student.first_name }} {{ student.last_name }}</td>
+                            <td>{{ student.id }}</td>
+                            <td>
+                                <select class="form-select form-select-sm" name="patient_{{ student.id }}">
+                                    <option value="">-- Select Patient --</option>
+                                    {% for patient in available_patients %}
+                                    <option value="{{ patient.id }}">
+                                        {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted">No students found</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+            
+            <!-- Assign Button -->
+            <div class="mt-3 d-flex gap-2">
+                <button type="button" class="btn btn-primary" onclick="assignSelectedStudents()">
+                    <i class="bi bi-check-circle"></i> Assign Selected Students
+                </button>
+                <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) if scenario else url_for('views.teacher_dashboard') }}" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Scenario
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JS for "Select All" and Patient Assignment Logic -->
+<script>
+$('#selectAllStudents').change(function() {
+    $('tbody input[type="checkbox"]').prop('checked', this.checked);
+});
+
+// Function to update patient dropdown availability
+function updatePatientAvailability() {
+    const selects = document.querySelectorAll('select[name^="patient_"]');
+    const selectedPatients = new Set();
+    
+    // Collect all selected patients
+    selects.forEach(select => {
+        if (select.value) {
+            selectedPatients.add(select.value);
+        }
+    });
+    
+    // Update each dropdown
+    selects.forEach(select => {
+        const currentValue = select.value;
+        const options = select.querySelectorAll('option');
+        
+        options.forEach(option => {
+            if (option.value === '') return; // Skip the default "Select Patient" option
+            
+            if (selectedPatients.has(option.value) && option.value !== currentValue) {
+                option.style.display = 'none';
+                option.disabled = true;
+            } else {
+                option.style.display = 'block';
+                option.disabled = false;
+            }
+        });
+    });
+}
+
+// Add event listeners to all patient dropdowns
+document.addEventListener('DOMContentLoaded', function() {
+    const selects = document.querySelectorAll('select[name^="patient_"]');
+    selects.forEach(select => {
+        select.addEventListener('change', updatePatientAvailability);
+    });
+});
+
+// Function to assign selected students
+function assignSelectedStudents() {
+    const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]:checked');
+    const assignments = [];
+    let hasErrors = false;
+    let errorMessages = [];
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const studentId = checkbox.value;
+        const studentName = row.cells[1].textContent;
+        const patientSelect = row.querySelector('select[name^="patient_"]');
+        const patientId = patientSelect.value;
+        
+        if (!patientId) {
+            hasErrors = true;
+            errorMessages.push(`${studentName} is selected but has no patient assigned`);
+        } else {
+            assignments.push({
+                studentId: studentId,
+                patientId: patientId,
+                studentName: studentName
+            });
+        }
+    });
+    
+    if (hasErrors) {
+        alert('Error:\n' + errorMessages.join('\n'));
+        return;
+    }
+    
+    if (assignments.length === 0) {
+        alert('Please select at least one student to assign.');
+        return;
+    }
+    
+    // Send assignments to server
+    const formData = new FormData();
+    formData.append('csrf_token', '{{ csrf_token() }}');
+    assignments.forEach((assignment, index) => {
+        formData.append(`assignments[${index}][student_id]`, assignment.studentId);
+        formData.append(`assignments[${index}][patient_id]`, assignment.patientId);
+    });
+    
+    fetch('{{ url_for("views.assign_students_to_scenario", scenario_id=scenario.id if scenario else 0) }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Successfully assigned ${data.count} students to the scenario!`);
+            // Redirect back to scenario dashboard
+            window.location.href = '{{ url_for("views.scenario_dashboard", scenario_id=scenario.id) if scenario else url_for("views.teacher_dashboard") }}';
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning students.');
+    });
+}
+</script>
+{% endblock %}

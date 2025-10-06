@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}Grade Submission - {{ student.get_full_name() }}{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h4 class="card-title mb-0">Grade Submission</h4>
+                            <small class="text-muted">
+                                {{ scenario.name }} - {{ student.get_full_name() }}
+                            </small>
+                        </div>
+                        <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Submissions
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <!-- Submission Details -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Submission Details</h6>
+                                </div>
+                                <div class="card-body">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">Student:</dt>
+                                        <dd class="col-sm-8">{{ student.get_full_name() }}</dd>
+                                        
+                                        <dt class="col-sm-4">Patient:</dt>
+                                        <dd class="col-sm-8">{{ patient.name or 'Unnamed Patient' }}</dd>
+                                        
+                                        <dt class="col-sm-4">Submitted:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if submission.submitted_at %}
+                                                {{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Not submitted</span>
+                                            {% endif %}
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">Status:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if student_scenario.status == 'submitted' %}
+                                                <span class="badge bg-warning">Pending Grade</span>
+                                            {% elif student_scenario.status == 'graded' %}
+                                                <span class="badge bg-success">Graded</span>
+                                            {% endif %}
+                                        </dd>
+                                    </dl>
+                                    
+                                    {% if submission.notes %}
+                                    <h6>Student Notes:</h6>
+                                    <div class="bg-light p-3 rounded">
+                                        {{ submission.notes|nl2br }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Grading Form -->
+                        <div class="col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <h6 class="card-title mb-0">Grading</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form method="POST">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                                        
+                                        <div class="mb-3">
+                                            <label for="score" class="form-label">Score</label>
+                                            <input type="number" class="form-control" id="score" name="score" 
+                                                   min="0" max="100" step="0.1"
+                                                   value="{{ student_scenario.score or '' }}"
+                                                   placeholder="Enter score (0-100)">
+                                            <div class="form-text">Enter a score between 0 and 100.</div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="feedback" class="form-label">Feedback</label>
+                                            <textarea class="form-control" id="feedback" name="feedback" rows="6"
+                                                    placeholder="Provide detailed feedback on the student's work...">{{ student_scenario.feedback or '' }}</textarea>
+                                            <div class="form-text">
+                                                Provide constructive feedback on the student's ASL work, decisions made, and areas for improvement.
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-grid">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-save"></i>
+                                                {% if student_scenario.status == 'graded' %}Update Grade{% else %}Submit Grade{% endif %}
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Submission Data Review -->
+                    {% if submission.submission_data %}
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Submitted Work Review</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <!-- Patient Data -->
+                                <div class="col-md-4">
+                                    <h6>Patient Information</h6>
+                                    <dl class="row small">
+                                        <dt class="col-6">Medicare:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.patient_data.medicare or 'N/A' }}</dd>
+                                        
+                                        <dt class="col-6">Name:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.patient_data.name or 'N/A' }}</dd>
+                                        
+                                        <dt class="col-6">DOB:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.patient_data.dob or 'N/A' }}</dd>
+                                        
+                                        <dt class="col-6">Phone:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.patient_data.phone or 'N/A' }}</dd>
+                                    </dl>
+                                </div>
+                                
+                                <!-- ASL Record -->
+                                <div class="col-md-4">
+                                    <h6>ASL Record</h6>
+                                    <dl class="row small">
+                                        <dt class="col-6">Carer Name:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.asl_record.carer_name or 'N/A' }}</dd>
+                                        
+                                        <dt class="col-6">Relationship:</dt>
+                                        <dd class="col-6">{{ submission.submission_data.asl_record.carer_relationship or 'N/A' }}</dd>
+                                    </dl>
+                                    
+                                    {% if submission.submission_data.asl_record.notes %}
+                                    <p><strong>Notes:</strong></p>
+                                    <div class="bg-light p-2 rounded small">
+                                        {{ submission.submission_data.asl_record.notes }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Prescriptions -->
+                                <div class="col-md-4">
+                                    <h6>Prescriptions ({{ submission.submission_data.prescriptions|length }})</h6>
+                                    {% if submission.submission_data.prescriptions %}
+                                    <div class="small">
+                                        {% for prescription in submission.submission_data.prescriptions %}
+                                        <div class="border-start border-primary ps-2 mb-2">
+                                            <strong>{{ prescription.drug_name or 'Unknown Drug' }}</strong><br>
+                                            <small class="text-muted">
+                                                Code: {{ prescription.drug_code or 'N/A' }}<br>
+                                                Dose: {{ prescription.dose_instr or 'N/A' }} ({{ prescription.dose_qty or 'N/A' }})
+                                            </small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted small">No prescriptions recorded.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Quick Link to Current ASL -->
+                            <div class="mt-3">
+                                <a href="{{ url_for('views.asl', pt=patient.id) }}" class="btn btn-outline-info btn-sm" target="_blank">
+                                    <i class="fas fa-external-link-alt"></i> View Current ASL (New Tab)
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Uploaded Files Card -->
+                <div class="col-lg-12 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="card-title mb-0">Uploaded Files</h6>
+                        </div>
+                        <div class="card-body">
+                            {% if submission and submission.submission_data.get('uploaded_files') %}
+                                <div class="list-group list-group-flush">
+                                    {% for file_info in submission.submission_data.uploaded_files %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="fas fa-file-pdf text-danger me-2"></i>
+                                            <strong>{{ file_info.original_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">
+                                                Size: {{ "%.2f"|format(file_info.size / 1024 / 1024) }} MB | 
+                                                Uploaded: {{ file_info.upload_time }}
+                                            </small>
+                                        </div>
+                                        <div>
+                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name) }}" 
+                                               class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="fas fa-download"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-4">
+                                    <i class="fas fa-file-upload text-muted"></i>
+                                    <p class="text-muted mt-2">No files uploaded with this submission.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

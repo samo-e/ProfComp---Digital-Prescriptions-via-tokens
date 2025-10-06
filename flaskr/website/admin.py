@@ -1,3 +1,10 @@
+import random
+import string
+import os
+from flask import send_from_directory
+
+import csv
+import io
 from flask import Blueprint, render_template, redirect, url_for, request, flash, jsonify, make_response
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
@@ -24,6 +31,12 @@ def batch_create_accounts():
     print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
     created_emails = []
     errors = []
+    import time
+    created_accounts_for_csv = []
+    def generate_password(length=10):
+        chars = string.ascii_letters + string.digits + string.punctuation
+        return ''.join(random.choice(chars) for _ in range(length))
+
     for acc in accounts:
         print("[DEBUG] Processing account:", acc)
         # Check for required fields
@@ -32,6 +45,8 @@ def batch_create_accounts():
         last_name = acc.get('last_name')
         email = acc.get('email')
         password = acc.get('password')
+        if not password:
+            password = generate_password()
         studentnumber = acc.get('studentnumber')
         if not (role and first_name and last_name and email and password):
             print(f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}")
@@ -60,26 +75,82 @@ def batch_create_accounts():
                 created_at=datetime.now(),
                 is_active=True
             )
-            if role == 'student':
+            # Only set studentnumber if role is student and value is present
+            if role == 'student' and studentnumber:
                 new_user.studentnumber = studentnumber
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
             print(f"[DEBUG] Created user: {email}")
             created_emails.append(email)
+            # Add to CSV export list
+            created_accounts_for_csv.append({
+                'studentnumber': studentnumber or '',
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'password': password,
+                'role': role
+            })
         except Exception as e:
             db.session.rollback()
             print(f"[DEBUG] Error creating {email}: {str(e)}")
             errors.append(f"Error creating {email}: {str(e)}")
     if created_emails:
+        # Export created accounts to CSV in exports folder with timestamp
+        import csv
+        export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+        os.makedirs(export_dir, exist_ok=True)
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        export_filename = f'created_accounts_{timestamp}.csv'
+        export_path = os.path.join(export_dir, export_filename)
+        with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
+            num_accounts = len(created_accounts_for_csv)
+            now = time.localtime()
+            date_str = time.strftime('%d/%m/%Y', now)
+            time_str = time.strftime('%H:%M:%S', now)
+            csvfile.write(f"{num_accounts} accounts created, {date_str}, {time_str}\n")
+            fieldnames = ['studentnumber', 'first_name', 'last_name', 'email', 'password', 'role']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in created_accounts_for_csv:
+                writer.writerow(row)
         msg = f"Created accounts: {', '.join(created_emails)}."
         if errors:
             msg += "<br>Some errors: " + '<br>'.join(errors)
         print(f"[DEBUG] Success: {msg}")
         return jsonify(success=True, message=msg, created_emails=created_emails)
-    else:
-        print(f"[DEBUG] Failure: No accounts created. Errors: {errors}")
-        return jsonify(success=False, message='No accounts created. ' + '<br>'.join(errors), created_emails=[])
+# Route to list all CSV exports
+@admin.route('/admin/csv_exports')
+@login_required
+def csv_exports():
+    if current_user.role != 'admin':
+        flash('Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+    export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+    try:
+        files = [f for f in os.listdir(export_dir) if f.endswith('.csv')]
+        files.sort(reverse=True)
+    except Exception:
+        files = []
+    return render_template('admin/admin_csv.html', csv_files=files)
+
+# Route to download a specific CSV export
+@admin.route('/admin/download_csv/<filename>')
+@login_required
+def download_csv(filename):
+    if current_user.role != 'admin':
+        flash('Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+    export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+    return send_from_directory(export_dir, filename, as_attachment=True)
+
+# Exempt the batch_create_accounts route from CSRF protection using the csrf instance
+try:
+    from flaskr.website import csrf
+    csrf.exempt(batch_create_accounts)
+except ImportError:
+    pass
 
 
 # Admin-only decorator
@@ -470,7 +541,21 @@ def delete_user(user_id):
         
         # If deleting a teacher, unassign all their students first
         if user_to_delete.role == 'teacher':
-            user_to_delete.students.clear()
+            # Prevent deletion if teacher owns any scenarios
+            if user_to_delete.created_scenarios:
+                owned_count = len(user_to_delete.created_scenarios)
+                if owned_count > 0:
+                    flash(f'Cannot delete teacher: assigned as owner of {owned_count} scenario(s). Reassign or delete those scenarios first.', 'error')
+                    return redirect(url_for('admin.admin_dashboard'))
+            for student in user_to_delete.students.all():
+                user_to_delete.students.remove(student)
+
+        # If deleting a student, remove all their scenario assignments
+        if user_to_delete.role == 'student':
+            from .models import StudentScenario
+            student_scenarios = StudentScenario.query.filter_by(student_id=user_to_delete.id).all()
+            for ss in student_scenarios:
+                db.session.delete(ss)
         
         # Delete the user
         db.session.delete(user_to_delete)
@@ -484,3 +569,53 @@ def delete_user(user_id):
     
     return redirect(url_for('admin.admin_dashboard'))
 
+# Route to handle CSV upload for batch account creation
+@admin.route('/admin/upload_accounts_csv', methods=['POST'])
+@login_required
+def upload_accounts_csv():
+    if current_user.role != 'admin':
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+
+    file = request.files.get('csv_file')
+    if not file or file.filename == '':
+        flash('No file selected.', 'error')
+        return redirect(url_for('admin.create_account'))
+
+    try:
+        stream = io.StringIO(file.stream.read().decode('utf-8'))
+        reader = csv.DictReader(stream)
+        accounts = []
+        for row in reader:
+            studentnumber = row.get('studentnumber', '').strip()
+            first_name = row.get('first_name', '').strip()
+            last_name = row.get('last_name', '').strip()
+            email = row.get('email', '').strip()
+            role = 'student' if studentnumber else 'teacher'
+            password = ''  # Leave blank for user to fill or generate later
+            accounts.append({
+                'role': role,
+                'studentnumber': studentnumber,
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'password': password
+            })
+        return jsonify(success=True, accounts=accounts)
+    except Exception as e:
+        return jsonify(success=False, message=f"Error processing CSV file: {str(e)}")
+
+# Exempt the batch_create_accounts and upload_accounts_csv routes from CSRF protection using the csrf instance
+try:
+    from flaskr.website import csrf
+    csrf.exempt(batch_create_accounts)
+    csrf.exempt(upload_accounts_csv)
+except ImportError:
+    pass
+
+# Exempt the batch_create_accounts route from CSRF protection using the csrf instance
+try:
+    from flaskr.website import csrf
+    csrf.exempt(batch_create_accounts)
+except ImportError:
+    pass

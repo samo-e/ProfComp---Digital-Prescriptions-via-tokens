@@ -1,89 +1,89 @@
 body > .container {
-    margin-top: 3%;
-    margin-bottom: 3%;
+  margin-top: 3%;
+  margin-bottom: 3%;
 }
 
 .asl-check * {
-    margin: auto;
-    display: block;
+  margin: auto;
+  display: block;
 }
 .asl-qty,
 .asl-rpt,
 .alr-qty,
 .alr-rpt {
-    text-align: center;
+  text-align: center;
 }
 
 .alr-date,
 .alr-item,
 .asl-date,
 .asl-item {
-    font-weight: bold;
+  font-weight: bold;
 }
 td > p {
-    font-weight: normal;
-    margin-bottom: 0;
+  font-weight: normal;
+  margin-bottom: 0;
 }
 .asl-paper > td {
-    color: #999 !important;
+  color: #999 !important;
 }
 .asl-paper > td > p {
-    visibility: hidden;
+  visibility: hidden;
 }
 .alr-paper > td > p {
-    visibility: hidden;
+  visibility: hidden;
 }
-.alr-paper .alr-cloud-prescription,
-.asl-paper .asl-cloud-prescription {
-    visibility: hidden;
+.alr-paper .alr-cloud-prescription *,
+.asl-paper .asl-cloud-prescription * {
+  visibility: hidden;
 }
 .asl-cloud-prescription img,
 .alr-cloud-prescription img {
-    width: 20px;
-    height: 20px;
-    margin: auto;
-    display: block;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+  display: block;
 }
 
-.asl-check:hover > *, 
+.asl-check:hover > *,
 .printer:hover {
-    cursor: pointer;
+  cursor: pointer;
 }
 
 html {
-    overflow-y: scroll;
+  overflow-y: scroll;
 }
 
-.customer-card {    
-    min-height: 100%;
+.customer-card {
+  min-height: 100%;
 }
 
 #consent-status {
-    text-decoration: none;
-    font-weight: bold;
+  text-decoration: none;
+  font-weight: bold;
 }
 
 .consent-no-consent {
-    color: black;
-    font-weight: normal;
+  color: black;
+  font-weight: normal;
 }
 
 .consent-pending {
-    color: orange;
+  color: orange;
 }
 
 .consent-granted {
-    color: green;
+  color: green;
 }
 
 .consent-rejected {
-    color: red;
+  color: red;
 }
 
 #consent-last-updated {
-    font-style: italic;
+  font-style: italic;
 }
 
 .btn {
-    font-weight: bold;
+  font-weight: bold;
 }

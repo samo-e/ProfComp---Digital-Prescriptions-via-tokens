@@ -1,9 +1,9 @@
-from website import create_app, db
-from website.models import User
+from website import create_app
+from website.models import User, db
 
 app = create_app()
 
 with app.app_context():
     num_deleted = User.query.delete()
     db.session.commit()
-    print(f"Deleted {num_deleted} users from the database.")
+    # print(f"Deleted {num_deleted} users from the database.")
