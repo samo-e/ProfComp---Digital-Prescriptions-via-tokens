@@ -33,6 +33,9 @@ def create_app():
 
     # Auto-seed database on startup
     with app.app_context():
+        # Create all database tables first
+        db.create_all()
+        
         # Check if database is empty and seed if needed
         user_count = User.query.count()
         if user_count == 0:
