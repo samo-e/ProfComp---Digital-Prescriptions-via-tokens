@@ -4,6 +4,7 @@ import string
 import random
 import string
 import os
+import re
 from flask import send_from_directory
 
 import csv
@@ -624,21 +625,44 @@ def upload_accounts_csv():
     try:
         stream = io.StringIO(file.stream.read().decode('utf-8'))
         reader = csv.DictReader(stream)
+
+        headers = reader.fieldnames
+        clean_headers = [re.sub(r'[^a-z]', '', h.lower()) for h in headers]
+        indices = {
+            "email" : -1,
+            "stuno" : -1,
+            "pword" : -1,
+            "fname" : -1,
+            "lname" : -1,
+        }
+        for i, h in enumerate(clean_headers):
+            if "mail" in h: # email
+                indices["email"] = i
+            elif "student" in h: # student number
+                indices["stuno"] = i
+            elif "p" in h: # password
+                indices["pword"] = i
+            elif "f" in h: # first name
+                indices["fname"] = i
+            else: # last name
+                indices["lname"] = i
+
         accounts = []
         for row in reader:
-            studentnumber = row.get('studentnumber', '').strip()
-            first_name = row.get('first_name', '').strip()
-            last_name = row.get('last_name', '').strip()
-            email = row.get('email', '').strip()
-            role = 'student' if studentnumber else 'teacher'
-            password = ''  # Leave blank for user to fill or generate later
+            stuno = row[headers[indices["stuno"]]].strip() if indices["stuno"] != -1 else ''
+            fname = row[headers[indices["fname"]]].strip() if indices["fname"] != -1 else ''
+            lname = row[headers[indices["lname"]]].strip() if indices["lname"] != -1 else ''
+            email = row[headers[indices["email"]]].strip() if indices["email"] != -1 else ''
+            pword = row[headers[indices["pword"]]].strip() if indices["pword"] != -1 else ''
+
+            role = 'student' if stuno else 'teacher'
             accounts.append({
                 'role': role,
-                'studentnumber': studentnumber,
-                'first_name': first_name,
-                'last_name': last_name,
+                'studentnumber': stuno,
+                'first_name': fname,
+                'last_name': lname,
                 'email': email,
-                'password': password
+                'password': pword
             })
         return jsonify(success=True, accounts=accounts)
     except Exception as e:
