@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}[Student No] Pharmacy{% endblock %}
+{% block title %}{{ pt_data['name'] }} ASL{% endblock %}
 
 {% block head %}
     {% import "views/pt_detail_input.html" as pt %}
@@ -78,13 +78,13 @@
                         <div class="d-flex flex-row justify-content-end gap-2">
                             <!-- onsent-status nested format -->
                             {% if pt_data['consent-status']['status'] == 'No Consent' %}
-                                <button type="button" id="btn-request-access" class="btn btn-info">Request Access</button>
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                                <button type="button" id="btn-request-access" class="btn btn-info fw-bold">Request Access</button>
+                                <button type="button" id="btn-refresh" class="btn btn-dark fw-bold">Refresh</button>
                             {% elif pt_data['consent-status']['status'] == 'Granted' %}
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                                <button type="button" id="btn-refresh" class="btn btn-dark fw-bold">Refresh</button>
                             {% else %}
-                                <button type="button" id="btn-request-access" class="btn btn-secondary" disabled>Request Access</button>
-                                <button type="button" id="btn-refresh" class="btn btn-dark">Refresh</button>
+                                <button type="button" id="btn-request-access" class="btn btn-secondary fw-bold" disabled>Request Access</button>
+                                <button type="button" id="btn-refresh" class="btn btn-dark fw-bold">Refresh</button>
                             {% endif %}
                         </div>
                     </div>
@@ -112,7 +112,7 @@
                         </span>
                       
                         {% if pt_data['consent-status']['status'] != 'No Consent' %}
-                        <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm">Delete Consent</button>
+                        <button type="button" id="btn-delete-consent" class="btn btn-secondary btn-sm fw-bold">Delete Consent</button>
                         {% endif %}
                      </p>
                 </div>
