@@ -1,5 +1,8 @@
 import random
 import string
+
+import random
+import string
 import os
 from flask import send_from_directory
 
@@ -10,116 +13,42 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, Length, NumberRange
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
 from datetime import datetime
 from functools import wraps
 
 admin = Blueprint('admin', __name__)
-
-# Batch account creation endpoint
-@admin.route('/admin/batch_create_accounts', methods=['POST'])
+@admin.route('/admin/update_user/<int:user_id>', methods=['POST'])
 @login_required
-def batch_create_accounts():
-    print("[DEBUG] batch_create_accounts called by:", current_user.email)
+def update_user(user_id):
     if current_user.role != 'admin':
-        print("[DEBUG] Access denied: not admin")
-        return jsonify(success=False, message='Admin privileges required.'), 403
-    data = request.get_json()
-    print("[DEBUG] Received data:", data)
-    accounts = data.get('accounts', [])
-    print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
-    created_emails = []
-    errors = []
-    import time
-    created_accounts_for_csv = []
-    def generate_password(length=10):
-        chars = string.ascii_letters + string.digits + string.punctuation
-        return ''.join(random.choice(chars) for _ in range(length))
+        flash('Access denied. Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
 
-    for acc in accounts:
-        print("[DEBUG] Processing account:", acc)
-        # Check for required fields
-        role = acc.get('role')
-        first_name = acc.get('first_name')
-        last_name = acc.get('last_name')
-        email = acc.get('email')
-        password = acc.get('password')
-        if not password:
-            password = generate_password()
-        studentnumber = acc.get('studentnumber')
-        if not (role and first_name and last_name and email and password):
-            print(f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}")
-            errors.append(f"Missing fields for {email or '[no email]' }.")
-            continue
-        if role == 'student':
-            if not studentnumber:
-                print(f"[DEBUG] Student number missing for {email}")
-                errors.append(f"Student number required for {email}.")
-                continue
-        # Check for duplicates
-        if User.query.filter_by(email=email).first():
-            print(f"[DEBUG] Duplicate email: {email}")
-            errors.append(f"Email {email} already exists.")
-            continue
-        if role == 'student' and User.query.filter_by(studentnumber=studentnumber).first():
-            print(f"[DEBUG] Duplicate student number: {studentnumber}")
-            errors.append(f"Student number {studentnumber} already exists.")
-            continue
-        try:
-            new_user = User(
-                email=email,
-                role=role,
-                first_name=first_name,
-                last_name=last_name,
-                created_at=datetime.now(),
-                is_active=True
-            )
-            # Only set studentnumber if role is student and value is present
-            if role == 'student' and studentnumber:
-                new_user.studentnumber = studentnumber
-            new_user.set_password(password)
-            db.session.add(new_user)
-            db.session.commit()
-            print(f"[DEBUG] Created user: {email}")
-            created_emails.append(email)
-            # Add to CSV export list
-            created_accounts_for_csv.append({
-                'studentnumber': studentnumber or '',
-                'first_name': first_name,
-                'last_name': last_name,
-                'email': email,
-                'password': password,
-                'role': role
-            })
-        except Exception as e:
-            db.session.rollback()
-            print(f"[DEBUG] Error creating {email}: {str(e)}")
-            errors.append(f"Error creating {email}: {str(e)}")
-    if created_emails:
-        # Export created accounts to CSV in exports folder with timestamp
-        import csv
-        export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
-        os.makedirs(export_dir, exist_ok=True)
-        timestamp = time.strftime('%Y%m%d_%H%M%S')
-        export_filename = f'created_accounts_{timestamp}.csv'
-        export_path = os.path.join(export_dir, export_filename)
-        with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
-            num_accounts = len(created_accounts_for_csv)
-            now = time.localtime()
-            date_str = time.strftime('%d/%m/%Y', now)
-            time_str = time.strftime('%H:%M:%S', now)
-            csvfile.write(f"{num_accounts} accounts created, {date_str}, {time_str}\n")
-            fieldnames = ['studentnumber', 'first_name', 'last_name', 'email', 'password', 'role']
-            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-            writer.writeheader()
-            for row in created_accounts_for_csv:
-                writer.writerow(row)
-        msg = f"Created accounts: {', '.join(created_emails)}."
-        if errors:
-            msg += "<br>Some errors: " + '<br>'.join(errors)
-        print(f"[DEBUG] Success: {msg}")
-        return jsonify(success=True, message=msg, created_emails=created_emails)
+    user = User.query.get_or_404(user_id)
+    first_name = request.form.get('first_name', '').strip()
+    last_name = request.form.get('last_name', '').strip()
+    email = request.form.get('email', '').strip()
+
+    # Only update if a value is provided
+    if first_name:
+        user.first_name = first_name
+    if last_name:
+        user.last_name = last_name
+    if email and email != user.email:
+        # Check for email uniqueness
+        if User.query.filter(User.email == email, User.id != user.id).first():
+            flash('Email already exists for another user.', 'danger')
+            return redirect(url_for('admin.teacher_profile', user_id=user.id))
+        user.email = email
+
+    db.session.commit()
+    flash('User information updated successfully.', 'success')
+    return redirect(url_for('admin.teacher_profile', user_id=user.id))
+
+
+
+
 # Route to list all CSV exports
 @admin.route('/admin/csv_exports')
 @login_required
@@ -145,11 +74,16 @@ def download_csv(filename):
     export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
     return send_from_directory(export_dir, filename, as_attachment=True)
 
+
 # Exempt the batch_create_accounts route from CSRF protection using the csrf instance
 try:
     from flaskr.website import csrf
-    csrf.exempt(batch_create_accounts)
 except ImportError:
+    csrf = None
+
+# ... (other code remains unchanged) ...
+
+# Place this block after batch_create_accounts is defined (after line 450+)
     pass
 
 
@@ -505,7 +439,109 @@ def create_account():
             return render_template('admin/account_create.html', form=form)
     
     return render_template('admin/account_create.html', form=form)
+# Batch account creation endpoint
+@admin.route('/admin/batch_create_accounts', methods=['POST'])
+@login_required
+def batch_create_accounts():
+    print("[DEBUG] batch_create_accounts called by:", current_user.email)
+    if current_user.role != 'admin':
+        print("[DEBUG] Access denied: not admin")
+        return jsonify(success=False, message='Admin privileges required.'), 403
+    data = request.get_json()
+    print("[DEBUG] Received data:", data)
+    accounts = data.get('accounts', [])
+    print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
+    created_emails = []
+    errors = []
+    import time
+    created_accounts_for_csv = []
+    def generate_password(length=10):
+        chars = string.ascii_letters + string.digits + string.punctuation
+        return ''.join(random.choice(chars) for _ in range(length))
 
+    for acc in accounts:
+        print("[DEBUG] Processing account:", acc)
+        # Check for required fields
+        role = acc.get('role')
+        first_name = acc.get('first_name')
+        last_name = acc.get('last_name')
+        email = acc.get('email')
+        password = acc.get('password')
+        if not password:
+            password = generate_password()
+        studentnumber = acc.get('studentnumber')
+        if not (role and first_name and last_name and email and password):
+            print(f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}")
+            errors.append(f"Missing fields for {email or '[no email]' }.")
+            continue
+        if role == 'student':
+            if not studentnumber:
+                print(f"[DEBUG] Student number missing for {email}")
+                errors.append(f"Student number required for {email}.")
+                continue
+        # Check for duplicates
+        if User.query.filter_by(email=email).first():
+            print(f"[DEBUG] Duplicate email: {email}")
+            errors.append(f"Email {email} already exists.")
+            continue
+        if role == 'student' and User.query.filter_by(studentnumber=studentnumber).first():
+            print(f"[DEBUG] Duplicate student number: {studentnumber}")
+            errors.append(f"Student number {studentnumber} already exists.")
+            continue
+        try:
+            new_user = User(
+                email=email,
+                role=role,
+                first_name=first_name,
+                last_name=last_name,
+                created_at=datetime.now(),
+                is_active=True
+            )
+            # Only set studentnumber if role is student and value is present
+            if role == 'student' and studentnumber:
+                new_user.studentnumber = studentnumber
+            new_user.set_password(password)
+            db.session.add(new_user)
+            db.session.commit()
+            print(f"[DEBUG] Created user: {email}")
+            created_emails.append(email)
+            # Add to CSV export list
+            created_accounts_for_csv.append({
+                'studentnumber': studentnumber or '',
+                'first_name': first_name,
+                'last_name': last_name,
+                'email': email,
+                'password': password,
+                'role': role
+            })
+        except Exception as e:
+            db.session.rollback()
+            print(f"[DEBUG] Error creating {email}: {str(e)}")
+            errors.append(f"Error creating {email}: {str(e)}")
+    if created_emails:
+        # Export created accounts to CSV in exports folder with timestamp
+        import csv
+        export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+        os.makedirs(export_dir, exist_ok=True)
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        export_filename = f'created_accounts_{timestamp}.csv'
+        export_path = os.path.join(export_dir, export_filename)
+        with open(export_path, 'w', newline='', encoding='utf-8') as csvfile:
+            num_accounts = len(created_accounts_for_csv)
+            now = time.localtime()
+            date_str = time.strftime('%d/%m/%Y', now)
+            time_str = time.strftime('%H:%M:%S', now)
+            csvfile.write(f"{num_accounts} accounts created, {date_str}, {time_str}\n")
+            fieldnames = ['studentnumber', 'first_name', 'last_name', 'email', 'password', 'role']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            for row in created_accounts_for_csv:
+                writer.writerow(row)
+        msg = f"Created accounts: {', '.join(created_emails)}."
+        if errors:
+            msg += "<br>Some errors: " + '<br>'.join(errors)
+        print(f"[DEBUG] Success: {msg}")
+        return jsonify(success=True, message=msg, created_emails=created_emails)
 # Account creation success page to prevent browser back issues
 @admin.route('/admin/account_creation_success/<int:user_id>')
 @login_required
@@ -619,3 +655,5 @@ try:
     csrf.exempt(batch_create_accounts)
 except ImportError:
     pass
+
+

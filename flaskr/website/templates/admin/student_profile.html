@@ -1,4 +1,3 @@
-                        
 {% extends "admin/adminbase.html" %}
 
 {% block title %}Student Profile{% endblock %}
@@ -7,24 +6,42 @@
     <div class="container mt-4">
         <div class="row justify-content-center">
             <div class="col-md-8">
-                <h1 class="mb-4">Student Profile</h1>
                 
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h2 class="card-title mb-0">Student Information</h2>
-                        <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline; margin-left: 1rem;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm" title="Delete Account">
-                                Delete
-                            </button>
-                        </form>
+                        <div class="d-flex align-items-center">
+                            <form method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" id="edit-student-form" style="display: inline; margin-right: 1rem;">
+                                {{ edit_form.hidden_tag() if edit_form is defined }}
+                                <button type="submit" class="btn btn-success btn-sm">Confirm Changes</button>
+                            </form>
+                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm" title="Delete Account">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <p class="card-text"><strong>First Name:</strong> {{ user.first_name if user.first_name else '' }}</p>
-                        <p class="card-text"><strong>Last Name:</strong> {{ user.last_name if user.last_name else '' }}</p>
-                        <p class="card-text"><strong>Email:</strong> {{ user.email }}</p>
-                        <p class="card-text"><strong>Student Number:</strong> {{ user.studentnumber if user.studentnumber else "N/A" }}</p>
-                        <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}" id="change-password-form">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="" placeholder="{{ user.first_name or 'First Name' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="" placeholder="{{ user.last_name or 'Last Name' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="" placeholder="{{ user.email or 'Email' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentnumber" class="form-label">Student Number</label>
+                            <input type="text" class="form-control" id="studentnumber" name="studentnumber" value="" placeholder="{{ user.studentnumber or 'Student Number' }}" form="edit-student-form">
+                        </div>
+
+                        <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}" id="change-password-form" class="mt-4">
                             {{ password_form.hidden_tag() }}
                             <div class="mb-3">
                                 {{ password_form.new_password.label(class="form-label") }}
@@ -303,7 +320,7 @@
                                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                                 })
                                 .then(r => r.json())
-                                .then(data => {
+                                .then data => {
                                     if (data && data.success) {
                                         // DEBUG: Unassign teacher success
                                         if (li) li.remove();
