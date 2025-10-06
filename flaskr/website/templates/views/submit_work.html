@@ -96,11 +96,11 @@
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('views.student_dashboard') }}" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                                <i class="bi bi-arrow-left"></i> Back to Dashboard
                             </a>
                             
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-paper-plane"></i> 
+                                <i class="bi bi-send me-2"></i>
                                 {% if student_scenario.status == 'submitted' %}Resubmit Work{% else %}Submit Work{% endif %}
                             </button>
                         </div>
@@ -119,7 +119,7 @@
                     </div>
                     
                     <a href="{{ url_for('views.student_dashboard') }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
                     </a>
                     {% endif %}
                 </div>
