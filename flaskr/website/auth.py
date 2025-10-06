@@ -1,9 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash
+from flask import Blueprint, render_template, redirect, url_for, request, flash, render_template_string, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import db, User, UserRole
+from .models import db, User
 from datetime import datetime
 from .auth_forms import LoginForm, ForgotPasswordForm
+import smtplib
+from email.message import EmailMessage
 
 auth = Blueprint("auth", __name__)
 
@@ -182,7 +184,18 @@ def toggle_user_status(user_id):
     return redirect(url_for("auth.admin_users"))
 
 
+
+
+# Example HTML email template
+reset_password_email_html_content = """
+<p>Hello,</p>
+<p>You requested a password reset. Click the link below to reset your password:</p>
+<p><a href="{{ reset_password_url }}">Reset Password</a></p>
+<p>If you did not request this, please ignore this email.</p>
+"""
+
 def send_reset_password_email(user):
+    # Generate full URL for password reset
     reset_password_url = url_for(
         "auth.reset_password",
         token=user.generate_reset_password_token(),
@@ -190,39 +203,51 @@ def send_reset_password_email(user):
         _external=True,
     )
 
+    # Render the HTML email body
     email_body = render_template_string(
-        reset_password_email_html_content, reset_password_url=reset_password_url
+        reset_password_email_html_content,
+        reset_password_url=reset_password_url
     )
 
-    message = EmailMessage(
-        subject="Reset your password",
-        body=email_body,
-        to=[user.email],
-    )
-    message.content_subtype = "html"
+    # Create the email
+    message = EmailMessage()
+    message["Subject"] = "Reset Your Password"
+    message["From"] = current_app.config.get("MAIL_DEFAULT_SENDER", "no-reply@example.com")
+    message["To"] = user.email
+    message.set_content(email_body, subtype="html")
 
-    message.send()
+    # Send the email using SMTP
+    with smtplib.SMTP(current_app.config.get("MAIL_SERVER", "localhost"), 
+                      current_app.config.get("MAIL_PORT", 25)) as server:
+        if current_app.config.get("MAIL_USE_TLS", False):
+            server.starttls()
+        if current_app.config.get("MAIL_USERNAME") and current_app.config.get("MAIL_PASSWORD"):
+            server.login(current_app.config["MAIL_USERNAME"], current_app.config["MAIL_PASSWORD"])
+        server.send_message(message)
+
 
 
 @auth.route("/reset_password", methods=["GET", "POST"])
 def reset_password_request():
     if current_user.is_authenticated:
-        return redirect(url_for("main.index"))
+        return render_template("auth/already_logged_in.html", user=current_user)
 
-    form = ResetPasswordRequestForm()
+    form = ForgotPasswordForm()
     if form.validate_on_submit():
-        user_select = select(User).where(User.email == form.email.data)
-        user = db.session.scalar(user_select)
+        user = User.query.filter_by(email=form.email.data).first()
 
         if user:
-            send_reset_password_email(user)
+            try:
+                send_reset_password_email(user)
+            except:
+                pass
 
         flash(
             "Instructions to reset your password were sent to your email address,"
             " if it exists in our system."
         )
 
-        return redirect(url_for("auth.reset_password_request"))
+        return redirect(url_for("auth.login"))
 
     return render_template(
         "auth/reset_password_request.html", title="Reset Password", form=form

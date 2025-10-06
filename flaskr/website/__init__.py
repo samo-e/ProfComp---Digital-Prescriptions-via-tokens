@@ -57,6 +57,14 @@ def create_app():
         if not text:
             return text
         return text.replace("\n", "<br>")
+    
+    # Set e-mail sender
+    app.config["MAIL_SERVER"] = "localhost"
+    app.config["MAIL_PORT"] = 25
+    app.config["MAIL_USE_TLS"] = False
+    app.config["MAIL_USERNAME"] = False
+    app.config["MAIL_PASSWORD"] = False
+
 
     return app
 
