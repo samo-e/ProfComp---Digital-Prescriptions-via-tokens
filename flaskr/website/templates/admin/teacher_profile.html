@@ -15,12 +15,20 @@
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success btn-sm">Confirm Changes</button>
                             </form>
+                            {% if not is_curr_user %}
                             <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline; margin: 0;">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                
                                 <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm">
                                     Delete Account
                                 </button>
                             </form>
+                            {% else %}
+                            <div class="alert alert-warning d-flex align-items-center small p-1 mb-0" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <span>You are editing your own admin account. Changes here will affect your access.</span>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                     <div class="card-body">

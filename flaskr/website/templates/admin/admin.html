@@ -325,7 +325,11 @@ function clearSearch() {
 				   </a>
 				   <form method="post" action="{{ url_for('admin.delete_user', user_id=admin_user.id) }}" style="margin:0; display:inline;">
 					   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-					   <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" title="Delete Admin" onclick="confirmDeleteUser('{{ admin_user.get_full_name()|e }}', 'admin', this.form)">&times;</button>
+					   
+					   <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn {% if admin_user.id == current_user_id %}invisible{% endif %}" title="Delete Admin" onclick="confirmDeleteUser('{{ admin_user.get_full_name()|e }}', 'admin', this.form)">&times;</button>
+					   {% if admin_user.id == current_user_id %}
+							<span class="badge bg-secondary ms-1">You</span>
+					   {% endif %}
 				   </form>
 			   </div>
 <script>

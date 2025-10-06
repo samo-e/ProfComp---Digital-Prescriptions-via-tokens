@@ -224,7 +224,7 @@ def admin_dashboard():
 	
 	# Create response with no-cache headers to prevent browser caching
 	response = make_response(render_template('admin/admin.html', 
-		teachers=teachers, students=students, admins=admins))
+		teachers=teachers, students=students, admins=admins, current_user_id=current_user.id))
 	response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
 	response.headers['Pragma'] = 'no-cache'
 	response.headers['Expires'] = '0'
@@ -265,7 +265,10 @@ def teacher_profile(user_id):
     password_form = ChangePasswordForm()
     if user.is_teacher():
         students = User.query.filter_by(role=UserRole.STUDENT.value).all()
-    return render_template('admin/teacher_profile.html', user=user, students=students, form=form, password_form=password_form)
+
+    is_curr_user = (user.id == current_user.id) 
+
+    return render_template('admin/teacher_profile.html', user=user, students=students, form=form, password_form=password_form, is_curr_user=is_curr_user)
 
 # Route to assign a student to a teacher
 @admin.route('/admin/assign_student', methods=['POST'])
