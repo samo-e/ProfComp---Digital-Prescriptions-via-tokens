@@ -21,35 +21,43 @@
 
     <div class="assign-container">
         <div class="assign-header text-center">
-            <h2><i class="bi bi-people me-2"></i>Assign Students to Scenario</h2>
-            <h4 class="mb-0 opacity-90">{{ scenario.name }}</h4>
+            <h2><i class="bi bi-people me-2"></i>Assign Students to {{ scenario.name }}</h2>
         </div>
 
         <form method="POST" id="assignForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
             <!-- Search and Actions Row -->
-            <div class="actions-row">
+            <div class="">
                 <div class="search-section">
                     <input type="text" 
                            id="searchBox" 
                            class="search-box" 
                            placeholder="Search students by name or email...">
                 </div>
-                <div class="buttons-section">
-                    <div class="bulk-actions">
-                        <button type="button" id="selectAllBtn" class="bulk-btn">
+                <div class="my-3 bulk-actions">
+                    <div class="row g-2">
+                        <div class="col-3">
+                        <button type="button" id="selectAllBtn" class="btn btn-primary w-100 bulk-btn">
                             <i class="bi bi-check-square"></i> Select All
                         </button>
-                        <button type="button" id="selectNoneBtn" class="bulk-btn secondary">
+                        </div>
+                        <div class="col-3">
+                        <button type="button" id="selectNoneBtn" class="btn btn-secondary w-100 bulk-btn">
                             <i class="bi bi-square"></i> Deselect All
                         </button>
-                        <button type="button" id="selectNewBtn" class="bulk-btn success">
+                        </div>
+                        <div class="col-3">
+                        <button type="button" id="selectNewBtn" class="btn btn-success w-100 bulk-btn">
                             <i class="bi bi-person-plus"></i> Select Unassigned
                         </button>
-                        <button type="button" id="clearAssignmentsBtn" class="bulk-btn warning" onclick="toggleClearAssignments()">
-                            <i class="bi bi-x-circle"></i> <span id="clearBtnText">Keep Existing</span>
+                        </div>
+                        <div class="col-3">
+                        <button type="button" id="clearAssignmentsBtn" class="btn btn-warning w-100 bulk-btn" onclick="toggleClearAssignments()">
+                            <i class="bi bi-x-circle me-1"></i>
+                            <span id="clearBtnText">Keep Existing</span>
                         </button>
+                        </div>
                     </div>
                 </div>
             </div>

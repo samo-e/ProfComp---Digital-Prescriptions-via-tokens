@@ -3,6 +3,7 @@
 
 {% block scripts %}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js" integrity="sha512-ohlWmsCxOu0bph1om5eDL0jm/83eH09fvqLDhiEdiqfDeJbEvz4FSbeY0gLJSVJwQAp0laRhTXbUQG+ZUuifUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="{{ url_for('static', filename='js/help.js') }}"></script>
 {% endblock %}
 
 {% block styles %}
@@ -12,13 +13,14 @@
 {% block body %}
 {{ html|safe }}
 
-<script>
-window.addEventListener('load', function () {
-    new bootstrap.ScrollSpy(document.body, {
-        target: '#navbar-contents',
-        offset: 10
-    });
-});
-</script>
-
+<!-- Image Modal Overlay -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-body d-flex justify-content-center align-items-center p-0">
+                <img src="" id="modalImage" alt="Full Screen Preview">
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

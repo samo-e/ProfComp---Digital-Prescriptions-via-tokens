@@ -1240,7 +1240,9 @@ def asl(pt: int):
         }
         pt_data["notes"] = asl_record.notes if asl_record else ""
 
-        return render_template("views/asl.html", pt=pt, pt_data=pt_data)
+        user_role = "teacher" if current_user.is_teacher() else "student"
+
+        return render_template("views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role)
 
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500

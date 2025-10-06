@@ -122,7 +122,7 @@ function generatePtData() {
     "basic-medicare",
     f.number.int({ min: 100000000, max: 999999999 })
   );
-  insertIntoField("basic-medicareIssue", f.number.int({ min: 1, max: 9 }));
+  insertIntoField("basic-medicareIssue", f.number.int({ min: 1, max: 4 }));
   insertIntoField("basic-medicareSurname", lname);
   insertIntoField("basic-medicareGivenName", fname);
   insertIntoField("basic-medicareValidTo", randomFutureMonthYear());

@@ -13,7 +13,7 @@
                         <small class="text-muted">{{ scenario.description or 'No description' }}</small>
                     </div>
                     <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back to Scenario
+                        <i class="bi bi-arrow-left"></i> Back to Scenario
                     </a>
                 </div>
                 <div class="card-body">
@@ -58,7 +58,7 @@
                                         {% if data.student_scenario.score %}
                                             <strong>{{ data.student_scenario.score }}</strong>
                                         {% else %}
-                                            <span class="text-muted">No score</span>
+                                            <span class="text-muted">Not graded</span>
                                         {% endif %}
                                     </td>
                                     <td>
@@ -67,13 +67,13 @@
                                             <div class="btn-group btn-group-sm" role="group">
                                                 <a href="{{ url_for('views.grade_submission', submission_id=submission.id) }}" 
                                                    class="btn btn-outline-primary">
-                                                    <i class="fas fa-grade"></i> 
-                                                    {% if data.student_scenario.status == 'graded' %}View Grade{% else %}Grade{% endif %}
+                                                    <i class="bi bi-clipboard-data"></i> 
+                                                    {% if data.student_scenario.status == 'graded' %}View Grade{% else %}View Submission and Grade{% endif %}
                                                 </a>
                                                 {% if submission.patient %}
                                                 <a href="{{ url_for('views.asl', pt=submission.patient.id) }}" 
                                                    class="btn btn-outline-info" target="_blank">
-                                                    <i class="fas fa-eye"></i> View ASL
+                                                    <i class="bi bi-eye"></i> View ASL
                                                 </a>
                                                 {% endif %}
                                             </div>
@@ -89,11 +89,11 @@
                     </div>
                     {% else %}
                     <div class="text-center py-5">
-                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <i class="bi bi-inbox text-muted mb-3"></i>
                         <h5 class="text-muted">No students assigned</h5>
                         <p class="text-muted">Assign students to this scenario to see their submissions here.</p>
                         <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Assign Students
+                            <i class="bi bi-plus"></i> Assign Students
                         </a>
                     </div>
                     {% endif %}
