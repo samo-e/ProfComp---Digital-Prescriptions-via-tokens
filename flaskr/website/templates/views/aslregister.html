@@ -8,11 +8,24 @@
 <script src="{{ url_for('static', filename='js/aslregister.js') }}"></script>
 {% endblock %}
 {% block body %}
+<div class="container">
 <div class="container-fluid py-3 ps-0">
   <!-- Header -->
   <div class="d-flex align-items-center border-bottom pb-2 mb-3">
-    <i class="bi bi-person-fill me-2 fs-4 text-secondary"></i>
-    <span class="fw-semibold">Patient Registration for Active Script List</span>
+    <div>
+      <h3>
+        <i class="bi bi-person-fill me-2 fs-3 text-secondary "></i>
+        <span class="fw-semibold">Patient Registration for Active Script List</span>
+      </h3>
+    </div>
+    <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary ms-auto d-none d-md-flex">
+      <i class="bi bi-arrow-left"></i>
+      {% if user_role == "teacher" %}
+          Back to Patient Dashboard
+      {% else %}
+          Back to Student Dashboard
+      {% endif %}
+    </a>
   </div>
 
   <form method="POST">
@@ -230,6 +243,7 @@
 {# <a href="{{ url_for('scenario_dashboard', scenario_id=scenario_id) }}" class="btn btn-secondary">Close</a> #}
     </div>
   </form>
+</div>
 </div>
 {% endblock %}
 {% block options_menu %}{% endblock %}
