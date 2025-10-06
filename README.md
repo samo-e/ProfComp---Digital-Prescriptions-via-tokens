@@ -33,6 +33,9 @@
                <a class="nav-link ms-5 mb-1" href="#manage-students">Managing Students</a>
             </nav><!-- TEACHER_ONLY_END -->
             <a class="nav-link ms-3 mb-1" href="#usage-student">For Students</a>
+            <nav class="nav nav-pills flex-column">
+               <a class="nav-link ms-5 mb-1" href="#making-a-submission">Making a Submission</a>
+            </nav>
          </nav>
          <a class="nav-link mb-1" href="#licence">Licence</a>
    </nav>
@@ -141,46 +144,72 @@ We will require the simulation program to be editable by the Pharmacy Department
 #### I am a *Teacher*:
 When you log in as a teacher, you'll be greeted by the Teacher Dashboard:
 
-![Screenshot of Teacher Dashboard](static/images/screenshot-teacher-dashboard.png)
+![Screenshot of Teacher Dashboard](static/images/screenshots/teacher/ss-01-teacher-dashboard.png)
 
 Here, you will find a list of scenarios and some data regarding your cohort.  
 From the teacher dashboard, you can
 <div id="create-scenario">
 
-##### - Create a new scenario
+##### Creating a New Scenario
 
-To create a new scenario, click the blue button labelled "New Scenario".  
+To create a new scenario, click the button labelled "Create New Scenario".  
 This will add a new scenario to your list of scenarios.  
+
+![Screenshot of Teacher Dashboard after creating a new scenario](static/images/screenshots/teacher/ss-02-teacher-dashboard-scenario-1.png)
+
+Now you can edit, add details and assign students to the scenario.  
+
+</div><div id="view-scenario">
+
+##### Viewing a Scenario
+
+To view a new scenario in more details, clicking a scenario's name or the blue view button to the right.  
+
 </div><div id="edit-scenario">
 
-##### - Edit or Delete scenarios
+##### Edit or Delete Scenarios
 
-You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
 To delete a scenario, click the red trash icon. This will open a pop-up asking you to confirm. *Please note, that after deleting a scenario, it cannot be recovered.  
+You can make or edit changes by clicking a scenario's name or the blue edit button to the right.  
 
-![Screenshot of Editing a Scenario](static/images/screenshot-scenario.png)
+![Screenshot of Editing a Scenario](static/images/screenshots/teacher/ss-03-scenario-1.png)
 
 </div><div id="add-pt">
 
-##### - Create and Edit patients
+##### Create and Edit Patients
 
+From your dashboard, you can click the yellow "Manage Patients" button to take you to the manage patients menu.  
+
+![Screenshot of Patient Management Dashboard](static/images/screenshots/teacher/ss-10-patient-management.png)
+
+From here, you can edit indivual patients, or add new ones.
+Clicking on a patient will take you to a page where you can update their details.  
 On the edit patient page, you can either fill the information in manually or generate it using the Generate Details button in the top right. After using this button, you can still edit the patient's details.
 
-![Screenshot of Creating a Patient](static/images/screenshot-create-pt.png)
+![Screenshot of Creating a Patient](static/images/screenshots/teacher/ss-11-adding-new-patient.png)
+
+// TODO: Updating a Patient's Active Script List
+Back on the patient management dashboard, you can click 
+![Screenshot of Draga Diaz's Active Script List](static/images/screenshots/teacher/ss-13-viewing-a-patients-asl.png)
+
+![Screenshot of Editing an ASL](static/images/screenshots/teacher/ss-12-editing-a-patients-asl.png)
+
 
 </div><div id="assign-students">
 
-##### - Assign students to scenarios
+##### Assign students to scenarios
  
 // TODO - run through this
-![Screenshot of Editing a Scenario](static/images/screenshot-assign-students.png)
+![Screenshot of Assigning Students](static/images/screenshots/teacher/ss-04-assign-students.png)
+![Screenshot of Assigning Students](static/images/screenshots/teacher/ss-05-scenario-1-students-assigned.png)
 
 </div><div id="manage-students">
 
-##### - Manage students
+##### Manage students
  
  // TODO - show how to manage students
-![Screenshot of Editing a Scenario](static/images/screenshot-manage-students.png)
+![Screenshot of Student Management](static/images/screenshots/teacher/ss-06-student-management.png)
+![Screenshot of Adding a Student](static/images/screenshots/teacher/ss-07-add-student.png)
 
 </div>
 </div>
@@ -191,20 +220,38 @@ On the edit patient page, you can either fill the information in manually or gen
 #### I am a *Student*:
 When you log in as a student, you'll be greeted by the Student Dashboard:
 
-![Screenshot of Student Dashboard](static/images/screenshot-student-dashboard.png)
+![Screenshot of Student Dashboard](static/images/screenshots/student/ss-20-student-dashboard.png)
 
-From here, you can see the scenarios that have been assigned to you, or you can work on one of the practice patients.  
-We will attempt _Practice Patient 1: Draga Diaz_:  
-After clicking on Draga Diaz, you will be redirected to her Active Script List (ASL):
+From here, you can see the scenarios that have been assigned to you.  
+In this example, we will attempt _Scenario 1_:  
+After clicking on <i class="bi bi-eye me-1"></i>View Details, you will be redirected to 
 
-![Screenshot of Draga Diaz's Active Script List](static/images/screenshot-asl-draga-diaz.png)
+![Screenshot of Scenario 1](static/images/screenshots/student/ss-21-scenario-student-view.png)
+
+On this page, you will be able to see what instructions your teacher has set, any required questions for you to answer, and details about the patient.  
+You can view this patient's Active Script List (ASL) by clicking on the <i class="bi bi-file-medical me-1"></i>View ASL button: 
+
+![Screenshot of Draga Diaz's Active Script List](static/images/screenshots/teacher/ss-13-viewing-a-patients-asl.png)
+
+Here you can dispense items from the patient's ASL.
+
+<div id="making-a-submission">
+
+##### Making a Submission
+
+Back in viewing a scenario, you can click Submit Work  
+
+![Screenshot of Submitting work for a scenario](static/images/screenshots/student/ss-22-submit-work.png)
 
 Here, you can:
- - View Draga's details.
- - Print her ASL.
- - Request, Delete or Refresh her consent for you to access her ASL.  
-Requesting or refreshing follows a cycle from <i>No Consent</i> → <i style="color: orange;">Pending</i> → <i style="color: green;">Granted</i>. Click [here](https://help.zsoftware.com.au/hc/en-us/articles/4408453843853-Active-Script-List-ASL) for more info regarding how ASL consent works.
- - Comment on changes that have been made.
+ - Go back an review the patient's ASL
+ - Review scenario instructions and your assigned tasks.
+ - Submit your completed work, including explanations of your approach and any challenges.
+ - Upload supporting documents (PDF, Word, or text; max 10MB each).
+ - See the current status of your submission: Not submitted, pending grade, or graded
+
+</div>
+
 
 </div>
 </div>
