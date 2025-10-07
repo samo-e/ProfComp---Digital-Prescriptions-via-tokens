@@ -125,6 +125,7 @@ def scenario_dashboard(scenario_id):
         all_patients=all_patients,
         student_scenario=student_scenario,
         assigned_patient=assigned_patient,
+        assigned_patient_ids=[sp.patient_id for sp in scenario.patient_data],
     )
 
 
@@ -2125,6 +2126,18 @@ def set_active_patient(scenario_id):
         patient_id = request.form.get("patient_id")
         if patient_id:
             patient = Patient.query.get_or_404(int(patient_id))
+
+            # Do not allow setting active patient if that patient is assigned to a student in this scenario
+            assigned_patient = ScenarioPatient.query.filter_by(
+                scenario_id=scenario.id, patient_id=patient.id
+            ).first()
+            if assigned_patient:
+                flash(
+                    "The selected patient is already assigned to a student and cannot be set as the active patient.",
+                    "error",
+                )
+                return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+
             scenario.active_patient_id = patient.id
 
             try:
