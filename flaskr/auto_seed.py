@@ -17,19 +17,6 @@ def auto_seed():
         db.session.commit()
         print("Database cleared")
         
-        # Always seed users
-        print("Seeding users...")
-        from init_users import init_users
-        init_users(auto_mode=True)
-        
-        # Verify users were created
-        user_count = User.query.count()
-        if user_count > 0:
-            print(f"Users seeded successfully! ({user_count} users created)")
-        else:
-            print("ERROR: No users were created!")
-            return False
-        
         # Always seed patient data
         print("Seeding patient data...")
         from init_data import init_asl_database
@@ -41,6 +28,19 @@ def auto_seed():
             print(f"Patient data seeded successfully! ({patient_count} patients created)")
         else:
             print("ERROR: No patients were created!")
+            return False
+        
+        # Always seed users
+        print("Seeding users...")
+        from init_users import init_users
+        init_users(auto_mode=True)
+        
+        # Verify users were created
+        user_count = User.query.count()
+        if user_count > 0:
+            print(f"Users seeded successfully! ({user_count} users created)")
+        else:
+            print("ERROR: No users were created!")
             return False
         
         print("Auto-seeding complete!")
