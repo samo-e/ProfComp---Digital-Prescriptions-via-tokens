@@ -58,6 +58,11 @@ def create_app():
             return text
         return text.replace("\n", "<br>")
 
+    GLOBALS = {
+        "SHOW_PASSWORD_RESET_ON_LOGIN" : False,
+    }
+    app.config["GLOBALS"] = GLOBALS
+
     return app
 
 
