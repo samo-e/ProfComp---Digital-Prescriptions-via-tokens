@@ -464,7 +464,7 @@
     </div>
     
     <!-- Navigation -->
-    <div class="d-flex justify-content-between mt-4 mb-4">
+    <div class="d-flex align-items-center gap-2">
         {% if current_user.is_teacher() %}
         <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
@@ -476,11 +476,11 @@
         {% endif %}
         
         {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-        <div>
-            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-info me-2">
+        <div class="ms-auto d-flex gap-2">
+            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-info">
                 <i class="bi bi-clipboard-check me-1"></i>View Submissions
             </a>
-            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}">
+            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-copy me-1"></i>Duplicate Scenario
