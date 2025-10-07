@@ -319,9 +319,15 @@ function selectNew() {
     var checkboxes = document.getElementsByClassName('student-checkbox');
     for (var i = 0; i < checkboxes.length; i++) {
         var row = checkboxes[i].closest('tr');
-        var badge = row.querySelector('.badge');
-        
-        if (badge && badge.textContent.includes('Available') && (!row || row.style.display !== 'none')) {
+        // Status element uses class 'status-badge' in the row
+        var statusEl = row ? row.querySelector('.status-badge') : null;
+        var isVisible = !row || row.style.display !== 'none';
+        var isAvailable = false;
+        if (statusEl && statusEl.textContent) {
+            isAvailable = statusEl.textContent.toLowerCase().indexOf('available') !== -1;
+        }
+
+        if (isAvailable && isVisible) {
             checkboxes[i].checked = true;
         } else {
             checkboxes[i].checked = false;
