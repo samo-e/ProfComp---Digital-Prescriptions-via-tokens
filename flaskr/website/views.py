@@ -549,9 +549,15 @@ def student_dashboard():
         return redirect(url_for("views.teacher_dashboard"))
 
     # Get student's assigned scenarios with submission status
-    student_scenarios = StudentScenario.query.filter_by(
-        student_id=current_user.id
-    ).all()
+    student_scenarios = (
+        StudentScenario.query
+        .join(Scenario)
+        .filter(
+            StudentScenario.student_id == current_user.id,
+            Scenario.is_archived == False
+        )
+        .all()
+    )
 
     # Get detailed information for each scenario
     scenario_data = []
