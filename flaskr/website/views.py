@@ -339,7 +339,13 @@ def assign_scenario(scenario_id):
     # GET request - show assignment form
     students = User.query.filter_by(role="student", is_active=True).all()
     assigned_student_ids = [s.id for s in scenario.assigned_students]
-    available_patients = Patient.query.all()  # Get all patients for assignment
+    # Exclude the scenario's active patient from the dropdown list
+    if scenario and scenario.active_patient_id:
+        available_patients = (
+            Patient.query.filter(Patient.id != scenario.active_patient_id).all()
+        )
+    else:
+        available_patients = Patient.query.all()
 
     # Get current patient assignments for this scenario
     current_assignments = {}
