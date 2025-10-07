@@ -78,6 +78,13 @@ def create_app():
             return text
         return text.replace("\n", "<br>")
 
+    GLOBALS = {
+        "ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD" : False,
+        "SHOW_PASSWORD_RESET_ON_LOGIN" : False,
+        "ENABLE_SCENARIO_PASSWORD_PROTECTION": False,
+    }
+    app.config["GLOBALS"] = GLOBALS
+
     return app
 
 

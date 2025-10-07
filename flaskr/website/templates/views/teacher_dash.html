@@ -290,9 +290,11 @@
     <div class="row mt-3">
         <div class="col-12 d-flex justify-content-between">
             <div>
+                {% if ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD %}
                 <button class="btn btn-outline-secondary" id="bulk-export">
                     <i class="bi bi-download"></i> Export Selected
                 </button>
+                {% endif %}
                 <button class="btn btn-danger ms-2" id="bulk-delete">
                     <i class="bi bi-archive"></i> Archive Selected
                 </button>

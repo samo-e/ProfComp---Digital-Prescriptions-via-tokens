@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block body %}
-<div class="bg-light d-flex justify-content-center align-items-center vh-100">
+<div class="d-flex justify-content-center align-items-center vh-100">
     <div class="card shadow-lg p-4 login-modal rounded-4">
         <h3 class="text-center mb-4">Login</h3>
         
@@ -41,9 +41,11 @@
             </div>
             <button type="submit" class="btn btn-primary w-100">Login</button>
         </form>
+        {% if SHOW_PASSWORD_RESET_ON_LOGIN %}
         <div class="mt-3 text-center">
             <a href="#">Forgot password?</a>
         </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

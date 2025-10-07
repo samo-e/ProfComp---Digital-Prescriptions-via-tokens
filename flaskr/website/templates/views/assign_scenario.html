@@ -53,17 +53,16 @@
                         </button>
                         </div>
                         <div class="col-3">
-                        <button type="button" id="clearAssignmentsBtn" class="btn btn-warning w-100 bulk-btn" onclick="toggleClearAssignments()">
-                            <i class="bi bi-x-circle me-1"></i>
-                            <span id="clearBtnText">Keep Existing</span>
+                        <button type="button" id="unassignSelectedBtn" class="btn btn-danger w-100 bulk-btn" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; border: none;">
+                            <i class="bi bi-person-dash me-1"></i> Unassign Selected
                         </button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hidden Clear Existing Input (controlled by button) -->
-            <input type="hidden" name="clear_existing" id="clear_existing" value="false">
+            <!-- Hidden form action: 'assign' (default) or 'unassign' -->
+            <input type="hidden" name="form_action" id="form_action" value="assign">
 
             <!-- Selection Summary -->
             <div class="selection-summary d-none" id="selectionSummary">
@@ -320,9 +319,15 @@ function selectNew() {
     var checkboxes = document.getElementsByClassName('student-checkbox');
     for (var i = 0; i < checkboxes.length; i++) {
         var row = checkboxes[i].closest('tr');
-        var badge = row.querySelector('.badge');
-        
-        if (badge && badge.textContent.includes('Available') && (!row || row.style.display !== 'none')) {
+        // Status element uses class 'status-badge' in the row
+        var statusEl = row ? row.querySelector('.status-badge') : null;
+        var isVisible = !row || row.style.display !== 'none';
+        var isAvailable = false;
+        if (statusEl && statusEl.textContent) {
+            isAvailable = statusEl.textContent.toLowerCase().indexOf('available') !== -1;
+        }
+
+        if (isAvailable && isVisible) {
             checkboxes[i].checked = true;
         } else {
             checkboxes[i].checked = false;
@@ -414,26 +419,17 @@ function assignSelectedStudents() {
     return true;
 }
 
-// Function to toggle clear assignments mode
-function toggleClearAssignments() {
-    const clearInput = document.getElementById('clear_existing');
-    const clearBtn = document.getElementById('clearAssignmentsBtn');
-    const clearBtnText = document.getElementById('clearBtnText');
-    
-    if (clearInput.value === 'false') {
-        clearInput.value = 'true';
-        clearBtn.classList.remove('warning');
-        clearBtn.classList.add('danger');
-        clearBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
-        clearBtn.style.color = 'white';
-        clearBtnText.textContent = 'Clear First';
-    } else {
-        clearInput.value = 'false';
-        clearBtn.classList.remove('danger');
-        clearBtn.classList.add('warning');
-        clearBtn.style.background = 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)';
-        clearBtn.style.color = '#212529';
-        clearBtnText.textContent = 'Keep Existing';
+    // Unassign selected students button behaviour
+function setupUnassignButton() {
+    const unassignBtn = document.getElementById('unassignSelectedBtn');
+    const formAction = document.getElementById('form_action');
+    const assignForm = document.getElementById('assignForm');
+    if (unassignBtn && formAction && assignForm) {
+        unassignBtn.addEventListener('click', function () {
+            if (!confirm('Unassign selected students from this scenario? This will remove their access.')) return;
+            formAction.value = 'unassign';
+            assignForm.submit();
+        });
     }
 }
 
@@ -506,6 +502,8 @@ window.onload = function() {
     patientSelects.forEach(select => {
         select.addEventListener('change', updatePatientAvailability);
     });
+    // Initialize unassign button handler
+    setupUnassignButton();
     
     // Set up form submission handler
     var assignForm = document.getElementById('assignForm');
