@@ -34,7 +34,7 @@ def create_app():
 
     db.init_app(app)
 
-    # Create database tables on startup
+    # Create database tables on startup (only if they don't exist)
     with app.app_context():
         print(f"DEBUG: Flask startup - Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
         print(f"DEBUG: Flask startup - Database file exists: {os.path.exists(db_path)}")
@@ -45,9 +45,9 @@ def create_app():
             print(f"DEBUG: Flask startup - Users before create_all: {user_count_before}")
         except:
             print("DEBUG: Flask startup - Could not query users before create_all")
-        
-        db.create_all()
-        print(f"DEBUG: Database tables created at: {app.config['SQLALCHEMY_DATABASE_URI']}")
+            # If we can't query, create tables
+            db.create_all()
+            print(f"DEBUG: Database tables created at: {app.config['SQLALCHEMY_DATABASE_URI']}")
         
         # Check if database has users after creating tables
         try:
