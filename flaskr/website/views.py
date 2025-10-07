@@ -559,6 +559,34 @@ def teacher_dashboard():
     )
 
 
+@views.route('/submissions/<int:submission_id>/asl')
+@login_required
+def view_submission_asl(submission_id):
+    """View the ASL snapshot stored with a submission."""
+    submission = Submission.query.get_or_404(submission_id)
+
+    # Only the submitting student or the scenario's teacher should view this
+    # Get the owning student id via student_scenario
+    student_scenario = submission.student_scenario
+    if not student_scenario:
+        flash('Submission metadata is missing.', 'error')
+        return redirect(url_for('auth.home'))
+
+    # Teacher access
+    scenario = student_scenario.scenario
+    if current_user.is_teacher():
+        if scenario.teacher_id != current_user.id:
+            flash('You do not have permission to view this submission.', 'error')
+            return redirect(url_for('views.teacher_dashboard'))
+    else:
+        # Student access - only the student who submitted may view
+        if student_scenario.student_id != current_user.id:
+            flash('You do not have permission to view this submission.', 'error')
+            return redirect(url_for('views.student_dashboard'))
+
+    return render_template('views/submitted_asl.html', submission=submission)
+
+
 @views.route("/student/dashboard")
 @login_required
 def student_dashboard():
@@ -2870,8 +2898,7 @@ def submit_work(scenario_id, patient_id):
                     except Exception as e:
                         flash(f"Error uploading {file.filename}: {str(e)}", "error")
 
-        # Create submission
-        from .models import Submission
+    # Create submission
 
         # Get current ASL data for this patient
         asl_record = ASL.query.filter_by(patient_id=patient_id).first()
@@ -2934,11 +2961,24 @@ def submit_work(scenario_id, patient_id):
         return redirect(url_for("views.student_dashboard"))
 
     # GET request - show submission form
+    # Get current ASL record and previous submission snapshot (if any)
+    asl_record = ASL.query.filter_by(patient_id=patient_id).first()
+    previous_submission = Submission.query.filter_by(
+        student_scenario_id=student_scenario.id, patient_id=patient_id
+    ).first()
+
+    previous_asl = None
+    if previous_submission and previous_submission.submission_data:
+        previous_asl = previous_submission.submission_data.get("asl_record")
+
     return render_template(
         "views/submit_work.html",
         scenario=scenario,
         patient=patient,
         student_scenario=student_scenario,
+        asl_record=asl_record,
+        previous_asl=previous_asl,
+        previous_submission=previous_submission,
     )
 
 

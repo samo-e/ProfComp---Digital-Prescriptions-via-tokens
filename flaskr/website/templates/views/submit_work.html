@@ -53,15 +53,64 @@
                         </a>
                     </div>
 
+                    <!-- Previous Submission (if any) -->
+                    {% if previous_submission %}
+                    <div class="mb-4">
+                        <h5>Previous Submission</h5>
+                        <div class="card p-3">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>Notes</strong>
+                                    <div class="small text-muted">{{ previous_submission.notes or '(No notes)' }}</div>
+                                </div>
+                                <div class="text-end small text-muted">
+                                    {% if previous_submission.submitted_at %}
+                                        Submitted: {{ previous_submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <strong>Files</strong>
+                                {% if previous_submission.submission_data and previous_submission.submission_data.uploaded_files %}
+                                    <ul class="mb-0">
+                                        {% for f in previous_submission.submission_data.uploaded_files %}
+                                            <li><a href="{{ url_for('views.download_file', filename=f.stored_name) }}">{{ f.original_name }}</a></li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <div class="small text-muted">(No files)</div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <strong>ASL Snapshot</strong>
+                                {% if previous_submission.submission_data and previous_submission.submission_data.asl_record %}
+                                    {% set pasl = previous_submission.submission_data.asl_record %}
+                                    <ul class="mb-0 small text-muted">
+                                        <li>Carer: {{ pasl.carer_name or '(none)' }} {% if pasl.carer_relationship %}({{ pasl.carer_relationship }}){% endif %}</li>
+                                        <li>Notes: {{ pasl.notes or '(no notes)' }}</li>
+                                    </ul>
+                                    <div class="mt-2">
+                                        <a href="{{ url_for('views.view_submission_asl', submission_id=previous_submission.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i> View Submitted ASL
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="small text-muted">(No ASL snapshot)</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
                     <!-- Submission Form -->
                     {% if student_scenario.status in ['assigned', 'submitted'] %}
-                    <form method="POST" enctype="multipart/form-data">
+                    <form id="submitForm" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         
                         <div class="mb-4">
                             <label for="notes" class="form-label fw-medium">Submission Notes</label>
                             <textarea class="form-control" id="notes" name="notes" rows="4" 
-                                    placeholder="Add any notes about your work, decisions made, or explanations..."></textarea>
+                                    placeholder="Add any notes about your work, decisions made, or explanations...">{{ previous_submission.notes if previous_submission and previous_submission.notes else '' }}</textarea>
                             <div class="form-text">
                                 Explain your approach, any challenges faced, or reasoning behind your ASL modifications.
                             </div>
@@ -88,18 +137,14 @@
                             </div>
                         </div>
 
-                        <div class="alert alert-warning">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Important:</strong> When you submit, a snapshot of the current patient ASL data will be saved for grading. 
-                            Make sure you have completed all your work on the ASL form before submitting.
-                        </div>
+                        
 
                         <div class="d-flex justify-content-between">
                             <a href="{{ url_for('views.student_dashboard') }}" class="btn btn-secondary">
                                 <i class="bi bi-arrow-left"></i> Back to Dashboard
                             </a>
                             
-                            <button type="submit" id="submit-btn" class="btn btn-success">
+                            <button type="submit" class="btn btn-success" id="submitBtn">
                                 <i class="bi bi-send me-2"></i>
                                 {% if student_scenario.status == 'submitted' %}Resubmit Work{% else %}Submit Work{% endif %}
                             </button>
@@ -198,22 +243,90 @@ function removeFile(index) {
 }
 
 // Form validation
-document.querySelector('form').addEventListener('submit', function(e) {
+// Intercept submit to show confirmation modal with summary
+document.getElementById('submitForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
     const files = document.getElementById('pdf_file').files;
+    const notes = document.getElementById('notes').value.trim();
     const maxSize = 10 * 1024 * 1024; // 10MB
     let hasInvalidFile = false;
-    
+    let fileCount = files.length;
+    let fileDetails = [];
+
     Array.from(files).forEach(function(file) {
         if (file.size > maxSize) {
             hasInvalidFile = true;
         }
+        fileDetails.push({ name: file.name, size: (file.size / (1024*1024)).toFixed(2) + ' MB' });
     });
-    
+
     if (hasInvalidFile) {
-        e.preventDefault();
         alert('Some files are too large. Please remove files larger than 10MB before submitting.');
         return false;
     }
+
+    // Populate modal summary
+    const modalNotes = document.getElementById('confirm-notes');
+    const modalFileCount = document.getElementById('confirm-file-count');
+    const modalFileList = document.getElementById('confirm-file-list');
+
+    modalNotes.textContent = notes || '(No notes provided)';
+    modalFileCount.textContent = fileCount;
+    modalFileList.innerHTML = '';
+    if (fileCount > 0) {
+        fileDetails.forEach(f => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.innerHTML = `<span>${f.name}</span><small class="text-muted">${f.size}</small>`;
+            modalFileList.appendChild(li);
+        });
+    } else {
+        const li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.textContent = '(No files uploaded)';
+        modalFileList.appendChild(li);
+    }
+
+    // Show the Bootstrap modal
+    const confirmModalEl = document.getElementById('submitConfirmModal');
+    const bootstrapModal = new bootstrap.Modal(confirmModalEl);
+    bootstrapModal.show();
+
+    // When user confirms, submit the form
+    const confirmBtn = document.getElementById('confirmSubmitBtn');
+    const handler = function() {
+        // prevent multiple clicks
+        confirmBtn.disabled = true;
+        bootstrapModal.hide();
+        form.submit();
+        confirmBtn.removeEventListener('click', handler);
+    };
+    confirmBtn.addEventListener('click', handler);
+    return false;
 });
 </script>
+<!-- Confirmation Modal -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-labelledby="submitConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="submitConfirmModalLabel">Confirm Submission</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Please review what you are about to submit. A snapshot of the current ASL data will be saved for grading.</p>
+                <h6>Notes</h6>
+                <div class="card p-2 mb-3"><div id="confirm-notes"></div></div>
+                <h6>Files (<span id="confirm-file-count">0</span>)</h6>
+                <ul id="confirm-file-list" class="list-group mb-3"></ul>
+                <div class="alert alert-warning"><strong>Note:</strong> Submitting is final for this snapshot. You may resubmit later, but grading may reference the first submission.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmSubmitBtn" class="btn btn-primary">Yes, submit</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
