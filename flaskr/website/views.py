@@ -199,6 +199,22 @@ def assign_scenario(scenario_id):
         return redirect(url_for("views.teacher_dashboard"))
 
     if request.method == "POST":
+        # Check if we're handling individual patient assignments or unassign action
+        form_action = request.form.get('form_action', 'assign')
+        if form_action == 'unassign':
+            # Unassign selected students: remove StudentScenario and any ScenarioPatient mapping for them
+            student_ids = request.form.getlist('student_ids')
+            if student_ids:
+                for sid in student_ids:
+                    StudentScenario.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
+                    ScenarioPatient.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
+                db.session.commit()
+                flash(f"Unassigned {len(student_ids)} students from the scenario.", "success")
+            else:
+                flash("No students selected to unassign.", "warning")
+
+            return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+
         # Check if we're handling individual patient assignments
         assignments_data = {}
         for key, value in request.form.items():
