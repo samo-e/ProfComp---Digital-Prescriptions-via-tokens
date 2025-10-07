@@ -34,27 +34,20 @@ def create_app():
 
     db.init_app(app)
 
-    # Create database tables on startup (only if they don't exist)
+    # Database is already created by seeding process, just verify it exists
     with app.app_context():
         print(f"DEBUG: Flask startup - Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
         print(f"DEBUG: Flask startup - Database file exists: {os.path.exists(db_path)}")
         
-        # Check if database has users before creating tables
+        # Just check if we can query users (don't create tables)
         try:
-            user_count_before = User.query.count()
-            print(f"DEBUG: Flask startup - Users before create_all: {user_count_before}")
-        except:
-            print("DEBUG: Flask startup - Could not query users before create_all")
-            # If we can't query, create tables
+            user_count = User.query.count()
+            print(f"DEBUG: Flask startup - Users in database: {user_count}")
+        except Exception as e:
+            print(f"DEBUG: Flask startup - Could not query users: {e}")
+            # Only create tables if we absolutely can't query
             db.create_all()
             print(f"DEBUG: Database tables created at: {app.config['SQLALCHEMY_DATABASE_URI']}")
-        
-        # Check if database has users after creating tables
-        try:
-            user_count_after = User.query.count()
-            print(f"DEBUG: Flask startup - Users after create_all: {user_count_after}")
-        except:
-            print("DEBUG: Flask startup - Could not query users after create_all")
 
     # Initialize Flask-Login
     login_manager = LoginManager()
