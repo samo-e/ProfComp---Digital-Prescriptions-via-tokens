@@ -60,6 +60,7 @@ def create_app():
 
     GLOBALS = {
         "SHOW_PASSWORD_RESET_ON_LOGIN" : False,
+        "ENABLE_SCENARIO_PASSWORD_PROTECTION": False,
     }
     app.config["GLOBALS"] = GLOBALS
 

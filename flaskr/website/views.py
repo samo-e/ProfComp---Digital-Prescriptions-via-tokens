@@ -49,7 +49,7 @@ views = Blueprint("views", __name__)
 
 @views.context_processor
 def inject_globals():
-    return current_app["GLOBALS"]
+    return current_app.config["GLOBALS"]
 
 
 # Helper decorator to require teacher role
