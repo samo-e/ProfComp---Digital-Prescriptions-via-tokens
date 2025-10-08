@@ -81,9 +81,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="mb-3">
                 <label for="description" class="form-label">Scenario Description:</label>
-                <textarea class="form-control" id="description" name="description" rows="3" 
-                          placeholder="Enter a description for this scenario...">{{ scenario.description or '' }}</textarea>
-                <div class="form-text">Provide context and background information for students about this scenario.</div>
+                <textarea class="form-control" id="description" name="description" rows="3"
+                    maxlength="5000"
+                    placeholder="Enter a description for this scenario...">{{ scenario.description or '' }}</textarea>
+                <div class="form-text">Provide context and background information for students about this scenario. Maximum 5000 characters.</div>
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save Description</button>
