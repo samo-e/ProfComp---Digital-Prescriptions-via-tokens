@@ -47,7 +47,7 @@
                     <div id="name-edit" class="flex-grow-1 d-none">
                         <form method="POST" action="{{ url_for('views.update_scenario_name', scenario_id=scenario.id) }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <input type="text" class="form-control mw-100" name="scenario_name" value="{{ scenario.name }}" required>
+                            <input type="text" class="form-control mw-100" name="scenario_name" value="{{ scenario.name }}" required maxlength="100">
                             <button type="submit" class="btn btn-sm btn-success">Save</button>
                             <button type="button" class="btn btn-sm btn-secondary" onclick="cancelNameEdit()">Cancel</button>
                         </form>
