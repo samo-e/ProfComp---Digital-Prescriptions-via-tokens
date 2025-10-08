@@ -13,90 +13,34 @@
     <header class="mb-4 d-flex align-items-center">
     <div>
       <h1 class="h3 mb-1">Active Script List (ASL) — Patient Data Form</h1>
-      <p class="text-muted mb-0">Complete all required fields. Dates use DD/MM/YYYY format.</p>
+      <p class="text-muted mb-0">Complete all required fields. Fields marked with <span class="text-danger">*</span> are required.</p>
     </div>
-    <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary ms-auto d-none d-md-flex">
-      <i class="bi bi-arrow-left"></i>
-      {% if user_role == "teacher" %}
-          Back to Patient Dashboard
-      {% else %}
-          Back to Student Dashboard
-      {% endif %}
-    </a>
     </header>
 
-    <form class="needs-validation" method="POST" action="{{ url_for('views.asl_form', patient_id=patient.id) }}" novalidate>
+    <!-- ===== FORM ===== -->
+    <form method="POST" class="needs-validation" novalidate>
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <!-- Consent Status -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Consent Status</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label class="form-label required" for="isRegistered">Is Registered</label>
-                <select class="form-select" id="isRegistered" name="pt_data[consent-status][is-registered]" required>
-                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['is-registered'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option value="true" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'true' %}selected{% endif %}>True</option>
-                  <option value="false" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'false' %}selected{% endif %}>False</option>
-                </select>
-              </div>
-              <div class="col-md-5">
-                <label class="form-label required" for="consentStatus">Status</label>
-                <select class="form-select" id="consentStatus" name="pt_data[consent-status][status]" required>
-                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['status'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'No Consent' %}selected{% endif %}>No Consent</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Pending' %}selected{% endif %}>Pending</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Granted' %}selected{% endif %}>Granted</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Rejected' %}selected{% endif %}>Rejected</option>
-                </select>
-                <div class="help-text">When not "No Consent", include Last Updated.</div>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label" for="lastUpdated">Last Updated</label>
-                <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" value="{{ pt_data['consent-status']['last-updated'] if pt_data and pt_data['consent-status'] and pt_data['consent-status']['last-updated'] else '' }}" />
-              </div>
-            </div>
-          </fieldset>
+
+      <!-- ASL Items -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h4 mb-0">ASL Prescription Items</h2>
+          <button type="button" id="add-asl-item" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add ASL Item
+          </button>
         </div>
+        <div id="asl-items"></div>
       </div>
 
-      <!-- ASL Prescriptions -->
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="section-title mb-0">ASL Prescriptions</h2>
-            <span class="badge rounded-pill muted-badge">Array: asl-data</span>
-          </div>
-          <p class="text-muted mb-3">Add one or more ASL prescription items.</p>
-
-          <div id="asl-items" class="d-grid gap-3"></div>
-
-          <div class="mt-2">
-            <button type="button" class="btn btn-outline-primary" id="add-asl-item">
-              + Add ASL Prescription
-            </button>
-          </div>
+      <!-- ALR Items -->
+      <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h2 class="h4 mb-0">ALR (Available Local Repeats) Items</h2>
+          <button type="button" id="add-alr-item" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add ALR Item
+          </button>
         </div>
-      </div>
-
-      <!-- ALR Prescriptions -->
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="section-title mb-0">ALR Prescriptions</h2>
-            <span class="badge rounded-pill muted-badge">Array: alr-data</span>
-          </div>
-          <p class="text-muted mb-3">Add one or more ALR prescription items.</p>
-
-          <div id="alr-items" class="d-grid gap-3"></div>
-
-          <div class="mt-2">
-            <button type="button" class="btn btn-outline-primary" id="add-alr-item">
-              + Add ALR Prescription
-            </button>
-          </div>
-        </div>
+        <div id="alr-items"></div>
       </div>
 
       <!-- Submit -->
@@ -122,30 +66,30 @@
           </div>
           <div class="col-md-4">
             <label class="form-label required">DSPID</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][DSPID]" placeholder="MPK00009002011563" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][DSPID]" placeholder="MPK00009002011563" maxlength="50" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Status</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][status]" placeholder="Available" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][status]" placeholder="Available" maxlength="50" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescribed-date]" placeholder="10/06/2021" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescribed-date]" placeholder="10/06/2021" maxlength="10" required />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[asl-data][__INDEX__][drug-name]" placeholder="Coversyl 5mg tablet, 30 5 mg 30 Tablets" required></textarea>
+            <textarea class="form-control" rows="2" name="pt_data[asl-data][__INDEX__][drug-name]" placeholder="Coversyl 5mg tablet, 30 5 mg 30 Tablets" maxlength="200" required></textarea>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][drug-code]" placeholder="9007C" required />
-            <div class="help-text">4–5 alphanumeric chars.</div>
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][drug-code]" placeholder="9007C" maxlength="10" required />
+            <div class="help-text">4–6 alphanumeric chars.</div>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][dose-instr]" placeholder="ONCE A DAY" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][dose-instr]" placeholder="ONCE A DAY" maxlength="200" required />
           </div>
 
           <div class="col-md-3">
@@ -180,22 +124,25 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fname]" placeholder="Phillip" maxlength="50" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][lname]" placeholder="Davis" maxlength="50" required />
           </div>
           <div class="col-md-6">
             <label class="form-label">Title / Qualifications</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" maxlength="100" />
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" maxlength="100" required />
           </div>
-          <div class="col-md-6"></div>
+          <div class="col-md-6">
+            <label class="form-label required">Address Line 2</label>
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" maxlength="100" required />
+          </div>
 
           <div class="col-md-3">
             <label class="form-label required">Prescriber ID</label>
@@ -203,26 +150,26 @@
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" maxlength="16" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" maxlength="16" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
+            <input type="tel" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" maxlength="20" required />
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Fax (optional)</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
+            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fax]" placeholder="(optional)" maxlength="20" />
           </div>
         </div>
       </div>
     </div>
   </template>
-
+  
   <template id="alr-item-template">
     <div class="card item-card">
       <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-action="remove">Remove</button>
@@ -235,20 +182,20 @@
           </div>
           <div class="col-md-4">
             <label class="form-label">DSPID (optional)</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][DSPID]" placeholder="(optional, usually null)" />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][DSPID]" placeholder="(optional, usually null)" maxlength="50" />
           </div>
           <div class="col-md-6">
             <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[alr-data][__INDEX__][drug-name]" placeholder="Levlen ED Tablets, 150mcg-30mcg(28)" required></textarea>
+            <textarea class="form-control" rows="2" name="pt_data[alr-data][__INDEX__][drug-name]" placeholder="Levlen ED Tablets, 150mcg-30mcg(28)" maxlength="200" required></textarea>
           </div>
 
           <div class="col-md-3">
             <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][drug-code]" placeholder="1394J" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][drug-code]" placeholder="1394J" maxlength="10" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dose-instr]" placeholder="ONCE DAILY" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dose-instr]" placeholder="ONCE DAILY" maxlength="200" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dose Qty</label>
@@ -265,12 +212,12 @@
           </div>
           <div class="col-md-3">
             <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescribed-date]" placeholder="05/07/2021" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescribed-date]" placeholder="05/07/2021" maxlength="10" required />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
           <div class="col-md-3">
             <label class="form-label required">Dispensed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dispensed-date]" placeholder="05/07/2021" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dispensed-date]" placeholder="05/07/2021" maxlength="10" required />
             <div class="help-text">DD/MM/YYYY</div>
           </div>
           <div class="col-md-3">
@@ -298,24 +245,24 @@
         <div class="row g-3">
           <div class="col-md-3">
             <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fname]" placeholder="Phillip" maxlength="50" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][lname]" placeholder="Davis" maxlength="50" required />
           </div>
           <div class="col-md-6">
             <label class="form-label">Title / Qualifications</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" maxlength="100" />
           </div>
 
           <div class="col-md-6">
             <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" maxlength="100" required />
           </div>
           <div class="col-md-6">
             <label class="form-label required">Address Line 2</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" required />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" maxlength="100" required />
           </div>
 
           <div class="col-md-3">
@@ -324,20 +271,20 @@
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" maxlength="16" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
+            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" maxlength="16" required />
           </div>
           <div class="col-md-3">
             <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
+            <input type="tel" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" maxlength="20" required />
           </div>
 
           <div class="col-md-6">
             <label class="form-label">Fax (optional)</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
+            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fax]" placeholder="(optional)" maxlength="20" />
           </div>
         </div>
       </div>
@@ -462,56 +409,6 @@
         console.log('No existing ALR data found, adding empty form');
         addItem(alrContainer, alrTemplate);
       }
-
-      
     })();
   </script>
-
-  <script>
-  (function () {
-    const form = document.querySelector("form.needs-validation");
-    console.log("form element:", form); 
-  
-    function assignNested(obj, path, value) {
-      let cur = obj;
-      for (let i = 0; i < path.length - 1; i++) {
-        const k = path[i];
-        if (!(k in cur)) cur[k] = /^\d+$/.test(path[i + 1]) ? [] : {};
-        cur = cur[k];
-      }
-      const last = path[path.length - 1];
-      if (Array.isArray(cur)) {
-        cur[parseInt(last, 10)] = value;
-      } else {
-        cur[last] = value;
-      }
-    }
-  
-    function formDataToNestedJSON(form) {
-      const fd = new FormData(form);
-      const out = {};
-      for (const [name, value] of fd.entries()) {
-        const parts = name.replace(/\]/g, "").split("["); 
-        assignNested(out, parts, value);
-      }
-      return out.pt_data || out;
-    }
-  
-    form.addEventListener("submit", function (e) {
-      console.log("submit handler triggered"); 
-      
-      // Bootstrap validation
-      if (!form.checkValidity()) {
-        e.preventDefault();
-        e.stopPropagation();
-        form.classList.add("was-validated");
-        return;
-      }
-      
-      // Allow normal form submission to Flask route
-      console.log("Form is valid, submitting to Flask route");
-    });
-  })();
-</script>
-
 {% endblock %}
