@@ -1,8 +1,3 @@
-/**
- * ASL Export Functionality
- * Handles CSV export of selected prescriptions
- */
-
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     initializeExportFunctionality();
