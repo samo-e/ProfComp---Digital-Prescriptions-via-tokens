@@ -825,7 +825,7 @@ def student_dashboard():
 
         # Get submission status
         submissions = (
-            Submission.query.filter_by(student_scenario_id=ss.id).all()
+            Submission.query.filter_by(student_scenario_id=ss.id).order_by(Submission.submitted_at.desc()).all()
             if assigned_patient
             else []
         )
@@ -971,6 +971,35 @@ def student_management():
         traceback.print_exc()
         flash(f"Error loading student management: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/student/marked")
+@login_required
+def student_marked():
+    """Show the logged-in student's graded scenarios that have been published by the teacher."""
+    if current_user.is_teacher():
+        return redirect(url_for('views.teacher_dashboard'))
+
+    # Find all StudentScenario rows for this student that are graded and either the scenario is published or the student_scenario is published
+    sss = (
+        StudentScenario.query
+        .join(Scenario)
+        .filter(StudentScenario.student_id == current_user.id)
+        .filter(StudentScenario.status == 'graded')
+        .filter(
+            (Scenario.grades_published == True) | (StudentScenario.grade_published == True)
+        )
+        .all()
+    )
+
+    results = []
+    for ss in sss:
+        scenario = ss.scenario
+        # latest submission for this student_scenario
+        latest = Submission.query.filter_by(student_scenario_id=ss.id).order_by(Submission.submitted_at.desc()).first()
+        results.append({'student_scenario': ss, 'scenario': scenario, 'latest': latest})
+
+    return render_template('views/student_marked.html', results=results)
 
 
 @views.route("/students/add", methods=["POST"])
@@ -3304,8 +3333,41 @@ def view_submissions(scenario_id):
         flash("You can only view submissions for your own scenarios.", "error")
         return redirect(url_for("views.teacher_dash"))
 
+    # Optional status filter from query string (all, graded, ungraded, launched, unlaunched)
+    status_filter = request.args.get('status')
+    # Optional submission presence filter (submitted, unsubmitted, all)
+    submission_filter = request.args.get('submitted')
+
     # Get all student scenarios with submissions
-    student_scenarios = StudentScenario.query.filter_by(scenario_id=scenario_id).all()
+    student_scenarios_q = StudentScenario.query.filter_by(scenario_id=scenario_id)
+
+    if status_filter and status_filter != 'all':
+        if status_filter == 'graded':
+            student_scenarios_q = student_scenarios_q.filter(StudentScenario.status == 'graded')
+        elif status_filter == 'ungraded':
+            # not graded -> any status except 'graded'
+            student_scenarios_q = student_scenarios_q.filter(StudentScenario.status != 'graded')
+        elif status_filter == 'launched':
+            # If the scenario itself has grades_published=True then all are launched;
+            # otherwise filter student_scenario.grade_published == True
+            if scenario.grades_published:
+                # no additional filter (all student_scenarios are effectively launched)
+                pass
+            else:
+                student_scenarios_q = student_scenarios_q.filter(StudentScenario.grade_published == True)
+        elif status_filter == 'unlaunched':
+            # If the scenario has grades_published=True then none are unlaunched;
+            # otherwise include student_scenarios where grade_published is False or NULL
+            if scenario.grades_published:
+                # make query return no rows
+                student_scenarios_q = student_scenarios_q.filter(False)
+            else:
+                student_scenarios_q = student_scenarios_q.filter(
+                    (StudentScenario.grade_published == False) | (StudentScenario.grade_published == None)
+                )
+
+    # Evaluate the query
+    student_scenarios = student_scenarios_q.all()
 
     submissions_data = []
     for ss in student_scenarios:
@@ -3318,15 +3380,117 @@ def view_submissions(scenario_id):
         )
         submissions = [latest] if latest else []
 
+        # Apply submission presence filter if provided
+        if submission_filter and submission_filter != 'all':
+            if submission_filter == 'submitted' and not latest:
+                continue
+            if submission_filter == 'unsubmitted' and latest:
+                continue
+
         submissions_data.append(
             {"student_scenario": ss, "student": student, "submissions": submissions}
         )
 
+    form = EmptyForm()
     return render_template(
         "views/scenario_submissions.html",
         scenario=scenario,
         submissions_data=submissions_data,
+        form=form,
     )
+
+
+@views.route("/scenarios/<int:scenario_id>/publish_grades", methods=["POST"])
+@teacher_required
+def publish_grades(scenario_id):
+    """Teacher publishes grades for a scenario (makes them visible to students)"""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    if scenario.teacher_id != current_user.id:
+        flash("You can only publish grades for your own scenarios.", "error")
+        return redirect(url_for('views.teacher_dashboard'))
+
+    # set the flag and commit
+    scenario.grades_published = True
+    db.session.commit()
+    flash("Grades published: students can now see their grades.", "success")
+    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+
+@views.route("/scenarios/<int:scenario_id>/publish_selected_grades", methods=["POST"])
+@teacher_required
+def publish_selected_grades(scenario_id):
+    """Publish grades only for selected student_scenario ids provided by the teacher."""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    if scenario.teacher_id != current_user.id:
+        flash("You can only publish grades for your own scenarios.", "error")
+        return redirect(url_for('views.teacher_dashboard'))
+
+    # Expect a comma-separated list of student_scenario ids in the form field 'selected_ids'
+    selected = request.form.get('selected_ids', '')
+    if not selected:
+        flash('No students selected for publishing.', 'error')
+        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+    try:
+        ids = [int(x) for x in selected.split(',') if x.strip()]
+    except Exception:
+        flash('Invalid selection.', 'error')
+        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+    # Update each StudentScenario to mark their grade as published (we'll store flag on StudentScenario)
+    from .models import StudentScenario
+    updated = 0
+    for ss_id in ids:
+        ss = StudentScenario.query.get(ss_id)
+        if ss and ss.scenario_id == scenario.id:
+            ss.grade_published = True
+            updated += 1
+
+    # Optionally: if every graded student was selected, or teacher wants global publish, keep scenario flag
+    if updated > 0:
+        db.session.commit()
+        flash(f'Published grades for {updated} student(s).', 'success')
+    else:
+        flash('No matching students found to publish.', 'error')
+
+    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+
+@views.route("/scenarios/<int:scenario_id>/unpublish_selected_grades", methods=["POST"])
+@teacher_required
+def unpublish_selected_grades(scenario_id):
+    """Unpublish grades for selected student_scenario ids provided by the teacher."""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    if scenario.teacher_id != current_user.id:
+        flash("You can only unpublish grades for your own scenarios.", "error")
+        return redirect(url_for('views.teacher_dashboard'))
+
+    selected = request.form.get('selected_ids', '')
+    if not selected:
+        flash('No students selected for unpublishing.', 'error')
+        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+    try:
+        ids = [int(x) for x in selected.split(',') if x.strip()]
+    except Exception:
+        flash('Invalid selection.', 'error')
+        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+
+    from .models import StudentScenario
+    updated = 0
+    for ss_id in ids:
+        ss = StudentScenario.query.get(ss_id)
+        if ss and ss.scenario_id == scenario.id:
+            ss.grade_published = False
+            updated += 1
+
+    if updated > 0:
+        db.session.commit()
+        flash(f'Unpublished grades for {updated} student(s).', 'success')
+    else:
+        flash('No matching students found to unpublish.', 'error')
+
+    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
 
 
 @views.route("/submissions/<int:submission_id>/grade", methods=["GET", "POST"])

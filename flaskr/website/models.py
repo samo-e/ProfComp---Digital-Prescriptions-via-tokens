@@ -116,6 +116,8 @@ class Scenario(db.Model):
     default_assignment_condition = db.Column(db.String(20), default="assignment")
     default_exam_start = db.Column(db.DateTime, nullable=True)
     default_exam_end = db.Column(db.DateTime, nullable=True)
+    # When true, graded scores/feedback are visible to students
+    grades_published = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f"<Scenario {self.name} v{self.version}>"
@@ -140,6 +142,8 @@ class StudentScenario(db.Model):
     # Optional exam scheduling
     exam_start = db.Column(db.DateTime, nullable=True)
     exam_end = db.Column(db.DateTime, nullable=True)
+    # Whether this student's grade has been published (visible to the student)
+    grade_published = db.Column(db.Boolean, default=False)
 
     # Relationships
     student = db.relationship("User", foreign_keys=[student_id], overlaps="assigned_scenarios,assigned_students")
