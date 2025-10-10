@@ -24,7 +24,7 @@ $(document).ready(function () {
     // Re-index all items
     indexItems($container);
 
-    // Expand added items
+    // Expand added item
     const $collapse = $item.find(".accordion-collapse");
     const $button = $item.find(".accordion-button").first();
 
@@ -38,6 +38,7 @@ $(document).ready(function () {
 
     // Dirty form
     $("#asl-form").trigger("dirty");
+    unhideUnsavedChanges($item);
   }
 
   // Add ASL
@@ -119,14 +120,18 @@ $(document).ready(function () {
     $("#asl-form").trigger("dirty");
   });
 
-  // Unsaved changes indicator
-  $(document).on("input change", ".item-card :input", function () {
-    const $card = $(this).closest(".item-card");
+  function unhideUnsavedChanges(elem) {
+    const $card = elem.closest(".item-card");
 
     const $unsaved = $card.find(".accordion-button .unsaved-changes").first();
     if ($unsaved.length) {
       $unsaved.removeClass("invisible");
     }
+  }
+
+  // Unsaved changes indicator
+  $(document).on("input change", ".item-card :input", function () {
+    unhideUnsavedChanges($(this));
   });
 
   // Form validation
