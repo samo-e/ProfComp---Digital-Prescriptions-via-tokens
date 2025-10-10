@@ -2,6 +2,10 @@
 
 {% block title %}Submit Work - {{ scenario.name }}{% endblock %}
 
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/submit_work.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
 <div class="container-fluid py-4">
@@ -44,53 +48,44 @@
                         {% endif %}
                     </div>
 
-                    
-
-                    <!-- Quick Access to Patient ASL -->
-                    <div class="my-4">
-                        <a href="{{ url_for('views.asl', pt=patient.id) }}" class="btn btn-outline-info">
-                            <i class="bi bi-file-medical me-1"></i> View ASL
+                    <div class="mt-4">
+                        <a href="{{ url_for('views.asl', pt=patient.id) }}" class="btn btn-info">
+                            <i class="bi bi-file-medical me-2"></i>
+                            Review Patient ASL
                         </a>
                     </div>
 
                     <!-- Submission Form -->
-                    {% if student_scenario.status in ['assigned', 'submitted'] %}
-                    <form method="POST" enctype="multipart/form-data">
+                    {% if student_scenario.status != 'graded' %}
+                    <form method="POST" enctype="multipart/form-data" class="mt-4">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         
-                        <div class="mb-4">
-                            <label for="notes" class="form-label fw-medium">Submission Notes</label>
-                            <textarea class="form-control" id="notes" name="notes" rows="4" 
-                                    placeholder="Add any notes about your work, decisions made, or explanations..."></textarea>
+                        <div class="mb-3">
+                            <label for="notes" class="form-label fw-bold">Your Work Submission:</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="8" 
+                                      placeholder="Describe your approach, findings, and any challenges you encountered...">{{ student_scenario.notes or '' }}</textarea>
                             <div class="form-text">
-                                Explain your approach, any challenges faced, or reasoning behind your ASL modifications.
+                                Explain your approach to the scenario, what you learned, and any challenges you faced.
                             </div>
                         </div>
 
-                        <!-- PDF Upload Section -->
-                        <div class="mb-4">
-                            <label for="pdf_file" class="form-label fw-medium">
-                                <i class="bi bi-file-earmark-pdf me-2"></i>Upload Supporting Documents (Optional)
-                            </label>
+                        <div class="mb-3">
+                            <label for="pdf_file" class="form-label fw-bold">Upload Supporting Documents (Optional):</label>
                             <input type="file" class="form-control" id="pdf_file" name="pdf_file" 
                                    accept=".pdf,.doc,.docx,.txt" multiple>
                             <div class="form-text">
-                                Upload any supporting documents such as research notes, references, or additional analysis. 
-                                Accepted formats: PDF, Word documents, or text files. Maximum size: 10MB per file.
+                                Upload PDFs, Word documents, or text files. Max 10MB per file.
                             </div>
                             
-                            <!-- File preview area -->
+                            <!-- File Preview -->
                             <div id="file-preview" class="mt-3 d-none">
-                                <h6 class="fw-medium">Selected Files:</h6>
-                                <ul id="file-list" class="list-group">
-                                    <!-- Files will be listed here -->
-                                </ul>
+                                <h6>Selected Files:</h6>
+                                <ul id="file-list" class="list-group"></ul>
                             </div>
                         </div>
 
-                        <div class="alert alert-warning">
+                        <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            <strong>Important:</strong> When you submit, a snapshot of the current patient ASL data will be saved for grading. 
                             Make sure you have completed all your work on the ASL form before submitting.
                         </div>
 
@@ -105,6 +100,49 @@
                             </button>
                         </div>
                     </form>
+                    
+                    <!-- Previous Submissions -->
+                    <div class="mt-4">
+                        <h5>Previous Submissions</h5>
+                        {% if previous_submissions and previous_submissions|length > 0 %}
+                        <ul class="list-group">
+                            {% for sub in previous_submissions %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div><strong>Submitted:</strong> {{ sub.submitted_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                                        <div class="mt-2"><strong>ASL Note:</strong>
+                                            {% set asl_note = (sub.submission_data.asl_record.notes if sub.submission_data and sub.submission_data.asl_record and sub.submission_data.asl_record.notes else None) %}
+                                            {% if asl_note %}
+                                                <div class="text-muted small">{{ asl_note }}</div>
+                                            {% elif sub.notes %}
+                                                <div class="text-muted small">{{ sub.notes|truncate(120) }}</div>
+                                            {% else %}
+                                                <div class="text-muted small">(no notes)</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <a href="{{ url_for('views.view_submission', submission_id=sub.id) }}" class="btn btn-sm btn-outline-primary">View ASL</a>
+                                    </div>
+                                </div>
+                                {% if sub.submission_data and sub.submission_data.uploaded_files %}
+                                    <div class="mt-3">
+                                        <strong>Attachments:</strong>
+                                        <div class="mt-1">
+                                            {% for f in sub.submission_data.uploaded_files %}
+                                                <a href="{{ url_for('views.download_file', filename=f.stored_name) }}" class="btn btn-sm btn-outline-secondary me-1 mb-1">{{ f.original_name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                            <p class="text-muted">No previous submissions.</p>
+                        {% endif %}
+                    </div>
                     {% else %}
                     <div class="alert alert-success">
                         <h6>Work Completed</h6>
@@ -128,92 +166,4 @@
     </div>
 </div>
 </div>
-
-<script>
-// File upload preview and validation
-document.getElementById('pdf_file').addEventListener('change', function(e) {
-    const files = e.target.files;
-    const filePreview = document.getElementById('file-preview');
-    const fileList = document.getElementById('file-list');
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-    
-    // Clear previous list
-    fileList.innerHTML = '';
-    
-    if (files.length > 0) {
-        $(filePreview).removeClass('d-none');
-        
-        Array.from(files).forEach(function(file, index) {
-            const listItem = document.createElement('li');
-            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
-            
-            // Validate file size
-            const isValidSize = file.size <= maxSize;
-            const sizeText = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-            
-            // Get file icon based on type
-            let icon = 'bi-file-earmark';
-            if (file.type.includes('pdf')) {
-                icon = 'bi-file-earmark-pdf text-danger';
-            } else if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) {
-                icon = 'bi-file-earmark-word text-primary';
-            } else if (file.type.includes('text')) {
-                icon = 'bi-file-earmark-text text-info';
-            }
-            
-            listItem.innerHTML = `
-                <div>
-                    <i class="bi ${icon} me-2"></i>
-                    <span class="${isValidSize ? '' : 'text-danger'}">${file.name}</span>
-                    <small class="text-muted ms-2">(${sizeText})</small>
-                    ${!isValidSize ? '<br><small class="text-danger">File too large - maximum 10MB</small>' : ''}
-                </div>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFile(${index})">
-                    <i class="bi bi-x"></i>
-                </button>
-            `;
-            
-            fileList.appendChild(listItem);
-        });
-    } else {
-        filePreview.style.display = 'none';
-    }
-});
-
-function removeFile(index) {
-    const fileInput = document.getElementById('pdf_file');
-    const dt = new DataTransfer();
-    
-    // Add all files except the one to remove
-    Array.from(fileInput.files).forEach((file, i) => {
-        if (i !== index) {
-            dt.items.add(file);
-        }
-    });
-    
-    fileInput.files = dt.files;
-    
-    // Trigger change event to update preview
-    fileInput.dispatchEvent(new Event('change'));
-}
-
-// Form validation
-document.querySelector('form').addEventListener('submit', function(e) {
-    const files = document.getElementById('pdf_file').files;
-    const maxSize = 10 * 1024 * 1024; // 10MB
-    let hasInvalidFile = false;
-    
-    Array.from(files).forEach(function(file) {
-        if (file.size > maxSize) {
-            hasInvalidFile = true;
-        }
-    });
-    
-    if (hasInvalidFile) {
-        e.preventDefault();
-        alert('Some files are too large. Please remove files larger than 10MB before submitting.');
-        return false;
-    }
-});
-</script>
 {% endblock %}
