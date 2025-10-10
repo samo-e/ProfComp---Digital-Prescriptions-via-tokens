@@ -29,6 +29,18 @@
         {% endif %}
     {% endwith %}
 
+    <!-- Export Students Button Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-end">
+                <a href="{{ url_for('views.export_student_list') }}" 
+                   class="btn btn-success">
+                    <i class="bi bi-file-earmark-spreadsheet me-2"></i>Export All Students
+                </a>
+            </div>
+        </div>
+    </div>
+
     <!-- Stats Cards -->
     <div class="row g-4 mb-4">
         <!-- Total Scenarios Card -->
@@ -55,7 +67,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Total Students Card -->
         <div class="col-lg-4 col-md-6">
             <div class="card stats-card bg-success text-white h-100">
@@ -71,16 +83,16 @@
                     </div>
                     <div class="mt-auto">
                         <a href="{{ url_for('views.student_management') }}" class="btn btn-light btn-sm w-100 action-btn">
-                            <i class="bi bi-person-plus me-2"></i>Manage Students
+                            <i class="bi bi-gear me-2"></i>Manage Students
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-        
+
         <!-- Total Patients Card -->
         <div class="col-lg-4 col-md-6">
-            <div class="card stats-card bg-warning text-white h-100">
+            <div class="card stats-card bg-info text-white h-100">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
@@ -88,12 +100,12 @@
                             <h2 class="mb-0 fw-bold">{{ total_patients }}</h2>
                         </div>
                         <div>
-                            <i class="bi bi-person-badge fs-1 opacity-75"></i>
+                            <i class="bi bi-person-plus fs-1 opacity-75"></i>
                         </div>
                     </div>
                     <div class="mt-auto">
                         <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-light btn-sm w-100 action-btn">
-                            <i class="bi bi-people me-2"></i>Manage Patients
+                            <i class="bi bi-plus-circle me-2"></i>Manage Patients
                         </a>
                     </div>
                 </div>
@@ -101,7 +113,7 @@
         </div>
     </div>
 
-    <!-- Scenarios List -->
+    <!-- Scenarios Table -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -209,21 +221,29 @@
                                                 <small class="text-dark">Graded</small>
                                             </div>
                                         </td>
-                                        <td class="border-0 align-middle">
-                                            <div class="btn-group d-flex gap-1 justify-content-center" role="group">
+                                        <td class="border-0 align-middle text-center">
+                                            <div class="action-buttons">
                                                 <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
-                                                   class="btn btn-sm btn-outline-primary" title="View Details">
+                                                   class="btn btn-sm btn-outline-primary btn-action" 
+                                                   title="View Scenario">
                                                     <i class="bi bi-eye"></i>
                                                 </a>
-                                                <a href="{{ url_for('views.assign_students', scenario_id=scenario.id) }}" 
-                                                   class="btn btn-sm btn-outline-success" title="Assign Students">
+                                                <a href="{{ url_for('views.edit_scenario', scenario_id=scenario.id) }}" 
+                                                   class="btn btn-sm btn-outline-secondary btn-action" 
+                                                   title="Edit Scenario">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" 
+                                                   class="btn btn-sm btn-outline-success btn-action" 
+                                                   title="Assign Students">
                                                     <i class="bi bi-person-plus"></i>
                                                 </a>
-                                                <form id="delete-form-{{ scenario.id }}" method="POST" 
-                                                      action="{{ url_for('views.archive_scenario', scenario_id=scenario.id) }}" class="d-inline">
+                                                <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" style="display: inline;">
                                                     {{ delete_form.hidden_tag() }}
-                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-btn" 
-                                                            data-scenario-id="{{ scenario.id }}" title="Archive Scenario">
+                                                    <button type="submit" 
+                                                            class="btn btn-sm btn-outline-danger btn-action delete-scenario-btn" 
+                                                            onclick="return confirm('Are you sure you want to archive this scenario?')" 
+                                                            title="Archive Scenario">
                                                         <i class="bi bi-archive"></i>
                                                     </button>
                                                 </form>
@@ -258,11 +278,6 @@
             <div class="row mt-3">
                 <div class="col-12 d-flex justify-content-between">
                     <div>
-                        {% if ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD %}
-                        <button class="btn btn-outline-secondary" id="bulk-export">
-                            <i class="bi bi-download"></i> Export Selected
-                        </button>
-                        {% endif %}
                         <button class="btn btn-danger ms-2" id="bulk-delete">
                             <i class="bi bi-archive"></i> Archive Selected
                         </button>
