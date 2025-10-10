@@ -1173,27 +1173,24 @@ def asl(pt: int):
         if can_view_asl:
             # Get ALL prescriptions for ASL display (not just available ones)
             # For ASL items - we distinguish them from ALR by having a non-minimal prescriber
+            # ASL prescriptions
             asl_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
                     Prescription.patient_id == pt,
-                    Prescriber.fname != "ALR",  # Exclude ALR placeholder prescribers
+                    Prescription.DSPID == "asl",  # filter by DSPID
                 )
                 .all()
             )
 
-            # For ALR items - these have the placeholder ALR prescriber or have remaining repeats
+            # ALR prescriptions
             alr_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
                     Prescription.patient_id == pt,
-                    db.or_(
-                        Prescriber.fname == "ALR",  # ALR placeholder prescribers
-                        Prescription.remaining_repeats
-                        > 0,  # Or prescriptions with remaining repeats
-                    ),
+                    Prescription.DSPID == "alr",  # filter by DSPID
                 )
                 .all()
             )
@@ -1229,7 +1226,7 @@ def asl(pt: int):
         for prescription, prescriber in asl_prescriptions:
             asl_item = {
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "status": prescription.get_status().name.title(),
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
@@ -1258,7 +1255,7 @@ def asl(pt: int):
         for prescription, prescriber in alr_prescriptions:
             alr_item = {
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
                 "dose-instr": prescription.dose_instr,
@@ -1547,7 +1544,7 @@ def print_selected_prescriptions():
                 "pbs": patient.pbs,
                 "rpbs": patient.rpbs,
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "status": prescription.get_status().name.title(),
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
@@ -2383,7 +2380,7 @@ def asl_form(patient_id):
                 "prescriber": prescriber_data,
             }
 
-            if getattr(prescription, "remaining_repeats", None) is not None:
+            if getattr(prescription, "DSPID", "asl") != "asl":
                 data["alr_creations"].append(presc_data)
             else:
                 data["asl_creations"].append(presc_data)
@@ -2404,7 +2401,10 @@ def asl_form(patient_id):
             ASL.query.filter_by(patient_id=patient_id).delete()
             Prescription.query.filter_by(patient_id=patient_id).delete()
 
-            for subform in form.asl_creations.entries + form.alr_creations.entries:
+            for subform, presc_type in (
+                *( (sf, "asl") for sf in form.asl_creations.entries ),
+                *( (sf, "alr") for sf in form.alr_creations.entries )
+            ):
                 presc_data = dict(subform.data)
                 prescriber_data = presc_data.pop("prescriber", {})
 
@@ -2424,27 +2424,25 @@ def asl_form(patient_id):
                     if bool_field in presc_data:
                         presc_data[bool_field] = presc_data[bool_field] == "true"
 
+                print("Prescription data:", presc_data)
                 prescription = Prescription(
-                    patient_id=patient_id, prescriber_id=prescriber.id, **presc_data
+                    patient_id=patient_id,
+                    prescriber_id=prescriber.id,
+                    DSPID=presc_type,
+                    **presc_data
                 )
                 db.session.add(prescription)
+                print("added prescription to session",prescription)
 
+            
             db.session.commit()
             flash("ASL/ALR data saved successfully.", "success")
+
+            asls = ASL.query.filter_by(patient_id=patient_id).all()
             return redirect(url_for("views.asl_form", patient_id=patient_id))
         except Exception as e:
-            print("Form errored:")
-            print(e)
             db.session.rollback()
             flash(f"Error saving form: {str(e)}", "error")
-    else:
-        if form.is_submitted():
-            print("form did not validate")
-            print(f"Form submitted == {form.is_submitted()}")
-            print(form.errors)
-            print(form.consent_status.is_registered.data)
-            print(request.method)
-        # print("Raw POST data:", request.form)
 
     empty_asl_alr_form = ASL_ALR_PrescriptionSubform()
     return render_template(
