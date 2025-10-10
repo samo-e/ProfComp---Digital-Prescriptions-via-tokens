@@ -3367,7 +3367,7 @@ def grade_submission(submission_id):
 @login_required
 def download_file(filename):
     """Download uploaded file (only for teachers/admins)"""
-    if current_user.user_type not in ["teacher", "admin"]:
+    if current_user.role not in ["teacher", "admin"]:
         flash("Unauthorized access.", "error")
         return redirect(url_for("views.student_dashboard"))
 
