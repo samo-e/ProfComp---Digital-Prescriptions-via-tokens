@@ -34,6 +34,9 @@ import requests
 import os
 from pathlib import Path
 from werkzeug.utils import secure_filename
+import csv
+from io import StringIO
+from flask import make_response
 
 # Optional import for readme rendering
 try:
@@ -1142,6 +1145,341 @@ def show_users():
         ]
     )
 
+@views.route("/api/export-asl/<int:patient_id>", methods=["GET"])
+@login_required
+def export_asl_csv(patient_id):
+    """Export patient's complete ASL and ALR data as CSV"""
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+        
+        # Check if user can view this patient's ASL
+        can_view_asl = patient.can_view_asl()
+        
+        if not can_view_asl:
+            flash("Cannot export ASL - patient consent not granted", "error")
+            return redirect(url_for("views.patient_dashboard"))
+        
+        # Get ASL prescriptions (available status)
+        asl_prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.patient_id == patient_id,
+                Prescriber.fname != "ALR",  # Exclude ALR placeholder prescribers
+            )
+            .all()
+        )
+        
+        # Get ALR prescriptions (dispensed with remaining repeats)
+        alr_prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.patient_id == patient_id,
+                db.or_(
+                    Prescriber.fname == "ALR",  # ALR placeholder prescribers
+                    Prescription.remaining_repeats > 0,  # Or prescriptions with remaining repeats
+                ),
+            )
+            .all()
+        )
+        
+        # Create CSV in memory
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write patient information header
+        writer.writerow(["=" * 80])
+        writer.writerow(["PATIENT INFORMATION"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Patient Name:", patient.name or ""])
+        writer.writerow(["Date of Birth:", patient.dob or ""])
+        writer.writerow(["Address:", patient.address or ""])
+        writer.writerow(["Preferred Contact:", patient.preferred_contact or ""])
+        writer.writerow(["Medicare Number:", patient.medicare or ""])
+        writer.writerow(["Pharmaceutical Benefit Entitlement No:", patient.pharmaceut_ben_entitlement_no or ""])
+        writer.writerow(["Safety Net Entitlement:", "Yes" if patient.sfty_net_entitlement_cardholder else "No"])
+        writer.writerow(["RPBS Beneficiary:", "Yes" if patient.rpbs_ben_entitlement_cardholder else "No"])
+        writer.writerow(["ASL Registration Status:", "Registered" if patient.is_registered else "Not Registered"])
+        writer.writerow(["ASL Consent Status:", patient.get_asl_status().name.replace("_", " ").title()])
+        writer.writerow(["Consent Last Updated:", patient.consent_last_updated or "N/A"])
+        writer.writerow(["Script Date:", patient.script_date or ""])
+        writer.writerow(["PBS:", patient.pbs or ""])
+        writer.writerow(["RPBS:", patient.rpbs or ""])
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Write ASL Scripts section
+        writer.writerow(["=" * 80])
+        writer.writerow(["ACTIVE SCRIPT LIST (ASL)"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        if asl_prescriptions:
+            writer.writerow([
+                "Prescription ID",
+                "DSPID",
+                "Status",
+                "Drug Name",
+                "Drug Code",
+                "Dosage Instructions",
+                "Quantity",
+                "Repeats",
+                "Prescribed Date",
+                "Paperless",
+                "Brand Substitution Not Permitted",
+                "Prescriber Name",
+                "Prescriber Title",
+                "Prescriber ID",
+                "Prescriber Address Line 1",
+                "Prescriber Address Line 2",
+                "Prescriber HPII",
+                "Prescriber HPIO",
+                "Prescriber Phone",
+                "Prescriber Fax"
+            ])
+            
+            for prescription, prescriber in asl_prescriptions:
+                writer.writerow([
+                    prescription.id,
+                    prescription.DSPID or "",
+                    prescription.get_status().name.title(),
+                    prescription.drug_name or "",
+                    prescription.drug_code or "",
+                    prescription.dose_instr or "",
+                    prescription.dose_qty or "",
+                    prescription.dose_rpt or "",
+                    prescription.prescribed_date or "",
+                    "Yes" if prescription.paperless else "No",
+                    "Yes" if prescription.brand_sub_not_prmt else "No",
+                    f"{prescriber.fname} {prescriber.lname}",
+                    prescriber.title or "",
+                    prescriber.prescriber_id or "",
+                    prescriber.address_1 or "",
+                    prescriber.address_2 or "",
+                    prescriber.hpii or "",
+                    prescriber.hpio or "",
+                    prescriber.phone or "",
+                    prescriber.fax or ""
+                ])
+        else:
+            writer.writerow(["No active prescriptions found"])
+        
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Write ALR section
+        writer.writerow(["=" * 80])
+        writer.writerow(["AVAILABLE LOCAL REPEATS (ALR)"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        if alr_prescriptions:
+            writer.writerow([
+                "Prescription ID",
+                "DSPID",
+                "Status",
+                "Drug Name",
+                "Drug Code",
+                "Dosage Instructions",
+                "Quantity",
+                "Total Repeats",
+                "Remaining Repeats",
+                "Prescribed Date",
+                "Dispensed Date",
+                "Paperless",
+                "Brand Substitution Not Permitted",
+                "Dispensed at This Pharmacy",
+                "Prescriber Name",
+                "Prescriber Title",
+                "Prescriber ID",
+                "Prescriber Address Line 1",
+                "Prescriber Address Line 2",
+                "Prescriber HPII",
+                "Prescriber HPIO",
+                "Prescriber Phone",
+                "Prescriber Fax"
+            ])
+            
+            for prescription, prescriber in alr_prescriptions:
+                writer.writerow([
+                    prescription.id,
+                    prescription.DSPID or "",
+                    prescription.get_status().name.title(),
+                    prescription.drug_name or "",
+                    prescription.drug_code or "",
+                    prescription.dose_instr or "",
+                    prescription.dose_qty or "",
+                    prescription.dose_rpt or "",
+                    prescription.remaining_repeats or "",
+                    prescription.prescribed_date or "",
+                    prescription.dispensed_date or "",
+                    "Yes" if prescription.paperless else "No",
+                    "Yes" if prescription.brand_sub_not_prmt else "No",
+                    "Yes" if prescription.dispensed_at_this_pharmacy else "No",
+                    f"{prescriber.fname} {prescriber.lname}",
+                    prescriber.title or "",
+                    prescriber.prescriber_id or "",
+                    prescriber.address_1 or "",
+                    prescriber.address_2 or "",
+                    prescriber.hpii or "",
+                    prescriber.hpio or "",
+                    prescriber.phone or "",
+                    prescriber.fax or ""
+                ])
+        else:
+            writer.writerow(["No available local repeats found"])
+        
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        # Create response
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        # Create safe filename
+        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
+        safe_patient_name = safe_patient_name.replace(' ', '_')
+        filename = f"ASL_{safe_patient_name}_{patient.dob.replace('/', '-')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting ASL: {str(e)}", "error")
+        return redirect(url_for("views.patient_dashboard"))
+
+
+@views.route("/api/export-asl-selected/<int:patient_id>", methods=["POST"])
+@login_required
+def export_selected_asl_csv(patient_id):
+    """Export selected prescriptions as CSV"""
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+        prescription_ids = request.form.get("prescription_ids", "").split(",")
+        
+        if not prescription_ids or not prescription_ids[0]:
+            flash("No prescriptions selected for export", "warning")
+            return redirect(url_for("views.asl", pt=patient_id))
+        
+        # Get selected prescriptions with prescriber info
+        prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
+        prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.id.in_(prescription_id_list),
+                Prescription.patient_id == patient_id
+            )
+            .all()
+        )
+        
+        if not prescriptions:
+            flash("No valid prescriptions found to export", "error")
+            return redirect(url_for("views.asl", pt=patient_id))
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Patient header
+        writer.writerow(["=" * 80])
+        writer.writerow(["PATIENT INFORMATION"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Patient Name:", patient.name or ""])
+        writer.writerow(["Date of Birth:", patient.dob or ""])
+        writer.writerow(["Address:", patient.address or ""])
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Selected prescriptions
+        writer.writerow(["=" * 80])
+        writer.writerow(["SELECTED PRESCRIPTIONS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow([
+            "Type",
+            "Prescription ID",
+            "DSPID",
+            "Status",
+            "Drug Name",
+            "Drug Code",
+            "Dosage Instructions",
+            "Quantity",
+            "Total Repeats",
+            "Remaining Repeats",
+            "Prescribed Date",
+            "Dispensed Date",
+            "Paperless",
+            "Brand Substitution Not Permitted",
+            "Dispensed at This Pharmacy",
+            "Prescriber Name",
+            "Prescriber Title",
+            "Prescriber ID",
+            "Prescriber Phone",
+            "Prescriber Fax"
+        ])
+        
+        for prescription, prescriber in prescriptions:
+            # Determine type based on status and remaining repeats
+            if prescription.status == PrescriptionStatus.DISPENSED.value and prescription.remaining_repeats and prescription.remaining_repeats > 0:
+                script_type = "ALR"
+            else:
+                script_type = "ASL"
+                
+            writer.writerow([
+                script_type,
+                prescription.id,
+                prescription.DSPID or "",
+                prescription.get_status().name.title(),
+                prescription.drug_name or "",
+                prescription.drug_code or "",
+                prescription.dose_instr or "",
+                prescription.dose_qty or "",
+                prescription.dose_rpt or "",
+                prescription.remaining_repeats or "",
+                prescription.prescribed_date or "",
+                prescription.dispensed_date or "",
+                "Yes" if prescription.paperless else "No",
+                "Yes" if prescription.brand_sub_not_prmt else "No",
+                "Yes" if prescription.dispensed_at_this_pharmacy else "No",
+                f"{prescriber.fname} {prescriber.lname}",
+                prescriber.title or "",
+                prescriber.prescriber_id or "",
+                prescriber.phone or "",
+                prescriber.fax or ""
+            ])
+        
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow([f"Total Prescriptions Exported: {len(prescriptions)}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        # Create safe filename
+        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
+        safe_patient_name = safe_patient_name.replace(' ', '_')
+        filename = f"ASL_Selected_{safe_patient_name}_{len(prescriptions)}_items.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting selected prescriptions: {str(e)}", "error")
+        return redirect(url_for("views.asl", pt=patient_id))
 
 @views.route("/asl/<int:pt>")
 def asl(pt: int):
@@ -3054,7 +3392,10 @@ def view_submission(submission_id):
 @views.route("/download_file/<filename>")
 @login_required
 def download_file(filename):
-    """Download uploaded file.
+    """Download uploaded file (only for teachers/admins)"""
+    if current_user.role not in ["teacher", "admin"]:
+        flash("Unauthorized access.", "error")
+        return redirect(url_for("views.student_dashboard"))
 
     Teachers can download any file. Students can download files that belong to their submissions.
     """
@@ -3109,3 +3450,269 @@ def download_file(filename):
         if current_user.is_student():
             return redirect(url_for("views.student_dashboard"))
         return redirect(url_for("views.teacher_dash"))
+
+
+@views.route("/api/export-marks/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_marks(scenario_id):
+    """Export all student marks/grades for a specific scenario as CSV"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export marks for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT MARKS REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Assigned Date",
+            "Submitted Date",
+            "Completed Date",
+            "Status",
+            "Score (out of 100)",
+            "Feedback"
+        ])
+        
+        scores = []
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else "",
+                student_scenario.completed_at.strftime('%Y-%m-%d') if student_scenario.completed_at else "",
+                student_scenario.status.capitalize(),
+                student_scenario.score if student_scenario.score is not None else "Not Graded",
+                student_scenario.feedback or ""
+            ])
+            
+            if student_scenario.score is not None:
+                scores.append(student_scenario.score)
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow(["STATISTICS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Total Students Assigned:", len(student_scenarios)])
+        writer.writerow(["Students Submitted:", sum(1 for ss, _ in student_scenarios if ss.submitted_at)])
+        writer.writerow(["Students Graded:", len(scores)])
+        writer.writerow(["Pending Grading:", sum(1 for ss, _ in student_scenarios if ss.status == 'submitted')])
+        writer.writerow([])
+        
+        if scores:
+            writer.writerow(["Average Score:", f"{sum(scores) / len(scores):.2f}"])
+            writer.writerow(["Highest Score:", f"{max(scores):.2f}"])
+            writer.writerow(["Lowest Score:", f"{min(scores):.2f}"])
+            writer.writerow(["Median Score:", f"{sorted(scores)[len(scores)//2]:.2f}"])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        safe_scenario_name = safe_scenario_name.replace(' ', '_')
+        filename = f"Marks_{safe_scenario_name}_v{scenario.version}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting marks: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-students", methods=["GET"])
+@teacher_required
+def export_student_list():
+    """Export complete list of all students in the system as CSV"""
+    try:
+        students = (
+            User.query
+            .filter_by(role='student')
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT LIST REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(students)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Username",
+            "First Name",
+            "Last Name",
+            "Full Name",
+            "Email",
+            "Phone",
+            "Date Joined",
+            "Total Scenarios Assigned",
+            "Scenarios Submitted",
+            "Scenarios Graded",
+            "Average Score"
+        ])
+        
+        for student in students:
+            student_scenarios = StudentScenario.query.filter_by(student_id=student.id).all()
+            
+            total_assigned = len(student_scenarios)
+            total_submitted = sum(1 for ss in student_scenarios if ss.submitted_at)
+            total_graded = sum(1 for ss in student_scenarios if ss.status == 'graded')
+            
+            scores = [ss.score for ss in student_scenarios if ss.score is not None]
+            avg_score = sum(scores) / len(scores) if scores else None
+            
+            writer.writerow([
+                student.id,
+                student.username,
+                student.first_name or "",
+                student.last_name or "",
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student.created_at.strftime('%Y-%m-%d') if hasattr(student, 'created_at') and student.created_at else "",
+                total_assigned,
+                total_submitted,
+                total_graded,
+                f"{avg_score:.2f}" if avg_score is not None else "N/A"
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        filename = f"Student_List_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-scenario-students/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_students(scenario_id):
+    """Export list of students assigned to a specific scenario"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export students for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["SCENARIO STUDENT LIST"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Phone",
+            "Status",
+            "Assigned Date",
+            "Submitted Date"
+        ])
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student_scenario.status.capitalize(),
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else ""
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        filename = f"Students_{safe_scenario_name}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
