@@ -105,6 +105,49 @@
                             </button>
                         </div>
                     </form>
+                    
+                    <!-- Previous Submissions -->
+                    <div class="mt-4">
+                        <h5>Previous Submissions</h5>
+                        {% if previous_submissions and previous_submissions|length > 0 %}
+                        <ul class="list-group">
+                            {% for sub in previous_submissions %}
+                            <li class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div><strong>Submitted:</strong> {{ sub.submitted_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                                        <div class="mt-2"><strong>ASL Note:</strong>
+                                            {% set asl_note = (sub.submission_data.asl_record.notes if sub.submission_data and sub.submission_data.asl_record and sub.submission_data.asl_record.notes else None) %}
+                                            {% if asl_note %}
+                                                <div class="text-muted small">{{ asl_note }}</div>
+                                            {% elif sub.notes %}
+                                                <div class="text-muted small">{{ sub.notes|truncate(120) }}</div>
+                                            {% else %}
+                                                <div class="text-muted small">(no notes)</div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="ms-3">
+                                        <a href="{{ url_for('views.view_submission', submission_id=sub.id) }}" class="btn btn-sm btn-outline-primary">View ASL</a>
+                                    </div>
+                                </div>
+                                {% if sub.submission_data and sub.submission_data.uploaded_files %}
+                                    <div class="mt-3">
+                                        <strong>Attachments:</strong>
+                                        <div class="mt-1">
+                                            {% for f in sub.submission_data.uploaded_files %}
+                                                <a href="{{ url_for('views.download_file', filename=f.stored_name) }}" class="btn btn-sm btn-outline-secondary me-1 mb-1">{{ f.original_name }}</a>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                            <p class="text-muted">No previous submissions.</p>
+                        {% endif %}
+                    </div>
                     {% else %}
                     <div class="alert alert-success">
                         <h6>Work Completed</h6>
