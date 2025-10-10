@@ -49,7 +49,10 @@
         <div class="card mb-3">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h2 class="section-title mb-0">ASL Prescriptions</h2>
+              <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title mb-0">ASL Prescriptions</h2>
+                <button type="button" class="btn btn-outline-primary ms-5" id="add-asl-item">+ Add ASL Prescription</button>
+              </div>
               <div class="badge text-bg-secondary">Count: <span id="asl-counter">{{ form.asl_creations|length }}</span></div>
             </div>
             <div id="asl-items" class="accordion">
@@ -57,7 +60,6 @@
                 {{ form_item.render_item(subform, 'ASL', loop.index) }}
               {% endfor %}
             </div>
-            <button type="button" class="btn btn-outline-primary mt-2" id="add-asl-item">+ Add ASL Prescription</button>
           </div>
         </div>
 
@@ -65,7 +67,10 @@
         <div class="card mb-3">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-2">
-              <h2 class="section-title mb-0">ALR Prescriptions</h2>
+              <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title mb-0">ALR Prescriptions</h2>
+                <button type="button" class="btn btn-outline-primary ms-5" id="add-alr-item">+ Add ALR Prescription</button>
+              </div>
               <div class="badge text-bg-secondary">Count: <span id="alr-counter">{{ form.alr_creations|length }}</span></div>
             </div>
             <div id="alr-items" class="accordion">
@@ -73,7 +78,6 @@
                 {{ form_item.render_item(subform, 'ALR', loop.index) }}
               {% endfor %}
             </div>
-            <button type="button" class="btn btn-outline-primary mt-2" id="add-alr-item">+ Add ALR Prescription</button>
           </div>
         </div>
 
