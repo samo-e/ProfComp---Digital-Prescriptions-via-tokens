@@ -7,7 +7,10 @@
             aria-expanded="false" 
             aria-controls="{{ item_type | lower }}-collapse-{{ item_index }}"
             id="{{ item_type | lower }}-btn-{{ item_index }}">
-      <span id="{{ item_type | lower }}-btn-{{ item_index }}-text">{{ item_type }} Prescription {{ item_index }}</span>
+      <span id="{{ item_type | lower }}-btn-{{ item_index }}-text">
+        {{ item_type }} Prescription {{ item_index }}
+      </span>
+      <span id="{{ item_type | lower }}-btn-{{ item_index }}-text" class="d-none drug-name-span"></span>
       <span class="d-none new-item badge text-bg-primary ms-3" id="{{ item_type | lower }}-{{ item_index }}-edits-made">
         <i class="bi bi-star-fill me-2"></i>New
       </span>
