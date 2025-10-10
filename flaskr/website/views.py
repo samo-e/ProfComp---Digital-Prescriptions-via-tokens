@@ -3219,8 +3219,7 @@ def submit_work(scenario_id, patient_id):
                     except Exception as e:
                         flash(f"Error uploading {file.filename}: {str(e)}", "error")
 
-        # Create submission
-        from .models import Submission
+    # Create submission
 
         # Get current ASL data for this patient
         asl_record = ASL.query.filter_by(patient_id=patient_id).first()
@@ -3283,11 +3282,15 @@ def submit_work(scenario_id, patient_id):
         return redirect(url_for("views.student_dashboard"))
 
     # GET request - show submission form
+    previous_submissions = Submission.query.filter_by(
+        student_scenario_id=student_scenario.id, patient_id=patient_id
+    ).order_by(Submission.submitted_at.desc()).all()
     return render_template(
         "views/submit_work.html",
         scenario=scenario,
         patient=patient,
         student_scenario=student_scenario,
+        previous_submissions=previous_submissions,
     )
 
 
@@ -3308,7 +3311,13 @@ def view_submissions(scenario_id):
     submissions_data = []
     for ss in student_scenarios:
         student = User.query.get(ss.student_id)
-        submissions = Submission.query.filter_by(student_scenario_id=ss.id).all()
+        # Only include the latest submission for teachers (newest first)
+        latest = (
+            Submission.query.filter_by(student_scenario_id=ss.id)
+            .order_by(Submission.submitted_at.desc())
+            .first()
+        )
+        submissions = [latest] if latest else []
 
         submissions_data.append(
             {"student_scenario": ss, "student": student, "submissions": submissions}
@@ -3363,6 +3372,23 @@ def grade_submission(submission_id):
     )
 
 
+@views.route("/submissions/<int:submission_id>")
+@login_required
+def view_submission(submission_id):
+    """Allow a student to view their own submission snapshot, or teacher via grading route."""
+    submission = Submission.query.get_or_404(submission_id)
+
+    # Students can only view their own submissions
+    if current_user.is_student():
+        # Ensure the submission belongs to the current student's student_scenario
+        ss = submission.student_scenario
+        if not ss or ss.student_id != current_user.id:
+            flash("You can only view your own submissions.", "error")
+            return redirect(url_for("views.student_dashboard"))
+
+    patient = Patient.query.get(submission.patient_id)
+    return render_template("views/submitted_asl.html", submission=submission, patient=patient)
+
 @views.route("/download_file/<filename>")
 @login_required
 def download_file(filename):
@@ -3371,17 +3397,49 @@ def download_file(filename):
         flash("Unauthorized access.", "error")
         return redirect(url_for("views.student_dashboard"))
 
-    try:
-        # Ensure the uploads directory exists
-        uploads_dir = os.path.join(current_app.instance_path, "uploads")
-        file_path = os.path.join(uploads_dir, filename)
+    Teachers can download any file. Students can download files that belong to their submissions.
+    """
+    # Uploads are stored under root_path/uploads/submissions
+    uploads_dir = os.path.join(current_app.root_path, "uploads", "submissions")
+    file_path = os.path.join(uploads_dir, filename)
 
+    # Authorization: teacher allowed, student only if they uploaded it in one of their submissions
+    allowed = False
+    if current_user.is_teacher():
+        allowed = True
+    else:
+        # Check student ownership
+        if current_user.is_student():
+            # Find student scenarios for this student
+            sss = StudentScenario.query.filter_by(student_id=current_user.id).all()
+            for ss in sss:
+                for sub in ss.submissions:
+                    if sub.submission_data and sub.submission_data.get("uploaded_files"):
+                        for f in sub.submission_data.get("uploaded_files"):
+                            if f.get("stored_name") == filename:
+                                allowed = True
+                                break
+                        if allowed:
+                            break
+                if allowed:
+                    break
+
+    if not allowed:
+        flash("Unauthorized access to file.", "error")
+        # Redirect students to student dashboard, teachers to teacher dashboard
+        if current_user.is_student():
+            return redirect(url_for("views.student_dashboard"))
+        return redirect(url_for("views.teacher_dash"))
+
+    try:
         # Verify file exists and is within uploads directory
         if (
             not os.path.exists(file_path)
-            or not os.path.commonpath([uploads_dir, file_path]) == uploads_dir
+            or os.path.commonpath([os.path.abspath(uploads_dir), os.path.abspath(file_path)]) != os.path.abspath(uploads_dir)
         ):
             flash("File not found.", "error")
+            if current_user.is_student():
+                return redirect(url_for("views.student_dashboard"))
             return redirect(url_for("views.teacher_dash"))
 
         # Send file with appropriate headers
@@ -3389,6 +3447,8 @@ def download_file(filename):
 
     except Exception as e:
         flash(f"Error downloading file: {str(e)}", "error")
+        if current_user.is_student():
+            return redirect(url_for("views.student_dashboard"))
         return redirect(url_for("views.teacher_dash"))
 
 
