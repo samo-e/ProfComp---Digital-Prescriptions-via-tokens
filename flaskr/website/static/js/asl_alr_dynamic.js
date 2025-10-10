@@ -4,7 +4,10 @@ $(document).ready(function () {
 
   function collapseAll($container) {
     $container.find(".accordion-collapse").removeClass("show");
-    $container.find(".accordion-button").addClass("collapsed").attr("aria-expanded", "false");
+    $container
+      .find(".accordion-button")
+      .addClass("collapsed")
+      .attr("aria-expanded", "false");
   }
 
   // Add new item
@@ -14,9 +17,18 @@ $(document).ready(function () {
 
     // Replace __INDEX__ placeholders
     $template = $template.replace(/__INDEX__/g, index);
-
     // Wrap in jQuery object
     const $item = $($template);
+    console.log($item);
+    
+$item.find("input, textarea, select").each(function () {
+    const originalName = $(this).attr("name") || "";
+
+    const newName = `${type.toLowerCase()}_creations-${index}-${originalName.split("-").pop()}`;
+    console.log(newName);
+    $(this).attr("name", newName);
+});
+
 
     // Append to container
     $container.append($item);
@@ -33,7 +45,7 @@ $(document).ready(function () {
     $button.removeClass("collapsed").attr("aria-expanded", "true");
 
     // Update the counter based on type
-    const counterId = type.toLowerCase() + '-counter'; // "asl-counter" or "alr-counter"
+    const counterId = type.toLowerCase() + "-counter"; // "asl-counter" or "alr-counter"
     $(`#${counterId}`).text($container.children().length);
 
     // Dirty form
@@ -92,7 +104,12 @@ $(document).ready(function () {
       const $button = $(this).find(".accordion-button").first();
       const $btnTextSpan = $button.find("span").first();
       if ($btnTextSpan.length) {
-        let itemType = $(this).find(".accordion-button").first().text().trim().split(" ")[0];
+        let itemType = $(this)
+          .find(".accordion-button")
+          .first()
+          .text()
+          .trim()
+          .split(" ")[0];
         $btnTextSpan.text(`${itemType} Prescription ${idx + 1}`);
       }
     });
@@ -135,7 +152,9 @@ $(document).ready(function () {
   function updateDrugName($card) {
     const $button = $card.find(".accordion-button").first();
     const $drugNameSpan = $button.find(".drug-name-span").first();
-    const $drugInput = $card.find("input[name$='drug_name'], textarea[name$='drug_name']").first();
+    const $drugInput = $card
+      .find("input[name$='drug_name'], textarea[name$='drug_name']")
+      .first();
 
     if ($drugNameSpan.length && $drugInput.length) {
       const val = $drugInput.val().trim();
@@ -190,18 +209,21 @@ $(document).ready(function () {
   });
 
   // Update drug name on input change
-  $(document).on("input", "textarea[name$='drug_name'], input[name$='drug_name']", function () {
-    const $card = $(this).closest(".item-card");
-    const $drugNameSpan = $card.find(".drug-name-span").first();
-    const val = $(this).val().trim();
+  $(document).on(
+    "input",
+    "textarea[name$='drug_name'], input[name$='drug_name']",
+    function () {
+      const $card = $(this).closest(".item-card");
+      const $drugNameSpan = $card.find(".drug-name-span").first();
+      const val = $(this).val().trim();
 
-    if (val.length) {
-      $drugNameSpan.removeClass("d-none").text(`- ${val}`);
-    } else {
-      $drugNameSpan.addClass("d-none").text("");
+      if (val.length) {
+        $drugNameSpan.removeClass("d-none").text(`- ${val}`);
+      } else {
+        $drugNameSpan.addClass("d-none").text("");
+      }
+
+      unhideUnsavedChanges($(this));
     }
-
-    unhideUnsavedChanges($(this));
-  });
-
+  );
 });
