@@ -54,7 +54,7 @@ class User(db.Model, UserMixin):
     assigned_scenarios = db.relationship(
         "Scenario",
         secondary="student_scenarios",
-        backref="assigned_students",
+        backref=db.backref("assigned_students", overlaps="assigned_scenarios,assigned_students"),
         lazy=True,
     )
 
@@ -112,6 +112,11 @@ class Scenario(db.Model):
     # Active patient relationship
     active_patient = db.relationship("Patient", foreign_keys=[active_patient_id])
 
+    # Optional default scheduling for the scenario (used when no per-student rows exist)
+    default_assignment_condition = db.Column(db.String(20), default="assignment")
+    default_exam_start = db.Column(db.DateTime, nullable=True)
+    default_exam_end = db.Column(db.DateTime, nullable=True)
+
     def __repr__(self):
         return f"<Scenario {self.name} v{self.version}>"
 
@@ -130,10 +135,15 @@ class StudentScenario(db.Model):
     score = db.Column(db.Float)
     feedback = db.Column(db.Text)
     status = db.Column(db.String(20), default="assigned")  # assigned, submitted, graded
+    # Assignment mode: 'assignment' (default) or 'exam'
+    assignment_condition = db.Column(db.String(20), default="assignment")
+    # Optional exam scheduling
+    exam_start = db.Column(db.DateTime, nullable=True)
+    exam_end = db.Column(db.DateTime, nullable=True)
 
     # Relationships
-    student = db.relationship("User", foreign_keys=[student_id])
-    scenario = db.relationship("Scenario", foreign_keys=[scenario_id])
+    student = db.relationship("User", foreign_keys=[student_id], overlaps="assigned_scenarios,assigned_students")
+    scenario = db.relationship("Scenario", foreign_keys=[scenario_id], overlaps="assigned_scenarios,assigned_students")
 
 
 class Submission(db.Model):

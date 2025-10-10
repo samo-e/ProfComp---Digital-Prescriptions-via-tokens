@@ -310,52 +310,46 @@
 </div>
 
 <script>
+// Use the scenario-checkbox class so selectors are robust against id/name changes
 function selectAllToggle() {
     var selectAll = document.getElementById('select-all');
-    var checkboxes = document.getElementsByTagName('input');
-    
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0) {
-            checkboxes[i].checked = selectAll.checked;
-        }
-    }
+    var boxes = document.querySelectorAll('.scenario-checkbox');
+    boxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+    updateSelectAllState();
+}
+
+function updateSelectAllState() {
+    var selectAll = document.getElementById('select-all');
+    if (!selectAll) return;
+    var boxes = document.querySelectorAll('.scenario-checkbox');
+    var total = boxes.length;
+    var checked = Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
+    selectAll.checked = (total > 0 && checked === total);
+    selectAll.indeterminate = (checked > 0 && checked < total);
+}
+
+function countSelected() {
+    var boxes = document.querySelectorAll('.scenario-checkbox');
+    return Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
 }
 
 function bulkArchive() {
-    var checkboxes = document.getElementsByTagName('input');
-    var selected = 0;
-    
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
-            selected++;
-        }
-    }
-    
+    var selected = countSelected();
     if (selected === 0) {
         alert('Please select scenarios to archive');
         return;
     }
-    
     if (confirm('Are you sure you want to archive ' + selected + ' selected scenario(s)?')) {
         alert('Bulk archive functionality to be implemented');
     }
 }
 
 function bulkExport() {
-    var checkboxes = document.getElementsByTagName('input');
-    var selected = 0;
-    
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].type === 'checkbox' && checkboxes[i].id && checkboxes[i].id.indexOf('scenario-check-') === 0 && checkboxes[i].checked) {
-            selected++;
-        }
-    }
-    
+    var selected = countSelected();
     if (selected === 0) {
         alert('Please select scenarios to export');
         return;
     }
-    
     alert('Bulk export functionality to be implemented');
 }
 
@@ -372,20 +366,24 @@ window.onload = function() {
     // Set up select all checkbox
     var selectAllBox = document.getElementById('select-all');
     if (selectAllBox) {
-        selectAllBox.onchange = selectAllToggle;
+        selectAllBox.addEventListener('change', selectAllToggle);
     }
-    
+
+    // Keep select-all state in sync when individual boxes change
+    var scenarioBoxes = document.querySelectorAll('.scenario-checkbox');
+    scenarioBoxes.forEach(function(cb){ cb.addEventListener('change', updateSelectAllState); });
+
     // Set up bulk action buttons
     var deleteBtn = document.getElementById('bulk-delete');
     if (deleteBtn) {
-        deleteBtn.onclick = bulkArchive;
+        deleteBtn.addEventListener('click', bulkArchive);
     }
-    
+
     var exportBtn = document.getElementById('bulk-export');
     if (exportBtn) {
-        exportBtn.onclick = bulkExport;
+        exportBtn.addEventListener('click', bulkExport);
     }
-    
+
     // Set up individual delete buttons
     var deleteBtns = document.getElementsByClassName('delete-btn');
     for (var i = 0; i < deleteBtns.length; i++) {
@@ -396,7 +394,7 @@ window.onload = function() {
             };
         })(deleteBtns[i]);
     }
-    
+
     // Set up create first scenario link
     var createLink = document.getElementById('create-first-scenario');
     if (createLink) {

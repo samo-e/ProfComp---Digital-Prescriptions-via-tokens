@@ -105,6 +105,12 @@ def scenario_dashboard(scenario_id):
     # Get student scenario assignment if current user is a student
     student_scenario = None
     assigned_patient = None
+    # Defaults for exam-related flags (ensure always defined for templates)
+    is_exam = False
+    can_view_details = True
+    submission_open = True
+    exam_info = None
+    teacher_saved = False
     if current_user.is_student():
         student_scenario = StudentScenario.query.filter_by(
             student_id=current_user.id, scenario_id=scenario_id
@@ -122,6 +128,115 @@ def scenario_dashboard(scenario_id):
                 # Fallback to scenario's active patient if no individual assignment
                 assigned_patient = scenario.active_patient
 
+            # Compute visibility flags for exam or assignment modes
+            is_exam = student_scenario.assignment_condition == 'exam'
+            can_view_details = True
+            submission_open = True
+            exam_info = None
+            from datetime import timedelta
+            now = datetime.now()
+
+            if is_exam:
+                # Exam behavior: students can view 1 hour before start, submit between start and end+5min
+                viewable_from = None
+                if student_scenario.exam_start:
+                    viewable_from = student_scenario.exam_start - timedelta(hours=1)
+                exam_end = student_scenario.exam_end
+
+                can_view_details = False
+                submission_open = False
+                if viewable_from and now >= viewable_from and (not exam_end or now <= (exam_end + timedelta(minutes=5))):
+                    can_view_details = True
+                if student_scenario.exam_start and (now >= student_scenario.exam_start) and (not exam_end or now <= (exam_end + timedelta(minutes=5))):
+                    submission_open = True
+
+                exam_info = {
+                    'start': student_scenario.exam_start,
+                    'end': exam_end,
+                    'viewable_from': viewable_from,
+                }
+            else:
+                # Assignment behavior: teacher can set a start and due date.
+                # Students can view details at start time; submissions allowed from start until start + 7 days.
+                start = student_scenario.exam_start
+                due = student_scenario.exam_end
+                can_view_details = True
+                submission_open = True
+                submission_deadline = None
+
+                if start:
+                    # students only see details from start time
+                    can_view_details = now >= start
+                    # submissions open from start
+                    if now >= start:
+                        submission_open = True
+                        submission_deadline = start + timedelta(days=7)
+                        # if due (teacher-specified) exists, final deadline is min(due+7days, start+7days?)
+                        # We'll consider due as the 'due' date; submissions close 7 days after due.
+                        if due:
+                            submission_deadline = due + timedelta(days=7)
+                else:
+                    # no start specified -> visible and open by default
+                    can_view_details = True
+                    submission_open = True
+
+                exam_info = {
+                    'start': start,
+                    'end': due,
+                    'submission_deadline': submission_deadline,
+                }
+
+    # If teacher, surface the saved mode/schedule so the dashboard shows what was persisted
+    if current_user.is_teacher():
+        # Teacher should always be able to view details and see current settings
+        can_view_details = True
+        submission_open = True
+
+        # Try to read saved assignment_condition/exam times from any StudentScenario rows
+        try:
+            student_rows = StudentScenario.query.filter_by(scenario_id=scenario_id).all()
+            if student_rows and len(student_rows) > 0:
+                # set mode based on the first row (set_mode updates all rows)
+                ss = student_rows[0]
+                is_exam = ss.assignment_condition == 'exam'
+                teacher_saved = True
+                if is_exam:
+                    exam_info = {
+                        'start': ss.exam_start,
+                        'end': ss.exam_end,
+                    }
+                else:
+                    # For assignments also expose start/end so teacher sees what was saved
+                    from datetime import timedelta
+                    exam_info = {
+                        'start': ss.exam_start,
+                        'end': ss.exam_end,
+                        'submission_deadline': (ss.exam_end + timedelta(days=7)) if ss.exam_end else (ss.exam_start + timedelta(days=7)) if ss.exam_start else None,
+                    }
+            else:
+                # No student rows: fall back to scenario defaults if present
+                try:
+                    is_exam = getattr(scenario, 'default_assignment_condition', None) == 'exam'
+                    teacher_saved = getattr(scenario, 'default_assignment_condition', None) is not None
+                    if is_exam:
+                        exam_info = {
+                            'start': getattr(scenario, 'default_exam_start', None),
+                            'end': getattr(scenario, 'default_exam_end', None),
+                        }
+                    else:
+                        from datetime import timedelta
+                        exam_info = {
+                            'start': getattr(scenario, 'default_exam_start', None),
+                            'end': getattr(scenario, 'default_exam_end', None),
+                            'submission_deadline': (getattr(scenario, 'default_exam_end', None) + timedelta(days=7)) if getattr(scenario, 'default_exam_end', None) else ((getattr(scenario, 'default_exam_start', None) + timedelta(days=7)) if getattr(scenario, 'default_exam_start', None) else None),
+                        }
+                except Exception:
+                    is_exam = False
+                    exam_info = None
+        except Exception:
+            # On any DB error, fall back to defaults already set above
+            pass
+
     return render_template(
         "views/scenario_dashboard.html",
         scenario=scenario,
@@ -131,6 +246,11 @@ def scenario_dashboard(scenario_id):
         student_scenario=student_scenario,
         assigned_patient=assigned_patient,
         assigned_patient_ids=[sp.patient_id for sp in scenario.patient_data],
+        is_exam=is_exam,
+        can_view_details=can_view_details,
+        submission_open=submission_open,
+        exam_info=exam_info,
+        teacher_saved=teacher_saved,
     )
 
 
@@ -205,6 +325,23 @@ def assign_scenario(scenario_id):
 
     if request.method == "POST":
         # Check if we're handling individual patient assignments or unassign action
+        # Read assignment condition and optional exam schedule from form
+        assignment_condition = request.form.get('assignment_condition', 'assignment')
+        exam_start_raw = request.form.get('exam_start')
+        exam_end_raw = request.form.get('exam_end')
+        exam_start = None
+        exam_end = None
+        # parse ISO-ish formats (datetime-local: 'YYYY-MM-DDTHH:MM')
+        try:
+            if exam_start_raw:
+                exam_start = datetime.fromisoformat(exam_start_raw)
+            if exam_end_raw:
+                exam_end = datetime.fromisoformat(exam_end_raw)
+        except Exception:
+            # ignore parse errors; validation happens later
+            exam_start = None
+            exam_end = None
+
         form_action = request.form.get('form_action', 'assign')
         if form_action == 'unassign':
             # Unassign selected students: remove StudentScenario and any ScenarioPatient mapping for them
@@ -292,9 +429,21 @@ def assign_scenario(scenario_id):
 
                         if not existing_student:
                             student_assignment = StudentScenario(
-                                student_id=student_id, scenario_id=scenario.id
+                                student_id=student_id,
+                                scenario_id=scenario.id,
+                                assignment_condition=assignment_condition,
+                                exam_start=exam_start,
+                                exam_end=exam_end,
                             )
                             db.session.add(student_assignment)
+                        else:
+                            # update existing assignment's condition and schedule if provided
+                            if assignment_condition:
+                                existing_student.assignment_condition = assignment_condition
+                            if exam_start:
+                                existing_student.exam_start = exam_start
+                            if exam_end:
+                                existing_student.exam_end = exam_end
 
                         # Check if this exact patient assignment already exists
                         existing_patient = ScenarioPatient.query.filter_by(
@@ -389,6 +538,81 @@ def assign_scenario(scenario_id):
         current_assignments=current_assignments,
         assigned_patients=assigned_patients,
     )
+
+
+@views.route('/scenarios/<int:scenario_id>/set_mode', methods=['POST'])
+@teacher_required
+def set_scenario_mode(scenario_id):
+    """Persist assignment_condition and optional exam schedule to StudentScenario rows for this scenario."""
+    scenario = Scenario.query.get_or_404(scenario_id)
+
+    # Ensure teacher owns this scenario
+    if scenario.teacher_id != current_user.id:
+        flash('You can only modify scenarios you created', 'error')
+        return redirect(url_for('views.scenario_dashboard', scenario_id=scenario.id))
+
+    assignment_condition = request.form.get('assignment_condition', 'assignment')
+    exam_start_raw = request.form.get('exam_start')
+    exam_end_raw = request.form.get('exam_end')
+    exam_start = None
+    exam_end = None
+    try:
+        if exam_start_raw:
+            exam_start = datetime.fromisoformat(exam_start_raw)
+        if exam_end_raw:
+            exam_end = datetime.fromisoformat(exam_end_raw)
+    except Exception:
+        exam_start = None
+        exam_end = None
+
+    # Update all StudentScenario rows for this scenario. If there are no per-student rows yet
+    # (i.e. no students assigned), persist the chosen mode/times as defaults on the Scenario
+    # itself so newly-created scenarios or future assignments pick up these values.
+    try:
+        student_rows = StudentScenario.query.filter_by(scenario_id=scenario.id).all()
+        if not student_rows:
+            # Persist defaults to the Scenario record
+            scenario.default_assignment_condition = assignment_condition
+            scenario.default_exam_start = exam_start
+            scenario.default_exam_end = exam_end
+            db.session.commit()
+            flash('Scenario mode and schedule saved as defaults for this scenario.', 'success')
+        else:
+            for ss in student_rows:
+                ss.assignment_condition = assignment_condition
+                # only set exam times if provided (allow clearing)
+                ss.exam_start = exam_start
+                ss.exam_end = exam_end
+            db.session.commit()
+            flash('Scenario mode and schedule saved for assigned students.', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error saving scenario mode: {e}', 'error')
+
+    return redirect(url_for('views.scenario_dashboard', scenario_id=scenario.id))
+
+
+@views.route('/debug/scenario/<int:scenario_id>/mode')
+@teacher_required
+def debug_scenario_mode(scenario_id):
+    """Debug helper: return the first StudentScenario row for this scenario as JSON (teacher-only)."""
+    scenario = Scenario.query.get_or_404(scenario_id)
+    if scenario.teacher_id != current_user.id:
+        return jsonify({"error": "not allowed"}), 403
+
+    ss = StudentScenario.query.filter_by(scenario_id=scenario.id).first()
+    if not ss:
+        return jsonify({"found": False, "message": "no student_scenario rows for scenario"})
+
+    return jsonify({
+        "found": True,
+        "student_scenario_id": ss.id,
+        "student_id": ss.student_id,
+        "scenario_id": ss.scenario_id,
+        "assignment_condition": ss.assignment_condition,
+        "exam_start": ss.exam_start.isoformat() if ss.exam_start else None,
+        "exam_end": ss.exam_end.isoformat() if ss.exam_end else None,
+    })
 
 
 @views.route("/scenarios/<int:scenario_id>/assign-patient", methods=["GET", "POST"])
@@ -606,18 +830,98 @@ def student_dashboard():
             else []
         )
 
+        # Determine visibility and submission window based on mode
+        from datetime import datetime, timedelta
+        now = datetime.now()
+        can_view = True
+        can_submit = False
+        submission_deadline = None
+        include_scenario = True
+
+        if assigned_patient:
+            if ss.assignment_condition == 'exam':
+                # exam: visible from 1 hour before start until 5 minutes after end
+                # before start: show card but do not allow viewing details/ASL/submit
+                # between start and end+5min: allow view and submit
+                # after end+5min: do not show on dashboard
+                if ss.exam_start:
+                    view_from = ss.exam_start - timedelta(hours=1)
+                    view_until = (ss.exam_end + timedelta(minutes=5)) if ss.exam_end else None
+
+                    # Debug logging to diagnose visibility issues
+                    try:
+                        print(f"[DEBUG student_dashboard] student={current_user.id} ss_id={ss.id} exam_start={ss.exam_start!r} exam_end={ss.exam_end!r} now={now!r} view_from={view_from!r} view_until={view_until!r}")
+                    except Exception:
+                        print("[DEBUG student_dashboard] failed to print debug info for student_scenario")
+
+                    # Determine whether the scenario should be included on the dashboard
+                    if now < view_from:
+                        include_scenario = False
+                    elif view_until and now > view_until:
+                        include_scenario = False
+                    else:
+                        include_scenario = True
+
+                    try:
+                        print(f"[DEBUG student_dashboard] include_scenario={include_scenario}")
+                    except Exception:
+                        pass
+
+                    # can_view only once the official start time has passed
+                    can_view = now >= ss.exam_start
+
+                    # can_submit allowed between start and view_until (or indefinitely if no end)
+                    if now >= ss.exam_start:
+                        if ss.exam_end:
+                            if now <= (ss.exam_end + timedelta(minutes=5)):
+                                can_submit = ss.status in ["assigned", "submitted"]
+                                submission_deadline = ss.exam_end + timedelta(minutes=5)
+                        else:
+                            can_submit = ss.status in ["assigned", "submitted"]
+                else:
+                    # no start set -> include and allow
+                    include_scenario = True
+                    can_view = True
+                    can_submit = ss.status in ["assigned", "submitted"]
+            else:
+                # assignment: visible from start; submissions allowed from start until due+7days
+                if ss.exam_start:
+                    if now >= ss.exam_start:
+                        can_view = True
+                        # deadline is due+7days if due provided, otherwise start+7days
+                        if ss.exam_end:
+                            submission_deadline = ss.exam_end + timedelta(days=7)
+                        else:
+                            submission_deadline = ss.exam_start + timedelta(days=7)
+                        if now <= submission_deadline:
+                            can_submit = ss.status in ["assigned", "submitted"]
+                    else:
+                        can_view = False
+                        can_submit = False
+                else:
+                    # no start -> open by default
+                    can_view = True
+                    can_submit = ss.status in ["assigned", "submitted"]
+
         scenario_data.append(
             {
                 "student_scenario": ss,
+                "display_start": ss.exam_start,
+                "display_end": ss.exam_end,
                 "scenario": scenario,
                 "patient": assigned_patient,
                 "submissions": submissions,
-                "can_submit": assigned_patient is not None
-                and ss.status in ["assigned", "submitted"],
+                "can_view": can_view,
+                "can_submit": can_submit,
+                "submission_deadline": submission_deadline,
+                "include_scenario": include_scenario,
             }
         )
 
-    return render_template("views/student_dash.html", scenario_data=scenario_data)
+    # compute how many scenarios will be visible on the dashboard
+    visible_count = sum(1 for d in scenario_data if d.get('include_scenario'))
+
+    return render_template("views/student_dash.html", scenario_data=scenario_data, visible_count=visible_count)
 
 
 @views.route("/students/manage")
@@ -2826,6 +3130,24 @@ def submit_work(scenario_id, patient_id):
     patient = Patient.query.get_or_404(patient_id)
 
     if request.method == "POST":
+        # Check submission window
+        from datetime import timedelta
+        now = datetime.now()
+        deadline = None
+        if student_scenario.assignment_condition == 'exam':
+            if student_scenario.exam_end:
+                deadline = student_scenario.exam_end + timedelta(minutes=5)
+        else:
+            # assignment: submissions close 7 days after due (exam_end) or start if no due
+            if student_scenario.exam_end:
+                deadline = student_scenario.exam_end + timedelta(days=7)
+            elif student_scenario.exam_start:
+                deadline = student_scenario.exam_start + timedelta(days=7)
+
+        if deadline and now > deadline:
+            flash('Submission window has closed for this assignment.', 'error')
+            return redirect(url_for('views.student_dashboard'))
+
         # Handle file uploads
         uploaded_files = []
         if "pdf_file" in request.files:
@@ -2947,12 +3269,27 @@ def submit_work(scenario_id, patient_id):
     previous_submissions = Submission.query.filter_by(
         student_scenario_id=student_scenario.id, patient_id=patient_id
     ).order_by(Submission.submitted_at.desc()).all()
+    # compute submission_deadline for template
+    from datetime import timedelta
+    submission_deadline = None
+    now = datetime.now()
+    if student_scenario.assignment_condition == 'exam':
+        if student_scenario.exam_end:
+            submission_deadline = student_scenario.exam_end + timedelta(minutes=5)
+    else:
+        if student_scenario.exam_end:
+            submission_deadline = student_scenario.exam_end + timedelta(days=7)
+        elif student_scenario.exam_start:
+            submission_deadline = student_scenario.exam_start + timedelta(days=7)
+
     return render_template(
         "views/submit_work.html",
         scenario=scenario,
         patient=patient,
         student_scenario=student_scenario,
         previous_submissions=previous_submissions,
+        submission_deadline=submission_deadline,
+        now=datetime.now(),
     )
 
 
@@ -3011,7 +3348,37 @@ def grade_submission(submission_id):
         feedback = request.form.get("feedback", "")
 
         if score is not None:
-            student_scenario.score = score
+            # Apply late penalty for assignments: 5% per day late after due date (teacher-specified end). Cap at 100%.
+            final_score = score
+            raw_score = score
+            try:
+                # Determine due date: check the student_scenario's exam_end (used as due) or exam_start
+                due = None
+                if student_scenario.exam_end:
+                    due = student_scenario.exam_end
+                elif student_scenario.exam_start:
+                    due = student_scenario.exam_start
+
+                if student_scenario.assignment_condition != 'exam' and due and submission.submitted_at:
+                    from math import ceil
+                    delta = submission.submitted_at - due
+                    # if submitted after due
+                    if delta.total_seconds() > 0:
+                        days_late = ceil(delta.total_seconds() / 86400.0)
+                        penalty_rate = min(1.0, 0.05 * days_late)
+                        final_score = round(raw_score * (1.0 - penalty_rate), 2)
+                        flash(f'Late penalty applied: {int(penalty_rate*100)}% ({days_late} days late). Final score: {final_score}', 'info')
+            except Exception:
+                final_score = score
+
+            # store raw and final
+            try:
+                student_scenario.raw_score = raw_score
+            except Exception:
+                # raw_score column may not exist; ignore
+                pass
+
+            student_scenario.score = final_score
             student_scenario.feedback = feedback
             student_scenario.completed_at = datetime.now()
             student_scenario.status = "graded"

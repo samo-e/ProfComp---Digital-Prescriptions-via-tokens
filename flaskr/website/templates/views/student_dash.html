@@ -33,7 +33,7 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
                             <h5 class="card-title mb-2">Assigned Scenarios</h5>
-                            <h2 class="mb-0 fw-bold">{{ scenario_data|length if scenario_data else 0 }}</h2>
+                            <h2 class="mb-0 fw-bold">{{ visible_count if visible_count is not none else (scenario_data|length if scenario_data else 0) }}</h2>
                         </div>
                         <div>
                             <i class="bi bi-journal-text fs-1 opacity-75"></i>
@@ -83,7 +83,7 @@
                 <div class="col">
                     <h5 class="mb-0 fw-bold">
                         <i class="bi bi-journal-text me-2"></i>Your Assigned Scenarios
-                        <span class="badge bg-primary ms-2">{{ scenario_data|length if scenario_data else 0 }}</span>
+                        <span class="badge bg-primary ms-2">{{ visible_count if visible_count is not none else (scenario_data|length if scenario_data else 0) }}</span>
                     </h5>
                 </div>
             </div>
@@ -92,6 +92,7 @@
             {% if scenario_data and scenario_data|length > 0 %}
                 <div class="row g-3">
                     {% for data in scenario_data %}
+                    {% if data.include_scenario %}
                     <div class="col-lg-6 col-xl-4">
                         <div class="card scenario-card h-100 border-0 shadow-sm">
                             <div class="card-body p-3">
@@ -118,6 +119,26 @@
                                             {% if data.scenario.password %}
                                                 <span class="badge bg-warning"><i class="bi bi-lock-fill"></i> Protected</span>
                                             {% endif %}
+                                            {# Show assignment/exam mode for the student #}
+                                            {% set start = data.display_start or data.student_scenario.exam_start %}
+                                            {% set end = data.display_end or data.student_scenario.exam_end %}
+                                            {% if data.student_scenario.assignment_condition == 'exam' %}
+                                                <span class="badge bg-danger">Exam</span>
+                                                {% if start %}
+                                                    <small class="text-muted ms-2">Start: {{ start.strftime('%d/%m/%Y, %I:%M %p') }}</small>
+                                                {% endif %}
+                                                {% if end %}
+                                                    <small class="text-muted ms-2">End: {{ end.strftime('%d/%m/%Y, %I:%M %p') }}</small>
+                                                {% endif %}
+                                            {% else %}
+                                                <span class="badge bg-info text-white">Assignment</span>
+                                                {% if start %}
+                                                    <small class="text-muted ms-2">Start: {{ start.strftime('%d/%m/%Y, %I:%M %p') }}</small>
+                                                {% endif %}
+                                                {% if end %}
+                                                    <small class="text-muted ms-2">Due: {{ end.strftime('%d/%m/%Y, %I:%M %p') }}</small>
+                                                {% endif %}
+                                            {% endif %}
                                         </div>
                                         
                                         {% if data.scenario.description %}
@@ -132,6 +153,11 @@
                                                 <i class="bi bi-calendar me-1"></i>{{ data.scenario.created_at.strftime('%d/%m/%Y') if data.scenario.created_at else 'Unknown' }}
                                             </small>
                                         </div>
+                                        {% if not data.can_view %}
+                                        <div class="mt-2">
+                                            <small class="text-warning">This scenario will be available on the start date.</small>
+                                        </div>
+                                        {% endif %}
                                         
                                         <!-- Assigned Patient Information -->
                                         {% if data.patient %}
@@ -153,6 +179,7 @@
                                         
                                         <div class="action-buttons mt-3">
                                             <div class="d-grid gap-2">
+                                                {% if data.can_view %}
                                                 <a href="{{ url_for('views.scenario_dashboard', scenario_id=data.scenario.id) }}" 
                                                    class="btn btn-outline-primary btn-sm">
                                                     <i class="bi bi-eye me-1"></i>View Details
@@ -175,6 +202,7 @@
                                                     </a>
                                                     {% endif %}
                                                 {% endif %}
+                                                {% endif %}
                                             </div>
                                             {% if data.student_scenario.status == 'graded' and data.student_scenario.feedback %}
                                             <div class="mt-2">
@@ -194,6 +222,7 @@
                             </div>
                         </div>
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
             {% else %}
