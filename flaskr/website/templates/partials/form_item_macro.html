@@ -1,11 +1,20 @@
+{% macro render_item(subform, item_type, item_index) %}
 <div class="accordion-item item-card">
-  <h2 class="accordion-header" id="alr-heading-__INDEX__">
-    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#alr-collapse-__INDEX__" aria-expanded="false" aria-controls="alr-collapse-__INDEX__">
-      ALR Prescription __INDEX__
+  <h2 class="accordion-header" id="{{ item_type | lower }}-heading-{{ item_index }}">
+    <button class="accordion-button collapsed" type="button" 
+            data-bs-toggle="collapse" 
+            data-bs-target="#{{ item_type | lower }}-collapse-{{ item_index }}" 
+            aria-expanded="false" 
+            aria-controls="{{ item_type | lower }}-collapse-{{ item_index }}"
+            id="{{ item_type | lower }}-btn-{{ item_index }}">
+      {{ item_type }} Prescription {{ item_index }}
     </button>
     <button type="button" class="btn btn-sm btn-outline-danger ms-2 remove-item-btn" data-action="remove">Remove</button>
   </h2>
-  <div id="alr-collapse-__INDEX__" class="accordion-collapse collapse" aria-labelledby="alr-heading-__INDEX__" data-bs-parent="#alr-items">
+  <div id="{{ item_type | lower }}-collapse-{{ item_index }}" 
+     class="accordion-collapse collapse" 
+     aria-labelledby="{{ item_type | lower }}-heading-{{ item_index }}" 
+     data-bs-parent="#{{ item_type | lower }}-items">
     <div class="accordion-body">
       <div class="row g-3">
         <div class="col-md-2">{{ subform.prescription_id.label(class="form-label") }} {{ subform.prescription_id(class="form-control") }}</div>
@@ -33,3 +42,4 @@
     </div>
   </div>
 </div>
+{% endmacro %}

@@ -41,34 +41,35 @@
             </div>
         </div>
 
+        {% import 'partials/form_item_macro.html' as form_item %}
         <!-- ASL Prescriptions -->
         <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h2 class="section-title mb-0">ASL Prescriptions</h2>
-                </div>
-                <div id="asl-items">
-                    {% for subform in form.asl_creations %}
-                        {% include 'partials/asl_form_item_template.html' %}
-                    {% endfor %}
-                </div>
-                <button type="button" class="btn btn-outline-primary mt-2" id="add-asl-item">+ Add ASL Prescription</button>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h2 class="section-title mb-0">ASL Prescriptions</h2>
             </div>
+            <div id="asl-items" class="accordion">
+              {% for subform in form.asl_creations %}
+                {{ form_item.render_item(subform, 'ASL', loop.index) }}
+              {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-primary mt-2" id="add-asl-item">+ Add ASL Prescription</button>
+          </div>
         </div>
 
         <!-- ALR Prescriptions -->
         <div class="card mb-3">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <h2 class="section-title mb-0">ALR Prescriptions</h2>
-                </div>
-                <div id="alr-items">
-                    {% for subform in form.alr_creations %}
-                        {% include 'partials/alr_form_item_template.html' %}
-                    {% endfor %}
-                </div>
-                <button type="button" class="btn btn-outline-primary mt-2" id="add-alr-item">+ Add ALR Prescription</button>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h2 class="section-title mb-0">ALR Prescriptions</h2>
             </div>
+            <div id="alr-items" class="accordion">
+              {% for subform in form.alr_creations %}
+                {{ form_item.render_item(subform, 'ALR', loop.index) }}
+              {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-primary mt-2" id="add-alr-item">+ Add ALR Prescription</button>
+          </div>
         </div>
 
         <div class="card sticky-actions mt-3">
@@ -83,13 +84,13 @@
 <!-- Hidden ASL template -->
 <div id="asl-template" class="d-none">
     {% set subform = empty_form %}
-    {% include 'partials/asl_form_item_template.html' %}
+    {{ form_item.render_item(subform, 'ASL', '__INDEX__') }}
 </div>
 
 <!-- Hidden ALR template -->
-<div id="alr-template" class="d-none">
+<div id="asl-template" class="d-none">
     {% set subform = empty_form %}
-    {% include 'partials/alr_form_item_template.html' %}
+    {{ form_item.render_item(subform, 'ALR', '__INDEX__') }}
 </div>
 
 <script src="{{ url_for('static', filename='js/asl_alr_dynamic.js') }}"></script>
