@@ -17,11 +17,7 @@
     </div>
     <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary ms-auto d-none d-md-flex">
       <i class="bi bi-arrow-left"></i>
-      {% if user_role == "teacher" %}
-          Back to Patient Dashboard
-      {% else %}
-          Back to Student Dashboard
-      {% endif %}
+      Back to Patient Dashboard
     </a>
     </header>
 
