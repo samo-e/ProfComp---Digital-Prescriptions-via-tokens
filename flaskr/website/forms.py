@@ -381,7 +381,7 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
         render_kw={"placeholder": "DD/MM/YYYY"},
     )
     drug_name = TextAreaField("Drug Name", validators=[Optional()])
-    dose_instr = StringField(
+    dose_instr = TextAreaField(
         "Dose Instructions",
         validators=[Optional()],
         render_kw={"placeholder": 'e.g. "ONCE PER DAY" or "AS REQUIRED"'},
@@ -392,7 +392,7 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
     )
     brand_sub_not_prmt = SelectField(
         "Brand Substitution Not Permitted",
-        choices=[("true", "True"), ("false", "False")],
+        choices=[("false", "False"), ("true", "True")],
         validators=[Optional()],
     )
 
