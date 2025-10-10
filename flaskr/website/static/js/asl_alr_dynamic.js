@@ -39,6 +39,9 @@ $(document).ready(function () {
     // Dirty form
     $("#asl-form").trigger("dirty");
     unhideUnsavedChanges($item);
+
+    const $newItem = $item.find(".accordion-button .new-item").first();
+    if ($newItem.length) $newItem.removeClass("d-none");
   }
 
   // Add ASL
@@ -85,12 +88,10 @@ $(document).ready(function () {
         });
 
       // Update accordion button text
-      const $btn = $(this).find(".accordion-button").first();
-      if ($btn.length) {
-        let itemType = $btn.text().trim().split(" ")[0]; // "ASL" or "ALR"
-        const $span = $btn.find(".unsaved-changes");
-        const spanHtml = $span.prop("outerHTML"); // preserve span HTML
-        $btn.html(`${itemType} Prescription ${idx + 1} ${spanHtml}`);
+      const $btnTextSpan = $(this).find(".accordion-button > span:first-child");
+      if ($btnTextSpan.length) {
+        let itemType = $(this).find(".accordion-button").first().text().trim().split(" ")[0];
+        $btnTextSpan.text(`${itemType} Prescription ${idx + 1}`);
       }
     });
   }
@@ -125,7 +126,7 @@ $(document).ready(function () {
 
     const $unsaved = $card.find(".accordion-button .unsaved-changes").first();
     if ($unsaved.length) {
-      $unsaved.removeClass("invisible");
+      $unsaved.removeClass("d-none");
     }
   }
 
@@ -164,6 +165,6 @@ $(document).ready(function () {
   });
 
   $("form").on("dirty", function () {
-    $("#edits-made").removeClass("invisible");
+    $("#edits-made").removeClass("d-none");
   });
 });
