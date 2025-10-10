@@ -212,20 +212,29 @@ def assign_scenario(scenario_id):
 
     if request.method == "POST":
         # Check if we're handling individual patient assignments or unassign action
-        form_action = request.form.get('form_action', 'assign')
-        if form_action == 'unassign':
+        form_action = request.form.get("form_action", "assign")
+        if form_action == "unassign":
             # Unassign selected students: remove StudentScenario and any ScenarioPatient mapping for them
-            student_ids = request.form.getlist('student_ids')
+            student_ids = request.form.getlist("student_ids")
             if student_ids:
                 for sid in student_ids:
-                    StudentScenario.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
-                    ScenarioPatient.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
+                    StudentScenario.query.filter_by(
+                        student_id=sid, scenario_id=scenario.id
+                    ).delete()
+                    ScenarioPatient.query.filter_by(
+                        student_id=sid, scenario_id=scenario.id
+                    ).delete()
                 db.session.commit()
-                flash(f"Unassigned {len(student_ids)} students from the scenario.", "success")
+                flash(
+                    f"Unassigned {len(student_ids)} students from the scenario.",
+                    "success",
+                )
             else:
                 flash("No students selected to unassign.", "warning")
 
-            return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+            return redirect(
+                url_for("views.scenario_dashboard", scenario_id=scenario.id)
+            )
 
         # Check if we're handling individual patient assignments
         assignments_data = {}
@@ -370,9 +379,9 @@ def assign_scenario(scenario_id):
     assigned_student_ids = [s.id for s in scenario.assigned_students]
     # Exclude the scenario's active patient from the dropdown list
     if scenario and scenario.active_patient_id:
-        available_patients = (
-            Patient.query.filter(Patient.id != scenario.active_patient_id).all()
-        )
+        available_patients = Patient.query.filter(
+            Patient.id != scenario.active_patient_id
+        ).all()
     else:
         available_patients = Patient.query.all()
 
@@ -580,11 +589,9 @@ def student_dashboard():
 
     # Get student's assigned scenarios with submission status
     student_scenarios = (
-        StudentScenario.query
-        .join(Scenario)
+        StudentScenario.query.join(Scenario)
         .filter(
-            StudentScenario.student_id == current_user.id,
-            Scenario.is_archived == False
+            StudentScenario.student_id == current_user.id, Scenario.is_archived == False
         )
         .all()
     )
@@ -824,7 +831,7 @@ def view_student(student_id):
 
         assigned_scenarios = []
         for ss in student_scenarios:
-            print("ss.id=",ss.id)
+            print("ss.id=", ss.id)
             scenario = Scenario.query.get(ss.id)
             if scenario:
                 assigned_scenarios.append(
@@ -1291,7 +1298,9 @@ def asl(pt: int):
 
         user_role = "teacher" if current_user.is_teacher() else "student"
 
-        return render_template("views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role)
+        return render_template(
+            "views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role
+        )
 
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500
@@ -2170,7 +2179,9 @@ def set_active_patient(scenario_id):
                     "The selected patient is already assigned to a student and cannot be set as the active patient.",
                     "error",
                 )
-                return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+                return redirect(
+                    url_for("views.scenario_dashboard", scenario_id=scenario.id)
+                )
 
             scenario.active_patient_id = patient.id
 
@@ -2317,7 +2328,11 @@ def asl_form(patient_id):
     """ASL form - pre-populate with patient data"""
     patient = Patient.query.get_or_404(patient_id)
 
-    form = ASL_ALR_CreationForm(obj=patient)
+    if request.method == "POST":
+        form = ASL_ALR_CreationForm(request.form)
+    else:
+        # GET: pre-populate
+        form = ASL_ALR_CreationForm(obj=patient)
 
     # Pre-populate form on GET
     if request.method == "GET":
@@ -2330,8 +2345,10 @@ def asl_form(patient_id):
         # Build dictionary compatible with ASL_ALR_CreationForm
         data = {
             "consent_status": {
-                "is_registered": patient.is_registered,
-                "status": patient.get_asl_status().name if patient.get_asl_status() else "",
+                "is_registered": "true" if patient.is_registered else "false",
+                "status": (
+                    patient.get_asl_status().name if patient.get_asl_status() else ""
+                ),
                 "last_updated": patient.consent_last_updated,
             },
             "asl_creations": [],
@@ -2346,8 +2363,6 @@ def asl_form(patient_id):
                 "address_1": prescription.prescriber.address_1,
                 "address_2": getattr(prescription.prescriber, "address_2", ""),
                 "id": prescription.prescriber.prescriber_id,
-                "hpii": prescription.prescriber.hpii,
-                "hpio": prescription.prescriber.hpio,
                 "phone": prescription.prescriber.phone,
                 "fax": prescription.prescriber.fax,
             }
@@ -2357,13 +2372,12 @@ def asl_form(patient_id):
                 "DSPID": prescription.DSPID,
                 "status": prescription.get_status().name,
                 "prescribed_date": prescription.prescribed_date,
-                "last_dispensed_date": getattr(prescription, "dispensed_date", None),
+                "dispensed_date": getattr(prescription, "dispensed_date", None),
                 "drug_name": prescription.drug_name,
                 "drug_code": prescription.drug_code,
                 "dose_instr": prescription.dose_instr,
                 "dose_qty": prescription.dose_qty,
                 "dose_rpt": getattr(prescription, "dose_rpt", None),
-                "remaining_rpts": getattr(prescription, "remaining_repeats", None),
                 "paperless": prescription.paperless,
                 "brand_sub_not_prmt": getattr(prescription, "brand_sub_not_prmt", None),
                 "prescriber": prescriber_data,
@@ -2377,10 +2391,11 @@ def asl_form(patient_id):
         form = ASL_ALR_CreationForm(data=data)
 
     if form.validate_on_submit():
+        print("form did validate")
         try:
             # Update patient info
-            patient.is_registered = form.consent_status.is_registered.data
-            patient.asl_status = form.consent_status.status.data
+            patient.is_registered = form.consent_status.is_registered.data == "true"
+            patient.asl_status = ASLStatus[form.consent_status.status.data].value
             patient.consent_last_updated = form.consent_status.last_updated.data
 
             # Process ASL prescriptions
@@ -2389,24 +2404,25 @@ def asl_form(patient_id):
             ASL.query.filter_by(patient_id=patient_id).delete()
             Prescription.query.filter_by(patient_id=patient_id).delete()
 
-            for subform in form.asl_creations.entries:
-                presc_data = subform.data
+            for subform in form.asl_creations.entries + form.alr_creations.entries:
+                presc_data = dict(subform.data)
                 prescriber_data = presc_data.pop("prescriber", {})
+
+                # Remove unwanted keys from prescriber
+                prescriber_data.pop("csrf_token", None)
                 prescriber = Prescriber(**prescriber_data)
                 db.session.add(prescriber)
-                db.session.flush()  # Get prescriber.id
+                db.session.flush()  # get prescriber.id
 
-                prescription = Prescription(
-                    patient_id=patient_id, prescriber_id=prescriber.id, **presc_data
-                )
-                db.session.add(prescription)
+                # Remove unwanted keys from prescription
+                presc_data.pop("csrf_token", None)
+                presc_data.pop("prescription_id", None)
+                presc_data.pop("prescriber", None)
 
-            for subform in form.alr_creations.entries:
-                presc_data = subform.data
-                prescriber_data = presc_data.pop("prescriber", {})
-                prescriber = Prescriber(**prescriber_data)
-                db.session.add(prescriber)
-                db.session.flush()
+                # Convert string booleans to actual booleans
+                for bool_field in ["paperless", "brand_sub_not_prmt"]:
+                    if bool_field in presc_data:
+                        presc_data[bool_field] = presc_data[bool_field] == "true"
 
                 prescription = Prescription(
                     patient_id=patient_id, prescriber_id=prescriber.id, **presc_data
@@ -2417,13 +2433,23 @@ def asl_form(patient_id):
             flash("ASL/ALR data saved successfully.", "success")
             return redirect(url_for("views.asl_form", patient_id=patient_id))
         except Exception as e:
+            print("Form errored:")
+            print(e)
             db.session.rollback()
             flash(f"Error saving form: {str(e)}", "error")
-
-
+    else:
+        if form.is_submitted():
+            print("form did not validate")
+            print(f"Form submitted == {form.is_submitted()}")
+            print(form.errors)
+            print(form.consent_status.is_registered.data)
+            print(request.method)
+        # print("Raw POST data:", request.form)
 
     empty_asl_alr_form = ASL_ALR_PrescriptionSubform()
-    return render_template("views/asl_form.html", patient=patient, form=form, empty_form=empty_asl_alr_form)
+    return render_template(
+        "views/asl_form.html", patient=patient, form=form, empty_form=empty_asl_alr_form
+    )
 
 
 @views.route("/help")

@@ -21,6 +21,7 @@
       <div class="row g-3">
         <div class="col-md-2">{{ subform.prescription_id.label(class="form-label") }} {{ subform.prescription_id(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.prescribed_date.label(class="form-label required") }} {{ subform.prescribed_date(class="form-control") }}</div>
+        <div class="col-md-3">{{ subform.dispensed_date.label(class="form-label required") }} {{ subform.dispensed_date(class="form-control") }}</div>
         <div class="col-md-7">{{ subform.drug_name.label(class="form-label required") }} {{ subform.drug_name(class="form-control", rows=2) }}</div>
         <div class="col-md-3">{{ subform.dose_instr.label(class="form-label") }} {{ subform.dose_instr(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.dose_qty.label(class="form-label") }} {{ subform.dose_qty(class="form-control") }}</div>

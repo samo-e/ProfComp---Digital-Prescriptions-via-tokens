@@ -153,9 +153,9 @@ $(document).ready(function () {
 
     if (hasError) {
       e.preventDefault();
+    } else {
+      $(this).dirty("setAsClean");
     }
-
-    $(this).dirty("resetForm");
   });
 
   $("#asl-form").dirty({

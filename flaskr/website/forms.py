@@ -355,15 +355,6 @@ class ASL_ConsentStatusForm(FlaskForm):
     )
 
 
-def validate_remaining_less_than_total(form, field):
-    total = form.dose_rpt.data
-    remaining = field.data
-    if total is not None and remaining is not None and remaining > total:
-        raise ValidationError(
-            "Remaining repeats must be less than or equal to total repeats."
-        )
-
-
 class ASL_ALR_PrescriberSubform(FlaskForm):
     fname = StringField("First Name", validators=[Optional()])
     lname = StringField("Last Name", validators=[Optional()])
@@ -382,7 +373,7 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
     )
     paperless = SelectField(
         "Paperless",
-        choices=[("", "Select..."), ("true", "True"), ("false", "False")],
+        choices=[("true", "True"), ("false", "False")],
         validators=[Optional()],
     )
     prescribed_date = StringField(
@@ -390,7 +381,7 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
         validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
         render_kw={"placeholder": "DD/MM/YYYY"},
     )
-    last_dispensed_date = StringField(
+    dispensed_date = StringField(
         "Last Dispensed Date",
         validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
         render_kw={"placeholder": "DD/MM/YYYY"},
@@ -402,14 +393,12 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
         render_kw={"placeholder": 'e.g. "ONCE PER DAY" or "AS REQUIRED"'},
     )
     dose_qty = IntegerField("Dose Qty", validators=[Optional(), NumberRange(min=1)])
-    dose_rpt = IntegerField("Dose Repeats", validators=[Optional(), NumberRange(min=0)])
-    remaining_rpts = IntegerField(
-        "Remaining Repeats",
-        validators=[Optional(), NumberRange(min=0), validate_remaining_less_than_total],
+    dose_rpt = IntegerField(
+        "Dose Repeats (Remaining)", validators=[Optional(), NumberRange(min=0)]
     )
     brand_sub_not_prmt = SelectField(
         "Brand Substitution Not Permitted",
-        choices=[("", "Select..."), ("true", "True"), ("false", "False")],
+        choices=[("true", "True"), ("false", "False")],
         validators=[Optional()],
     )
 
