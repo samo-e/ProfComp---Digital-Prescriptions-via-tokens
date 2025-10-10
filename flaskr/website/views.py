@@ -3390,3 +3390,269 @@ def download_file(filename):
     except Exception as e:
         flash(f"Error downloading file: {str(e)}", "error")
         return redirect(url_for("views.teacher_dash"))
+
+
+@views.route("/api/export-marks/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_marks(scenario_id):
+    """Export all student marks/grades for a specific scenario as CSV"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export marks for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT MARKS REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Assigned Date",
+            "Submitted Date",
+            "Completed Date",
+            "Status",
+            "Score (out of 100)",
+            "Feedback"
+        ])
+        
+        scores = []
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else "",
+                student_scenario.completed_at.strftime('%Y-%m-%d') if student_scenario.completed_at else "",
+                student_scenario.status.capitalize(),
+                student_scenario.score if student_scenario.score is not None else "Not Graded",
+                student_scenario.feedback or ""
+            ])
+            
+            if student_scenario.score is not None:
+                scores.append(student_scenario.score)
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow(["STATISTICS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Total Students Assigned:", len(student_scenarios)])
+        writer.writerow(["Students Submitted:", sum(1 for ss, _ in student_scenarios if ss.submitted_at)])
+        writer.writerow(["Students Graded:", len(scores)])
+        writer.writerow(["Pending Grading:", sum(1 for ss, _ in student_scenarios if ss.status == 'submitted')])
+        writer.writerow([])
+        
+        if scores:
+            writer.writerow(["Average Score:", f"{sum(scores) / len(scores):.2f}"])
+            writer.writerow(["Highest Score:", f"{max(scores):.2f}"])
+            writer.writerow(["Lowest Score:", f"{min(scores):.2f}"])
+            writer.writerow(["Median Score:", f"{sorted(scores)[len(scores)//2]:.2f}"])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        safe_scenario_name = safe_scenario_name.replace(' ', '_')
+        filename = f"Marks_{safe_scenario_name}_v{scenario.version}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting marks: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-students", methods=["GET"])
+@teacher_required
+def export_student_list():
+    """Export complete list of all students in the system as CSV"""
+    try:
+        students = (
+            User.query
+            .filter_by(role='student')
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT LIST REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(students)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Username",
+            "First Name",
+            "Last Name",
+            "Full Name",
+            "Email",
+            "Phone",
+            "Date Joined",
+            "Total Scenarios Assigned",
+            "Scenarios Submitted",
+            "Scenarios Graded",
+            "Average Score"
+        ])
+        
+        for student in students:
+            student_scenarios = StudentScenario.query.filter_by(student_id=student.id).all()
+            
+            total_assigned = len(student_scenarios)
+            total_submitted = sum(1 for ss in student_scenarios if ss.submitted_at)
+            total_graded = sum(1 for ss in student_scenarios if ss.status == 'graded')
+            
+            scores = [ss.score for ss in student_scenarios if ss.score is not None]
+            avg_score = sum(scores) / len(scores) if scores else None
+            
+            writer.writerow([
+                student.id,
+                student.username,
+                student.first_name or "",
+                student.last_name or "",
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student.created_at.strftime('%Y-%m-%d') if hasattr(student, 'created_at') and student.created_at else "",
+                total_assigned,
+                total_submitted,
+                total_graded,
+                f"{avg_score:.2f}" if avg_score is not None else "N/A"
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        filename = f"Student_List_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-scenario-students/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_students(scenario_id):
+    """Export list of students assigned to a specific scenario"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export students for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["SCENARIO STUDENT LIST"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Phone",
+            "Status",
+            "Assigned Date",
+            "Submitted Date"
+        ])
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student_scenario.status.capitalize(),
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else ""
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        filename = f"Students_{safe_scenario_name}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
