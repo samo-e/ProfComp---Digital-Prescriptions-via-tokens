@@ -8,7 +8,11 @@
             aria-controls="{{ item_type | lower }}-collapse-{{ item_index }}"
             id="{{ item_type | lower }}-btn-{{ item_index }}">
       {{ item_type }} Prescription {{ item_index }}
+      <span class="invisible unsaved-changes text-warning fw-bold" id="{{ item_type | lower }}-{{ item_index }}-edits-made">
+        <i class="bi bi-exclamation-triangle mx-1"></i>Unsaved Changes
+      </span>
     </button>
+    
     <button type="button" class="btn btn-sm btn-outline-danger ms-2 remove-item-btn" data-action="remove">Remove</button>
   </h2>
   <div id="{{ item_type | lower }}-collapse-{{ item_index }}" 

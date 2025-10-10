@@ -25,7 +25,7 @@ $(document).ready(function () {
 
     // Collapse any currently open items in this container
     $container.find(".accordion-collapse.show").collapse("hide");
-    
+
     // Expand the new one
     $collapse.addClass("show");
     $button.removeClass("collapsed").attr("aria-expanded", "true");
@@ -70,7 +70,9 @@ $(document).ready(function () {
       const $btn = $(this).find(".accordion-button").first();
       if ($btn.length) {
         let itemType = $btn.text().trim().split(" ")[0]; // "ASL" or "ALR"
-        $btn.text(`${itemType} Prescription ${idx + 1}`);
+        const $span = $btn.find(".unsaved-changes");
+        const spanHtml = $span.prop("outerHTML"); // preserve span HTML
+        $btn.html(`${itemType} Prescription ${idx + 1} ${spanHtml}`);
         // Re-add remove button if removed accidentally
         if ($btn.siblings(".remove-item-btn").length === 0) {
           $btn.after(
@@ -112,19 +114,16 @@ $(document).ready(function () {
   $(document).on("input change", ".item-card :input", function () {
     const $card = $(this).closest(".item-card");
 
-    if ($card.find(".unsaved-changes").length === 0) {
-      $card
-        .find(".accordion-button")
-        .first()
-        .append(
-          ' <span class="unsaved-changes text-warning fw-bold"><i class="bi bi-exclamation-triangle mx-1"></i>Unsaved Changes</span>'
-        );
+    const $unsaved = $card.find(".accordion-button .unsaved-changes").first();
+    if ($unsaved.length) {
+      $unsaved.removeClass("invisible");
     }
+    $("#edits-made").removeClass("invisible");
   });
 
   // Form validation
   $("#asl-form").on("submit", function (e) {
-    console.log("submitting")
+    console.log("submitting");
     let hasError = false;
 
     $(".error-message").text("");
@@ -142,7 +141,12 @@ $(document).ready(function () {
     if (hasError) {
       e.preventDefault();
     }
+
+    $(this).dirty("resetForm");
+  });
+
+  $("#asl-form").dirty({
+    preventLeaving: true,
+    leavingMessage: "You have unsaved changes. Are you sure you want to leave?",
   });
 });
-
-
