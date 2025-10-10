@@ -368,7 +368,7 @@ class ASL_ALR_PrescriberSubform(FlaskForm):
     fname = StringField("First Name", validators=[Optional()])
     lname = StringField("Last Name", validators=[Optional()])
     title = StringField("Title / Qualifications", validators=[Optional()])
-    address_1 = StringField("Address Line", validators=[Optional()])
+    address_1 = StringField("Address", validators=[Optional()])
     prescriber_id = IntegerField(
         "Prescriber ID", validators=[Optional(), NumberRange(min=1)]
     )

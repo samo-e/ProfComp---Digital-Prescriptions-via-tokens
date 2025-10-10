@@ -2,9 +2,9 @@ $(document).ready(function () {
   const $aslContainer = $("#asl-items");
   const $alrContainer = $("#alr-items");
 
-  function updateCounter($container, counterId) {
-    const count = $container.children().length;
-    $(`#${counterId}`).text(count);
+  function collapseAll($container) {
+    $container.find(".accordion-collapse").removeClass("show");
+    $container.find(".accordion-button").addClass("collapsed").attr("aria-expanded", "false");
   }
 
   // Add new item
@@ -35,16 +35,27 @@ $(document).ready(function () {
     // Update the counter based on type
     const counterId = type.toLowerCase() + '-counter'; // "asl-counter" or "alr-counter"
     $(`#${counterId}`).text($container.children().length);
+
+    // Dirty form
+    $("#asl-form").trigger("dirty");
   }
 
   // Add ASL
   $("#add-asl-item").on("click", function () {
     addItem($aslContainer, "asl-template", "ASL");
   });
-
   // Add ALR
   $("#add-alr-item").on("click", function () {
     addItem($alrContainer, "alr-template", "ALR");
+  });
+
+  // Collpase ASL
+  $("#collapse-asl-items").on("click", function () {
+    collapseAll($aslContainer);
+  });
+  // Collpase ALR
+  $("#collapse-alr-items").on("click", function () {
+    collapseAll($alrContainer);
   });
 
   // Re-index items after add/remove
@@ -79,12 +90,6 @@ $(document).ready(function () {
         const $span = $btn.find(".unsaved-changes");
         const spanHtml = $span.prop("outerHTML"); // preserve span HTML
         $btn.html(`${itemType} Prescription ${idx + 1} ${spanHtml}`);
-        // Re-add remove button if removed accidentally
-        if ($btn.siblings(".remove-item-btn").length === 0) {
-          $btn.after(
-            '<button type="button" class="btn btn-sm btn-outline-danger ms-2 remove-item-btn" data-action="remove">Remove</button>'
-          );
-        }
       }
     });
   }
@@ -109,6 +114,9 @@ $(document).ready(function () {
 
     // Re-index remaining items
     indexItems($container);
+
+    // Dirty form
+    $("#asl-form").trigger("dirty");
   });
 
   // Unsaved changes indicator
@@ -119,7 +127,6 @@ $(document).ready(function () {
     if ($unsaved.length) {
       $unsaved.removeClass("invisible");
     }
-    $("#edits-made").removeClass("invisible");
   });
 
   // Form validation
@@ -149,5 +156,9 @@ $(document).ready(function () {
   $("#asl-form").dirty({
     preventLeaving: true,
     leavingMessage: "You have unsaved changes. Are you sure you want to leave?",
+  });
+
+  $("form").on("dirty", function () {
+    $("#edits-made").removeClass("invisible");
   });
 });
