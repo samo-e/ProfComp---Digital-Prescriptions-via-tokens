@@ -2,6 +2,11 @@ $(document).ready(function () {
   const $aslContainer = $("#asl-items");
   const $alrContainer = $("#alr-items");
 
+  function updateCounter($container, counterId) {
+    const count = $container.children().length;
+    $(`#${counterId}`).text(count);
+  }
+
   // Add new item
   function addItem($container, templateId, type) {
     const index = $container.children().length;
@@ -23,12 +28,13 @@ $(document).ready(function () {
     const $collapse = $item.find(".accordion-collapse");
     const $button = $item.find(".accordion-button").first();
 
-    // Collapse any currently open items in this container
-    $container.find(".accordion-collapse.show").collapse("hide");
-
     // Expand the new one
     $collapse.addClass("show");
     $button.removeClass("collapsed").attr("aria-expanded", "true");
+
+    // Update the counter based on type
+    const counterId = type.toLowerCase() + '-counter'; // "asl-counter" or "alr-counter"
+    $(`#${counterId}`).text($container.children().length);
   }
 
   // Add ASL
@@ -80,11 +86,6 @@ $(document).ready(function () {
           );
         }
       }
-
-      // Update collapse div's parent attribute
-      $(this)
-        .find(".accordion-collapse")
-        .attr("data-bs-parent", `#${$container.attr("id")}`);
     });
   }
 

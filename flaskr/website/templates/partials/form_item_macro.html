@@ -17,8 +17,7 @@
   </h2>
   <div id="{{ item_type | lower }}-collapse-{{ item_index }}" 
      class="accordion-collapse collapse" 
-     aria-labelledby="{{ item_type | lower }}-heading-{{ item_index }}" 
-     data-bs-parent="#{{ item_type | lower }}-items">
+     aria-labelledby="{{ item_type | lower }}-heading-{{ item_index }}">
     <div class="accordion-body">
       <div class="row g-3">
         <div class="col-md-2">{{ subform.prescription_id.label(class="form-label") }} {{ subform.prescription_id(class="form-control") }}</div>
