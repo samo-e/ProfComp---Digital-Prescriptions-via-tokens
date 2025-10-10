@@ -37,7 +37,8 @@ $(document).ready(function () {
     $(`#${counterId}`).text($container.children().length);
 
     // Dirty form
-    $("#asl-form").trigger("dirty");
+    const $hidden = $("#hidden-dirtier");
+    $hidden.val("1").trigger("change");
     unhideUnsavedChanges($item);
 
     const $newItem = $item.find(".accordion-button .new-item").first();
