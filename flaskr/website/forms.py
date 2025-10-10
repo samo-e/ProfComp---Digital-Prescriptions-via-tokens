@@ -360,17 +360,11 @@ class ASL_ALR_PrescriberSubform(FlaskForm):
     lname = StringField("Last Name", validators=[Optional()])
     title = StringField("Title / Qualifications", validators=[Optional()])
     address_1 = StringField("Address", validators=[Optional()])
-    prescriber_id = IntegerField(
-        "Prescriber ID", validators=[Optional(), NumberRange(min=1)]
-    )
     phone = StringField("Phone", validators=[Optional(), length(max=20)])
     fax = StringField("Fax", validators=[Optional(), length(max=20)])
 
 
 class ASL_ALR_PrescriptionSubform(FlaskForm):
-    prescription_id = IntegerField(
-        "Prescription ID", validators=[Optional(), NumberRange(min=1)]
-    )
     paperless = SelectField(
         "Paperless",
         choices=[("true", "True"), ("false", "False")],

@@ -10,7 +10,7 @@
       <span id="{{ item_type | lower }}-btn-{{ item_index }}-text">
         {{ item_type }} Prescription {{ item_index }}
       </span>
-      <span id="{{ item_type | lower }}-btn-{{ item_index }}-text" class="d-none drug-name-span"></span>
+      <span id="{{ item_type | lower }}-btn-{{ item_index }}-text" class="d-none drug-name-span ms-1"></span>
       <span class="d-none new-item badge text-bg-primary ms-3" id="{{ item_type | lower }}-{{ item_index }}-edits-made">
         <i class="bi bi-star-fill me-2"></i>New
       </span>
@@ -25,7 +25,6 @@
     <div class="accordion-body">
       <h5>Prescription</h5>
       <div class="row g-3">
-        <div class="col-md-2">{{ subform.prescription_id.label(class="form-label") }} {{ subform.prescription_id(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.prescribed_date.label(class="form-label required") }} {{ subform.prescribed_date(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.dispensed_date.label(class="form-label required") }} {{ subform.dispensed_date(class="form-control") }}</div>
         <div class="col-md-7">{{ subform.drug_name.label(class="form-label required") }} {{ subform.drug_name(class="form-control", rows=2) }}</div>
@@ -44,7 +43,6 @@
         <div class="col-md-3">{{ subform.prescriber.lname.label(class="form-label") }} {{ subform.prescriber.lname(class="form-control") }}</div>
         <div class="col-md-6">{{ subform.prescriber.title.label(class="form-label") }} {{ subform.prescriber.title(class="form-control") }}</div>
         <div class="col-md-6">{{ subform.prescriber.address_1.label(class="form-label") }} {{ subform.prescriber.address_1(class="form-control") }}</div>
-        <div class="col-md-3">{{ subform.prescriber.prescriber_id.label(class="form-label") }} {{ subform.prescriber.prescriber_id(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.prescriber.phone.label(class="form-label") }} {{ subform.prescriber.phone(class="form-control") }}</div>
         <div class="col-md-3">{{ subform.prescriber.fax.label(class="form-label") }} {{ subform.prescriber.fax(class="form-control") }}</div>
         <div class="col-md-9 d-flex justify-content-end align-items-end">
