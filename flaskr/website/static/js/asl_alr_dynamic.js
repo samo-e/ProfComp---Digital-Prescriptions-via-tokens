@@ -18,6 +18,17 @@ $(document).ready(function () {
 
     // Re-index all items
     indexItems($container);
+
+    // Expand added items
+    const $collapse = $item.find(".accordion-collapse");
+    const $button = $item.find(".accordion-button").first();
+
+    // Collapse any currently open items in this container
+    $container.find(".accordion-collapse.show").collapse("hide");
+    
+    // Expand the new one
+    $collapse.addClass("show");
+    $button.removeClass("collapsed").attr("aria-expanded", "true");
   }
 
   // Add ASL
@@ -113,6 +124,7 @@ $(document).ready(function () {
 
   // Form validation
   $("#asl-form").on("submit", function (e) {
+    console.log("submitting")
     let hasError = false;
 
     $(".error-message").text("");
@@ -123,6 +135,7 @@ $(document).ready(function () {
         if ($(this).val().trim() === "") {
           hasError = true;
           $(this).next(".error-message").text("This field is required.");
+          console.log(this, "This field is required.");
         }
       });
 
@@ -131,3 +144,5 @@ $(document).ready(function () {
     }
   });
 });
+
+

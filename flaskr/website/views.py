@@ -2377,7 +2377,6 @@ def asl_form(patient_id):
         form = ASL_ALR_CreationForm(data=data)
 
     if form.validate_on_submit():
-        print("form validated")
         try:
             # Update patient info
             patient.is_registered = form.consent_status.is_registered.data
@@ -2420,8 +2419,7 @@ def asl_form(patient_id):
         except Exception as e:
             db.session.rollback()
             flash(f"Error saving form: {str(e)}", "error")
-    else:
-        print("form not validated")
+
 
 
     empty_asl_alr_form = ASL_ALR_PrescriptionSubform()

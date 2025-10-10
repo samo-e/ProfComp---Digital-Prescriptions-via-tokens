@@ -334,23 +334,24 @@ class ASL_ConsentStatusForm(FlaskForm):
             ("true", "Yes"),
             ("false", "No"),
         ],
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
-    status = SelectField( # required
+    status = SelectField(  # required
         "Status",
         choices=[
             ("", "Select..."),
-            ("No Consent", "No Consent"),
-            ("Pending", "Pending"),
-            ("Granted", "Granted"),
-            ("Rejected", "Rejected"),
+            ("NO CONSENT", "No Consent"),
+            ("PENDING", "Pending"),
+            ("GRANTED", "Granted"),
+            ("REJECTED", "Rejected"),
         ],
-        validators=[DataRequired()]
+        validators=[DataRequired()],
     )
     last_updated = StringField(
         "Last Updated",
         validators=[DataRequired()],
-        default=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        render_kw={"placeholder": "DD/MM/YYYY HH:MM am/pm"},
+        default=lambda: datetime.now().strftime("%d/%m/%Y %H:%M %p"),
     )
 
 
@@ -358,7 +359,9 @@ def validate_remaining_less_than_total(form, field):
     total = form.dose_rpt.data
     remaining = field.data
     if total is not None and remaining is not None and remaining > total:
-        raise ValidationError("Remaining repeats must be less than or equal to total repeats.")
+        raise ValidationError(
+            "Remaining repeats must be less than or equal to total repeats."
+        )
 
 
 class ASL_ALR_PrescriberSubform(FlaskForm):
@@ -366,13 +369,17 @@ class ASL_ALR_PrescriberSubform(FlaskForm):
     lname = StringField("Last Name", validators=[Optional()])
     title = StringField("Title / Qualifications", validators=[Optional()])
     address_1 = StringField("Address Line", validators=[Optional()])
-    prescriber_id = IntegerField("Prescriber ID", validators=[Optional(), NumberRange(min=1)])
+    prescriber_id = IntegerField(
+        "Prescriber ID", validators=[Optional(), NumberRange(min=1)]
+    )
     phone = StringField("Phone", validators=[Optional(), length(max=20)])
     fax = StringField("Fax", validators=[Optional(), length(max=20)])
 
 
 class ASL_ALR_PrescriptionSubform(FlaskForm):
-    prescription_id = IntegerField("Prescription ID", validators=[Optional(), NumberRange(min=1)])
+    prescription_id = IntegerField(
+        "Prescription ID", validators=[Optional(), NumberRange(min=1)]
+    )
     paperless = SelectField(
         "Paperless",
         choices=[("", "Select..."), ("true", "True"), ("false", "False")],
@@ -380,23 +387,25 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
     )
     prescribed_date = StringField(
         "Prescribed Date",
-        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")]
+        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
+        render_kw={"placeholder": "DD/MM/YYYY"},
     )
     last_dispensed_date = StringField(
         "Last Dispensed Date",
-        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")]
+        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
+        render_kw={"placeholder": "DD/MM/YYYY"},
     )
     drug_name = TextAreaField("Drug Name", validators=[Optional()])
-    dose_instr = StringField("Dose Instructions", validators=[Optional()])
+    dose_instr = StringField(
+        "Dose Instructions",
+        validators=[Optional()],
+        render_kw={"placeholder": 'e.g. "ONCE PER DAY" or "AS REQUIRED"'},
+    )
     dose_qty = IntegerField("Dose Qty", validators=[Optional(), NumberRange(min=1)])
     dose_rpt = IntegerField("Dose Repeats", validators=[Optional(), NumberRange(min=0)])
     remaining_rpts = IntegerField(
         "Remaining Repeats",
-        validators = [
-            Optional(),
-            NumberRange(min=0),
-            validate_remaining_less_than_total
-        ]
+        validators=[Optional(), NumberRange(min=0), validate_remaining_less_than_total],
     )
     brand_sub_not_prmt = SelectField(
         "Brand Substitution Not Permitted",
@@ -405,6 +414,7 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
     )
 
     prescriber = FormField(ASL_ALR_PrescriberSubform)
+
 
 class ASL_ALR_CreationForm(FlaskForm):
     consent_status = FormField(ASL_ConsentStatusForm)
