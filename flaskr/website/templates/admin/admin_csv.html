@@ -3,6 +3,7 @@
 {% block admin_content %}
 <div class="container mt-4">
   <h1>CSV Exports</h1>
+  <a href="{{ url_for('admin.export_accounts_zip') }}" class="btn btn-success mb-3">Export Accounts to ZIP</a>
   {% if csv_files %}
     <ul class="list-group mt-3">
       {% for file in csv_files %}

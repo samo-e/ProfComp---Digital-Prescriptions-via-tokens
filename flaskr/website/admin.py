@@ -59,7 +59,7 @@ def csv_exports():
         return redirect(url_for('views.home'))
     export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
     try:
-        files = [f for f in os.listdir(export_dir) if f.endswith('.csv')]
+        files = [f for f in os.listdir(export_dir) if f.endswith('.zip')]
         files.sort(reverse=True)
     except Exception:
         files = []
@@ -73,10 +73,73 @@ def download_csv(filename):
         flash('Admin privileges required.', 'error')
         return redirect(url_for('views.home'))
     export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+    # Only allow ZIP files to be downloaded
+    if not filename.endswith('.zip'):
+        flash('Only encrypted ZIP files are available for download.', 'error')
+        return redirect(url_for('admin.csv_exports'))
     return send_from_directory(export_dir, filename, as_attachment=True)
+
+# Function to export and encrypt CSV as password-protected ZIP
+import pyzipper
+
+def export_and_encrypt_csv(csv_filename, zip_filename, password):
+    """
+    Encrypts a CSV file as a password-protected ZIP file using pyzipper.
+    Args:
+        csv_filename (str): Path to the CSV file to encrypt.
+        zip_filename (str): Path to the output ZIP file.
+        password (str): Password for ZIP encryption.
+    """
+    if not os.path.exists(csv_filename):
+        raise FileNotFoundError(f"CSV file '{csv_filename}' does not exist.")
+    with pyzipper.AESZipFile(zip_filename, 'w', compression=pyzipper.ZIP_DEFLATED, encryption=pyzipper.WZ_AES) as zf:
+        zf.setpassword(password.encode())
+        zf.write(csv_filename, arcname=os.path.basename(csv_filename))
+    # Delete the original CSV after encryption
+    try:
+        os.remove(csv_filename)
+        print(f"Original CSV deleted: {csv_filename}")
+    except Exception as e:
+        print(f"Failed to delete CSV: {e}")
+    print(f"Encrypted ZIP created: {zip_filename}")
 
 
 # Exempt the batch_create_accounts route from CSRF protection using the csrf instance
+@admin.route('/admin/export_accounts_zip')
+@login_required
+def export_accounts_zip():
+    if current_user.role != 'admin':
+        flash('Admin privileges required.', 'error')
+        return redirect(url_for('views.home'))
+    # Example: Query all users and export to CSV
+    users = User.query.all()
+    export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+    os.makedirs(export_dir, exist_ok=True)
+    csv_filename = os.path.join(export_dir, 'accounts_export.csv')
+    zip_filename = os.path.join(export_dir, 'accounts_export.zip')
+    password = 'ChangeThisPassword'  # Set a secure password here
+    # Write users to CSV
+    # WARNING: This assumes you have stored the plaintext password somewhere accessible.
+    # If you do not have plaintext passwords, you must generate and store them at account creation.
+    with open(csv_filename, 'w', newline='', encoding='utf-8') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['id', 'studentnumber', 'email', 'password', 'role', 'first_name', 'last_name'])
+        for user in users:
+            # Replace user.password with the actual plaintext password if available
+            # If not available, this will be blank or you need to update your user creation logic
+            writer.writerow([
+                user.id,
+                user.studentnumber,
+                user.email,
+                getattr(user, 'plain_password', ''),
+                user.role,
+                user.first_name,
+                user.last_name
+            ])
+    # Encrypt and delete CSV
+    export_and_encrypt_csv(csv_filename, zip_filename, password)
+    flash('Accounts exported and encrypted ZIP created.', 'success')
+    return redirect(url_for('admin.csv_exports'))
 try:
     from flaskr.website import csrf
 except ImportError:
