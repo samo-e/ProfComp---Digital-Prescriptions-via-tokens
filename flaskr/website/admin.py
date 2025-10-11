@@ -947,19 +947,23 @@ def export_all_students_csv():
         )
 
         for student_scenario in student_scenarios:
-            scenario = Scenario.query.get(student_scenario.scenario_id)
-
-            patient_assignment = ScenarioPatient.query.filter_by(
-                scenario_id=scenario.id, student_id=student.id
+            scenario_patient = ScenarioPatient.query.filter_by(
+                scenario_id=student_scenario.scenario_id, student_id=student.id
             ).first()
 
-            patient = patient_assignment.patient if patient_assignment else scenario.active_patient
+            if scenario_patient is None:
+                continue
+            patient = Patient.query.get(scenario_patient.patient_id)
+            if patient is None:
+                continue
 
-            print(patient)
-
-            prescriptions = []
-            if patient:
-                prescriptions = Prescription.query.filter_by(patient_id=patient.id).all()
+            scenario = Scenario.query.get(student_scenario.scenario_id)
+            if scenario is None:
+                continue
+            
+            print("Patient =",patient)
+            print("Scenario =",scenario)
+            prescriptions = Prescription.query.filter_by(patient_id=patient.id).all()
             
             presc_data = []
             for prescription in prescriptions:
