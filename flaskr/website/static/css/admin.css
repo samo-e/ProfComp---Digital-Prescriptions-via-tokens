@@ -93,3 +93,18 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.lock-icon {
+  left: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
+}
+
+.password-wrapper {
+  cursor: pointer;
+}
+
+#new_password {
+  pointer-events: none;
+}

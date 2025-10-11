@@ -238,3 +238,25 @@
   });
 })();
 
+$(document).ready(function () {
+  $("#password-wrapper").on("click", function (e) {
+    var $icon = $(this).find(".bi-lock");
+    var $input = $(this).find("input");
+
+    // Enable input
+    $input.prop("disabled", false).focus();
+    $(this).removeClass("password-wrapper");
+
+    $icon.removeClass("bi-lock").addClass("bi-unlock2");
+
+    // After 500ms, set lock to fade out
+    setTimeout(function () {
+      $icon.fadeOut(200, function () {
+        $icon.remove();
+      });
+    }, 350);
+
+    // Enable change password buttun
+    $("#change-password-btn").removeClass("invisible");
+  });
+});

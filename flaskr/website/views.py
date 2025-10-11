@@ -2849,7 +2849,7 @@ def readme():
     """
     Renders README.md as a html page
     """
-    role = "teacher" if current_user.is_teacher() else "student"
+    role = "student" if current_user.is_student() else "teacher"
     html_path = (
         Path(__file__).resolve().parents[2]
         / "flaskr"
