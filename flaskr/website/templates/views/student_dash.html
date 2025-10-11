@@ -176,6 +176,18 @@
                                                     {% endif %}
                                                 {% endif %}
                                             </div>
+                                            {% if data.student_scenario.status == 'graded' and data.student_scenario.feedback %}
+                                            <div class="mt-2">
+                                                <small class="text-muted">Feedback: {{ data.student_scenario.feedback[:100] }}{% if data.student_scenario.feedback|length > 100 %}...{% endif %}</small>
+                                                <div class="mt-1">
+                                                    {% if data.patient %}
+                                                        <a href="{{ url_for('views.submit_work', scenario_id=data.scenario.id, patient_id=data.patient.id) }}" class="btn btn-outline-secondary btn-sm">View Feedback</a>
+                                                    {% else %}
+                                                        <a href="{{ url_for('views.scenario_dashboard', scenario_id=data.scenario.id) }}" class="btn btn-outline-secondary btn-sm">View Feedback</a>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            {% endif %}
                                         </div>
                                     </div>
                                 </div>

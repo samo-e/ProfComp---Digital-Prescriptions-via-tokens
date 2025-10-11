@@ -1,3 +1,4 @@
+
 body > .container {
   margin-top: 3%;
   margin-bottom: 3%;
@@ -7,6 +8,7 @@ body > .container {
   margin: auto;
   display: block;
 }
+
 .asl-qty,
 .asl-rpt,
 .alr-qty,
@@ -20,23 +22,29 @@ body > .container {
 .asl-item {
   font-weight: bold;
 }
+
 td > p {
   font-weight: normal;
   margin-bottom: 0;
 }
+
 .asl-paper > td {
   color: #999 !important;
 }
+
 .asl-paper > td > p {
   visibility: hidden;
 }
+
 .alr-paper > td > p {
   visibility: hidden;
 }
+
 .alr-paper .alr-cloud-prescription *,
 .asl-paper .asl-cloud-prescription * {
   visibility: hidden;
 }
+
 .asl-cloud-prescription img,
 .alr-cloud-prescription img {
   width: 20px;
@@ -84,6 +92,497 @@ html {
   font-style: italic;
 }
 
-.btn {
+/* Export button group styling */
+.btn-group {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 1rem;
+}
+
+.btn-group .btn {
+  border-radius: 0;
+}
+
+.btn-group .btn:first-child {
+  border-top-left-radius: 0.25rem;
+  border-bottom-left-radius: 0.25rem;
+}
+
+.btn-group .btn:last-child {
+  border-top-right-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+/* Export button hover effects */
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-outline-success:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-outline-success:not(:disabled):hover {
+  transform: translateY(-2px);
+  transition: all 0.2s ease;
+}
+
+/* Checkbox styling in tables */
+.prescription-select {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+#selectAllASL,
+#selectAllALR {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* Table header checkbox alignment */
+th input[type="checkbox"] {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Table cell checkbox alignment */
+td input[type="checkbox"] {
+  display: block;
+  margin: 0 auto;
+}
+
+/* Table row highlighting when selected */
+tr:has(.prescription-select:checked) {
+  background-color: #d1ecf1 !important;
+  border-left: 3px solid #0dcaf0;
+  transition: all 0.2s ease;
+}
+
+/* Hover effect for table rows */
+#asl-table tbody tr:hover,
+#alr-table tbody tr:hover {
+  background-color: #f8f9fa;
+  cursor: pointer;
+}
+
+/* Info text styling */
+.text-muted small {
+  font-size: 0.875rem;
+}
+
+.text-muted .bi-info-circle {
+  color: #0dcaf0;
+}
+
+/* Table responsive improvements */
+.table-responsive {
+  border-radius: 0.25rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  margin-bottom: 1.5rem;
+}
+
+.table-responsive table {
+  margin-bottom: 0;
+}
+
+/* Table styling */
+.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #f8f9fa;
+}
+
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 0.75rem;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.table td {
+  vertical-align: middle;
+  padding: 0.75rem;
+}
+
+/* Action buttons in table */
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.btn-info {
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+
+.btn-info:hover {
+  background-color: #31d2f2;
+  border-color: #31d2f2;
+}
+
+/* Badge styling */
+.badge {
+  padding: 0.35em 0.65em;
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+.badge.bg-success {
+  background-color: #198754 !important;
+}
+
+.badge.bg-secondary {
+  background-color: #6c757d !important;
+}
+
+.badge.bg-primary {
+  background-color: #0d6efd !important;
+}
+
+/* Customer and ASL cards */
+.customer-card,
+.asl-card {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.3s ease;
+}
+
+.customer-card:hover,
+.asl-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.customer-card h3,
+.asl-card h3 {
+  color: #0d6efd;
+  border-bottom: 2px solid #0d6efd;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.customer-card h4,
+.asl-card h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.customer-card p,
+.asl-card p {
+  margin-bottom: 0.5rem;
+  color: #212529;
+}
+
+/* Alert styling */
+.alert {
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-top: 1rem;
+}
+
+.alert-heading {
+  font-weight: 600;
+}
+
+/* Print button alignment */
+#printBtn {
+  margin-left: 0;
+}
+
+/* Button icon spacing */
+.btn i {
+  margin-right: 0.25rem;
+}
+
+/* Section headers */
+h2 {
+  color: #212529;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e9ecef;
+}
+
+h3 {
+  color: #495057;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Back button styling */
+.btn-outline-secondary {
+  border-color: #6c757d;
+  color: #6c757d;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: #fff;
+}
+
+/* Close button styling */
+.btn-secondary {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5c636a;
+  border-color: #565e64;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  body > .container {
+    margin-top: 2%;
+    margin-bottom: 2%;
+  }
+
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-group .btn {
+    border-radius: 0.25rem !important;
+    margin-bottom: 0.5rem;
+    width: 100%;
+  }
+  
+  .table-responsive {
+    font-size: 0.875rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .customer-card h3,
+  .asl-card h3 {
+    font-size: 1.1rem;
+  }
+
+  .customer-card h4,
+  .asl-card h4 {
+    font-size: 0.9rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .badge {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .table-responsive {
+    font-size: 0.8rem;
+  }
+
+  .btn-group .btn {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.4rem;
+    font-size: 0.8rem;
+  }
+
+  .prescription-select,
+  #selectAllASL,
+  #selectAllALR {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Loading state for export buttons */
+.btn.loading {
+  position: relative;
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+.btn.loading::after {
+  content: "";
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Selection counter badge (floating) */
+.selection-counter {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 10px 20px;
+  background-color: #0dcaf0;
+  color: white;
+  border-radius: 25px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
   font-weight: bold;
+  display: none;
+}
+
+.selection-counter.active {
+  display: block;
+  animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Prescription details in table */
+.table td strong {
+  color: #212529;
+  font-weight: 600;
+}
+
+.table td small {
+  display: block;
+  margin-top: 0.25rem;
+}
+
+.table td small.text-muted {
+  color: #6c757d !important;
+  font-size: 0.85rem;
+}
+
+/* Empty state styling */
+.table tbody tr td[colspan] {
+  text-align: center;
+  padding: 2rem;
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Print-specific styles */
+@media print {
+  .btn-group,
+  .btn,
+  #selectAllASL,
+  #selectAllALR,
+  .prescription-select,
+  .alert,
+  .bi-arrow-left {
+    display: none !important;
+  }
+
+  .table {
+    page-break-inside: avoid;
+  }
+
+  .customer-card,
+  .asl-card {
+    page-break-inside: avoid;
+    box-shadow: none;
+    border: 1px solid #dee2e6;
+  }
+
+  body > .container {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+/* Tooltip styling */
+[title] {
+  cursor: help;
+}
+
+/* Focus styles for accessibility */
+.prescription-select:focus,
+#selectAllASL:focus,
+#selectAllALR:focus {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+.btn:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Smooth transitions */
+.btn,
+.card,
+.table tbody tr {
+  transition: all 0.2s ease;
+}
+
+/* Success flash message styling */
+.alert-success {
+  background-color: #d1e7dd;
+  border-color: #badbcc;
+  color: #0f5132;
+}
+
+/* Error flash message styling */
+.alert-danger {
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+  color: #842029;
+}
+
+/* Warning flash message styling */
+.alert-warning {
+  background-color: #fff3cd;
+  border-color: #ffecb5;
+  color: #664d03;
+}
+
+/* Info flash message styling */
+.alert-info {
+  background-color: #cff4fc;
+  border-color: #b6effb;
+  color: #055160;
 }

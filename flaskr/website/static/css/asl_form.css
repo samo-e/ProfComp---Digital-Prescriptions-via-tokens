@@ -23,11 +23,6 @@ legend {
   font-size: 0.875rem;
   color: #6c757d;
 }
-.remove-item-btn {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-}
 .item-card {
   position: relative;
 }

@@ -47,7 +47,7 @@
                     <div id="name-edit" class="flex-grow-1 d-none">
                         <form method="POST" action="{{ url_for('views.update_scenario_name', scenario_id=scenario.id) }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <input type="text" class="form-control mw-100" name="scenario_name" value="{{ scenario.name }}" required>
+                            <input type="text" class="form-control mw-100" name="scenario_name" value="{{ scenario.name }}" required maxlength="100">
                             <button type="submit" class="btn btn-sm btn-success">Save</button>
                             <button type="button" class="btn btn-sm btn-secondary" onclick="cancelNameEdit()">Cancel</button>
                         </form>
@@ -81,9 +81,10 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="mb-3">
                 <label for="description" class="form-label">Scenario Description:</label>
-                <textarea class="form-control" id="description" name="description" rows="3" 
-                          placeholder="Enter a description for this scenario...">{{ scenario.description or '' }}</textarea>
-                <div class="form-text">Provide context and background information for students about this scenario.</div>
+                <textarea class="form-control" id="description" name="description" rows="3"
+                    maxlength="5000"
+                    placeholder="Enter a description for this scenario...">{{ scenario.description or '' }}</textarea>
+                <div class="form-text">Provide context and background information for students about this scenario. Maximum 5000 characters.</div>
             </div>
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Save Description</button>
@@ -133,9 +134,10 @@
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <div class="mb-3">
                     <label for="question_text" class="form-label text-dark">Scenario Questions/Instructions:</label>
-                    <textarea class="form-control" id="question_text" name="question_text" rows="6" 
-                              placeholder="Enter questions or instructions for students...">{{ scenario.question_text or '' }}</textarea>
-                    <div class="form-text text-dark">You can write multiple questions or instructions. Students will see this when they access the scenario.</div>
+                    <textarea class="form-control" id="question_text" name="question_text" rows="6"
+                        maxlength="10000"
+                        placeholder="Enter questions or instructions for students...">{{ scenario.question_text or '' }}</textarea>
+                    <div class="form-text">You can write multiple questions or instructions. Maximum 10000 characters.</div>
                 </div>
                 <div class="d-flex gap-2">
                     <button type="submit" class="btn btn-primary">Save Questions</button>
@@ -308,10 +310,12 @@
                     <select class="form-select" id="patient_id" name="patient_id" required>
                         <option value="">Choose a patient...</option>
                         {% for patient in all_patients %}
-                        <option value="{{ patient.id }}" {% if scenario.active_patient and patient.id == scenario.active_patient.id %}selected{% endif %}>
+                        {% set is_assigned_to_student = patient.id in (assigned_patient_ids or []) %}
+                        <option value="{{ patient.id }}" {% if scenario.active_patient and patient.id == scenario.active_patient.id %}selected{% endif %} {% if is_assigned_to_student %}disabled data-assigned-to-student="true"{% endif %}>
                             {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
                             {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
                             {% if patient.medicare %} - Medicare: {{ patient.medicare }}{% endif %}
+                            {% if is_assigned_to_student %} (Assigned to student){% endif %}
                         </option>
                         {% endfor %}
                     </select>
@@ -464,7 +468,7 @@
     </div>
     
     <!-- Navigation -->
-    <div class="d-flex justify-content-between mt-4 mb-4">
+    <div class="d-flex align-items-center gap-2">
         {% if current_user.is_teacher() %}
         <a href="{{ url_for('views.teacher_dashboard') }}" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
@@ -476,11 +480,11 @@
         {% endif %}
         
         {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-        <div>
-            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-info me-2">
+        <div class="ms-auto d-flex gap-2">
+            <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-info">
                 <i class="bi bi-clipboard-check me-1"></i>View Submissions
             </a>
-            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}">
+            <form method="POST" action="{{ url_for('views.duplicate_scenario', scenario_id=scenario.id) }}" class="d-inline">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-copy me-1"></i>Duplicate Scenario

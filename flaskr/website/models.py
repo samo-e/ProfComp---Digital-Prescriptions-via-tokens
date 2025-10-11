@@ -244,8 +244,18 @@ class Patient(db.Model):
     )
     is_registered = db.Column(db.Boolean, default=True)
 
+    #def get_asl_status(self):
+    #    return ASLStatus(self.asl_status)
     def get_asl_status(self):
-        return ASLStatus(self.asl_status)
+        try:
+            # Try interpreting as integer first
+            return ASLStatus(int(self.asl_status))
+        except (ValueError, TypeError):
+            # If it's a string like "GRANTED", try mapping by name
+            try:
+                return ASLStatus[self.asl_status]
+            except (KeyError, TypeError):
+                return None
 
     def can_view_asl(self):
         return self.asl_status == ASLStatus.GRANTED.value

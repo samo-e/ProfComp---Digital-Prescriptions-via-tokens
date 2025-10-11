@@ -16,7 +16,7 @@
                             </small>
                         </div>
                         <a href="{{ url_for('views.view_submissions', scenario_id=scenario.id) }}" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Back to Submissions
+                            <i class="bi bi-arrow-left"></i> Back to Submissions
                         </a>
                     </div>
                 </div>
@@ -95,7 +95,7 @@
                                         
                                         <div class="d-grid">
                                             <button type="submit" class="btn btn-success">
-                                                <i class="fas fa-save"></i>
+                                                <i class="bi bi-save"></i>
                                                 {% if student_scenario.status == 'graded' %}Update Grade{% else %}Submit Grade{% endif %}
                                             </button>
                                         </div>
@@ -174,7 +174,7 @@
                             <!-- Quick Link to Current ASL -->
                             <div class="mt-3">
                                 <a href="{{ url_for('views.asl', pt=patient.id) }}" class="btn btn-outline-info btn-sm" target="_blank">
-                                    <i class="fas fa-external-link-alt"></i> View Current ASL (New Tab)
+                                    <i class="bi bi-external-link-alt"></i> View Current ASL (New Tab)
                                 </a>
                             </div>
                         </div>
@@ -189,23 +189,23 @@
                             <h6 class="card-title mb-0">Uploaded Files</h6>
                         </div>
                         <div class="card-body">
-                            {% if submission and submission.submission_data.get('uploaded_files') %}
+                                    {% if submission and submission.submission_data.get('uploaded_files') %}
                                 <div class="list-group list-group-flush">
                                     {% for file_info in submission.submission_data.uploaded_files %}
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
-                                            <i class="fas fa-file-pdf text-danger me-2"></i>
+                                            <i class="bi bi-file-earmark me-2"></i>
                                             <strong>{{ file_info.original_name }}</strong>
                                             <br>
                                             <small class="text-muted">
-                                                Size: {{ "%.2f"|format(file_info.size / 1024 / 1024) }} MB | 
+                                                Size: {{ "%.2f"|format((file_info.file_size or file_info.get('file_size',0)) / 1024 / 1024) }} MB | 
                                                 Uploaded: {{ file_info.upload_time }}
                                             </small>
                                         </div>
                                         <div>
-                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name) }}" 
+                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name or file_info.get('stored_name')) }}" 
                                                class="btn btn-sm btn-outline-primary" target="_blank">
-                                                <i class="fas fa-download"></i> Download
+                                                <i class="bi bi-download"></i> Download
                                             </a>
                                         </div>
                                     </div>
@@ -213,7 +213,7 @@
                                 </div>
                             {% else %}
                                 <div class="text-center py-4">
-                                    <i class="fas fa-file-upload text-muted"></i>
+                                    <i class="bi bi-file-upload text-muted"></i>
                                     <p class="text-muted mt-2">No files uploaded with this submission.</p>
                                 </div>
                             {% endif %}

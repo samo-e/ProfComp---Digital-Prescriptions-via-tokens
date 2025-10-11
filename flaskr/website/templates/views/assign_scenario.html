@@ -5,6 +5,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/assign_scenario.css') }}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/assign_scenario.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
     <!-- Flash Messages -->
@@ -21,127 +25,113 @@
 
     <div class="assign-container">
         <div class="assign-header text-center">
-            <h2><i class="bi bi-people me-2"></i>Assign Students to Scenario</h2>
-            <h4 class="mb-0 opacity-90">{{ scenario.name }}</h4>
+            <h2><i class="bi bi-people me-2"></i>Assign Students to {{ scenario.name }}</h2>
         </div>
 
         <form method="POST" id="assignForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="action" id="formAction" value="assign"/>
             
             <!-- Search and Actions Row -->
-            <div class="actions-row">
+            <div class="">
                 <div class="search-section">
                     <input type="text" 
                            id="searchBox" 
                            class="search-box" 
                            placeholder="Search students by name or email...">
                 </div>
-                <div class="buttons-section">
-                    <div class="bulk-actions">
-                        <button type="button" id="selectAllBtn" class="bulk-btn">
+                <div class="my-3 bulk-actions">
+                    <div class="row g-2">
+                        <div class="col-3">
+                        <button type="button" id="selectAllBtn" class="btn btn-primary w-100 bulk-btn">
                             <i class="bi bi-check-square"></i> Select All
                         </button>
-                        <button type="button" id="selectNoneBtn" class="bulk-btn secondary">
+                        </div>
+                        <div class="col-3">
+                        <button type="button" id="selectNoneBtn" class="btn btn-secondary w-100 bulk-btn">
                             <i class="bi bi-square"></i> Deselect All
                         </button>
-                        <button type="button" id="selectNewBtn" class="bulk-btn success">
-                            <i class="bi bi-person-plus"></i> Select Unassigned
+                        </div>
+                        <div class="col-3">
+                        <button type="button" id="selectNewBtn" class="btn btn-info w-100 bulk-btn">
+                            <i class="bi bi-person-plus-fill"></i> Select New
                         </button>
-                        <button type="button" id="clearAssignmentsBtn" class="bulk-btn warning" onclick="toggleClearAssignments()">
-                            <i class="bi bi-x-circle"></i> <span id="clearBtnText">Keep Existing</span>
-                        </button>
+                        </div>
+                        <div class="col-3">
+                        <div id="selectionSummary" class="d-none">
+                            <span class="badge bg-success fs-6 py-2 px-3">
+                                <span id="selectedCount">0</span> Selected
+                            </span>
+                        </div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hidden Clear Existing Input (controlled by button) -->
-            <input type="hidden" name="clear_existing" id="clear_existing" value="false">
-
-            <!-- Selection Summary -->
-            <div class="selection-summary d-none" id="selectionSummary">
-                <div class="d-flex justify-content-between align-items-center text-dark">
-                    <span><i class="bi bi-check-square me-2"></i><span id="selectedCount">0</span> students selected</span>
-                    <small>Currently assigned: {{ assigned_student_ids|length }}</small>
-                </div>
-            </div>
-
-            <!-- Students List -->
-            <div id="studentsList">
-                {% if students and students|length > 0 %}
-                    <div class="table-responsive students-table-wrapper">
-                        <table class="table students-table">
-                            <thead>
+            <!-- Students Table -->
+            <div class="table-container">
+                {% if students %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-header">
                                 <tr>
-                                    <th width="60">
-                                        <div class="form-check d-flex justify-content-center">
-                                            <input class="form-check-input table-checkbox" type="checkbox" id="selectAllCheckbox">
-                                        </div>
+                                    <th width="50">
+                                        <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
                                     </th>
-                                    <th>Student Information</th>
-                                    <th>Contact</th>
-                                    <th>Status</th>
-                                    <th>Assign Patient</th>
+                                    <th>Student Name</th>
+                                    <th>Email</th>
+                                    <th>Assigned Patient</th>
+                                    <th width="120" class="text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for student in students %}
                                 <tr class="student-row" 
-                                    data-name="{{ student.get_full_name()|lower }}" 
-                                    data-email="{{ student.email|lower }}">
-                                    <td class="text-center">
-                                        <div class="form-check d-flex justify-content-center">
-                                            <input class="form-check-input student-checkbox" 
-                                                   type="checkbox" 
-                                                   name="student_ids" 
-                                                   value="{{ student.id }}" 
-                                                   id="student_{{ student.id }}"
-                                                   {% if student.id in assigned_student_ids %}checked{% endif %}>
+                                    data-student-id="{{ student.id }}"
+                                    data-name="{{ student.get_full_name().lower() }}"
+                                    data-email="{{ student.email.lower() }}">
+                                    <td>
+                                        <input type="checkbox" 
+                                               class="form-check-input student-checkbox" 
+                                               name="student_ids" 
+                                               value="{{ student.id }}"
+                                               id="student_{{ student.id }}"
+                                               {% if student.id in assigned_student_ids %}checked{% endif %}>
+                                    </td>
+                                    <td>
+                                        <div class="student-name fw-semibold">
+                                            {{ student.get_full_name() }}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="student-details">
-                                            <div class="student-name text-primary-emphasis">{{ student.get_full_name() }}</div>
-                                            <small class="student-id text-dark-emphasis">ID: {{ student.id }}</small>
-                                        </div>
+                                        <small class="text-muted">{{ student.email }}</small>
                                     </td>
                                     <td>
-                                        <div>
-                                            <a href="mailto:{{ student.email }}" class="student-email">{{ student.email }}</a>
-                                            {% if student.last_login %}
-                                            <br><small class="login-status">Last login: {{ student.last_login.strftime('%d/%m/%Y') }}</small>
-                                            {% else %}
-                                            <br><small class="login-status">Never logged in</small>
-                                            {% endif %}
-                                        </div>
+                                        <select class="form-select form-select-sm patient-select" 
+                                                name="patient_{{ student.id }}"
+                                                data-student-id="{{ student.id }}">
+                                            <option value="">Select a patient...</option>
+                                            {% for patient in available_patients %}
+                                                {% set is_assigned = patient.id in assigned_patients and patient.id != current_assignments.get(student.id) %}
+                                                <option value="{{ patient.id }}" 
+                                                        {% if current_assignments.get(student.id) == patient.id %}selected{% endif %}
+                                                        {% if is_assigned %}disabled data-already-assigned="true"{% endif %}>
+                                                    {{ (patient.title.upper() + ' ' if patient.title else '') + 
+                                                       (patient.given_name + ' ' if patient.given_name else '') + 
+                                                       (patient.last_name if patient.last_name else 'Unnamed Patient') }}
+                                                    {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
+                                                    {% if is_assigned %} (Already Assigned){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="patient-availability"></small>
                                     </td>
                                     <td class="text-center">
                                         {% if student.id in assigned_student_ids %}
-                                        <span class="status-badge status-assigned">
-                                            <i class="bi bi-check-circle-fill"></i> Assigned
-                                        </span>
+                                            <span class="badge bg-success status-badge">Assigned</span>
                                         {% else %}
-                                        <span class="status-badge status-available">
-                                            <i class="bi bi-circle"></i> Available
-                                        </span>
+                                            <span class="badge bg-secondary status-badge">Available</span>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        <select class="form-select patient-select text-secondary" 
-                                                name="patient_{{ student.id }}" 
-                                                data-student-id="{{ student.id }}">
-                                            <option value="">-- Select Patient --</option>
-                                            {% for patient in available_patients %}
-                                            {% set is_assigned = patient.id in assigned_patients and current_assignments.get(student.id) != patient.id %}
-                                            {% set is_current = current_assignments.get(student.id) == patient.id %}
-                                            <option value="{{ patient.id }}" 
-                                                    {% if is_assigned %}disabled data-already-assigned="true"{% endif %}
-                                                    {% if is_current %}selected{% endif %}>
-                                                {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
-                                                {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
-                                                {% if is_assigned %} (Already Assigned){% endif %}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -171,359 +161,19 @@
                     <i class="bi bi-arrow-left me-2"></i>Back to Scenario
                 </a>
                 
-                <button type="submit" class="btn btn-custom btn-assign" id="assignBtn" disabled>
-                    <i class="bi bi-check-lg me-2"></i>Assign Selected Students
-                </button>
+                <div class="d-flex gap-2">
+                    {% if assigned_student_ids|length > 0 %}
+                    <button type="button" class="btn btn-warning" id="unassignBtn">
+                        <i class="bi bi-x-circle me-2"></i>Unassign Selected
+                    </button>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-custom btn-assign" id="assignBtn" disabled>
+                        <i class="bi bi-check-lg me-2"></i>Assign Selected Students
+                    </button>
+                </div>
             </div>
         </form>
     </div>
 </div>
-
-<script>
-// Function to update patient dropdown availability (from old assign.html)
-function updatePatientAvailability() {
-    const selects = document.querySelectorAll('select[name^="patient_"]');
-    const selectedPatients = new Set();
-    
-    // Collect all selected patients
-    selects.forEach(select => {
-        if (select.value) {
-            selectedPatients.add(select.value);
-        }
-    });
-    
-    // Update each dropdown
-    selects.forEach(select => {
-        const currentValue = select.value;
-        const options = select.querySelectorAll('option');
-        
-        options.forEach(option => {
-            if (option.value === '') return; // Skip the default "Select Patient" option
-            
-            // Check if this option is already assigned to another student
-            if (selectedPatients.has(option.value) && option.value !== currentValue) {
-                option.style.display = 'none';
-                option.disabled = true;
-            } else if (!option.hasAttribute('data-already-assigned')) {
-                option.style.display = 'block';
-                option.disabled = false;
-            }
-        });
-    });
-}
-
-// Add event listeners to patient selects for real-time validation
-document.addEventListener('DOMContentLoaded', function() {
-    const patientSelects = document.querySelectorAll('.patient-select');
-    
-    patientSelects.forEach(select => {
-        select.addEventListener('change', function() {
-            const selectedPatientId = this.value;
-            const studentId = this.dataset.studentId;
-            
-            if (selectedPatientId) {
-                // Check if this patient is already assigned to another student
-                const otherSelects = document.querySelectorAll('.patient-select:not([data-student-id="' + studentId + '"])');
-                let alreadyAssigned = false;
-                
-                otherSelects.forEach(otherSelect => {
-                    if (otherSelect.value === selectedPatientId) {
-                        alreadyAssigned = true;
-                    }
-                });
-                
-                if (alreadyAssigned) {
-                    alert('This patient is already assigned to another student. Please select a different patient.');
-                    this.value = '';
-                    return;
-                }
-            }
-            
-            updatePatientDropdowns();
-        });
-    });
-    
-    // Initial update
-    updatePatientDropdowns();
-});
-
-function toggleStudent(studentId) {
-    var checkbox = document.getElementById('student_' + studentId);
-    if (!checkbox) {
-        var inputs = document.getElementsByClassName('student-checkbox');
-        for (var i = 0; i < inputs.length; i++) {
-            if (inputs[i].value == studentId) {
-                checkbox = inputs[i];
-                break;
-            }
-        }
-    }
-    
-    if (checkbox) {
-        checkbox.checked = !checkbox.checked;
-        updateCount();
-    }
-}
-
-function updateCount() {
-    var checkboxes = document.getElementsByClassName('student-checkbox');
-    var count = 0;
-    for (var i = 0; i < checkboxes.length; i++) {
-        if (checkboxes[i].checked) {
-            count++;
-        }
-    }
-    
-    var countElement = document.getElementById('selectedCount');
-    var summaryElement = document.getElementById('selectionSummary');
-    var btnElement = document.getElementById('assignBtn');
-    
-    if (countElement) countElement.innerHTML = count;
-    
-    if (summaryElement) {
-        $(summaryElement).toggleClass('d-none', count === 0);
-    }
-    
-    if (btnElement) {
-        btnElement.disabled = count === 0;
-    }
-}
-
-function selectAll() {
-    var checkboxes = document.getElementsByClassName('student-checkbox');
-    for (var i = 0; i < checkboxes.length; i++) {
-        var row = checkboxes[i].closest('tr');
-        if (!row || row.style.display !== 'none') {
-            checkboxes[i].checked = true;
-        }
-    }
-    updateCount();
-}
-
-function selectNone() {
-    var checkboxes = document.getElementsByClassName('student-checkbox');
-    for (var i = 0; i < checkboxes.length; i++) {
-        checkboxes[i].checked = false;
-    }
-    updateCount();
-}
-
-function selectNew() {
-    var checkboxes = document.getElementsByClassName('student-checkbox');
-    for (var i = 0; i < checkboxes.length; i++) {
-        var row = checkboxes[i].closest('tr');
-        var badge = row.querySelector('.badge');
-        
-        if (badge && badge.textContent.includes('Available') && (!row || row.style.display !== 'none')) {
-            checkboxes[i].checked = true;
-        } else {
-            checkboxes[i].checked = false;
-        }
-    }
-    updateCount();
-}
-
-function searchStudents() {
-    var searchBox = document.getElementById('searchBox');
-    var searchValue = searchBox ? searchBox.value.toLowerCase() : '';
-    var rows = document.getElementsByClassName('student-row');
-    var visibleCount = 0;
-    
-    for (var i = 0; i < rows.length; i++) {
-        var name = rows[i].getAttribute('data-name') || '';
-        var email = rows[i].getAttribute('data-email') || '';
-        
-        if (name.indexOf(searchValue) > -1 || email.indexOf(searchValue) > -1 || searchValue === '') {
-            rows[i].style.display = '';
-            visibleCount++;
-        } else {
-            rows[i].style.display = 'none';
-        }
-    }
-    
-    $('#noResults').toggleClass('d-none', visibleCount !== 0 || searchValue === '');
-}
-
-// Function to assign selected students with patient validation (from old assign.html)
-function assignSelectedStudents() {
-    const checkboxes = document.querySelectorAll('.student-checkbox:checked');
-    const assignments = [];
-    let hasErrors = false;
-    let errorMessages = [];
-    
-    checkboxes.forEach(checkbox => {
-        const row = checkbox.closest('tr');
-        const studentId = checkbox.value;
-        const studentNameElement = row.querySelector('.student-name');
-        const studentName = studentNameElement ? studentNameElement.textContent : `Student ${studentId}`;
-        const patientSelect = row.querySelector('select[name^="patient_"]');
-        const patientId = patientSelect ? patientSelect.value : '';
-        
-        if (!patientId) {
-            hasErrors = true;
-            errorMessages.push(`${studentName} is selected but has no patient assigned`);
-        } else {
-            assignments.push({
-                studentId: studentId,
-                patientId: patientId,
-                studentName: studentName
-            });
-        }
-    });
-    
-    if (hasErrors) {
-        alert('Error:\\n' + errorMessages.join('\\n'));
-        return false;
-    }
-    
-    if (assignments.length === 0) {
-        alert('Please select at least one student to assign.');
-        return false;
-    }
-    
-    // Add assignments data to form before submission
-    const form = document.getElementById('assignForm');
-    
-    // Remove existing assignment inputs
-    const existingInputs = form.querySelectorAll('input[name^="assignments"]');
-    existingInputs.forEach(input => input.remove());
-    
-    // Add new assignment inputs
-    assignments.forEach((assignment, index) => {
-        const studentInput = document.createElement('input');
-        studentInput.type = 'hidden';
-        studentInput.name = `assignments[${index}][student_id]`;
-        studentInput.value = assignment.studentId;
-        form.appendChild(studentInput);
-        
-        const patientInput = document.createElement('input');
-        patientInput.type = 'hidden';
-        patientInput.name = `assignments[${index}][patient_id]`;
-        patientInput.value = assignment.patientId;
-        form.appendChild(patientInput);
-    });
-    
-    return true;
-}
-
-// Function to toggle clear assignments mode
-function toggleClearAssignments() {
-    const clearInput = document.getElementById('clear_existing');
-    const clearBtn = document.getElementById('clearAssignmentsBtn');
-    const clearBtnText = document.getElementById('clearBtnText');
-    
-    if (clearInput.value === 'false') {
-        clearInput.value = 'true';
-        clearBtn.classList.remove('warning');
-        clearBtn.classList.add('danger');
-        clearBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
-        clearBtn.style.color = 'white';
-        clearBtnText.textContent = 'Clear First';
-    } else {
-        clearInput.value = 'false';
-        clearBtn.classList.remove('danger');
-        clearBtn.classList.add('warning');
-        clearBtn.style.background = 'linear-gradient(135deg, #ffc107 0%, #fd7e14 100%)';
-        clearBtn.style.color = '#212529';
-        clearBtnText.textContent = 'Keep Existing';
-    }
-}
-
-window.onload = function() {
-    // Set up button event handlers
-    var selectAllBtn = document.getElementById('selectAllBtn');
-    if (selectAllBtn) {
-        selectAllBtn.onclick = selectAll;
-    }
-    
-    var selectNoneBtn = document.getElementById('selectNoneBtn');
-    if (selectNoneBtn) {
-        selectNoneBtn.onclick = selectNone;
-    }
-    
-    var selectNewBtn = document.getElementById('selectNewBtn');
-    if (selectNewBtn) {
-        selectNewBtn.onclick = selectNew;
-    }
-    
-    // Set up search functionality
-    var searchBox = document.getElementById('searchBox');
-    if (searchBox) {
-        if (searchBox.addEventListener) {
-            searchBox.addEventListener('keyup', searchStudents);
-        } else {
-            searchBox.onkeyup = searchStudents;
-        }
-    }
-    
-    // Set up select all checkbox in table header
-    var selectAllCheckbox = document.getElementById('selectAllCheckbox');
-    if (selectAllCheckbox) {
-        selectAllCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                selectAll();
-            } else {
-                selectNone();
-            }
-        });
-    }
-    
-    // Set up individual checkboxes
-    var studentCheckboxes = document.getElementsByClassName('student-checkbox');
-    for (var i = 0; i < studentCheckboxes.length; i++) {
-        studentCheckboxes[i].addEventListener('change', function() {
-            updateCount();
-            
-            // Update master checkbox
-            var checkedCount = document.querySelectorAll('.student-checkbox:checked').length;
-            var totalCount = document.querySelectorAll('.student-checkbox').length;
-            var masterCheckbox = document.getElementById('selectAllCheckbox');
-            
-            if (masterCheckbox) {
-                if (checkedCount === 0) {
-                    masterCheckbox.indeterminate = false;
-                    masterCheckbox.checked = false;
-                } else if (checkedCount === totalCount) {
-                    masterCheckbox.indeterminate = false;
-                    masterCheckbox.checked = true;
-                } else {
-                    masterCheckbox.indeterminate = true;
-                }
-            }
-        });
-    }
-    
-    // Set up patient dropdown change handlers for availability checking
-    var patientSelects = document.querySelectorAll('select[name^="patient_"]');
-    patientSelects.forEach(select => {
-        select.addEventListener('change', updatePatientAvailability);
-    });
-    
-    // Set up form submission handler
-    var assignForm = document.getElementById('assignForm');
-    if (assignForm) {
-        assignForm.addEventListener('submit', function(e) {
-            console.log('Form submission triggered');
-            e.preventDefault();
-            
-            // Debug: Check what's selected
-            const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
-            console.log('Checked students:', checkedBoxes.length);
-            
-            if (assignSelectedStudents()) {
-                console.log('Validation passed, submitting form');
-                this.submit();
-            } else {
-                console.log('Validation failed');
-            }
-        });
-    } else {
-        console.error('assignForm not found');
-    }
-    
-    // Initialize
-    updateCount();
-    updatePatientAvailability();
-};
-</script>
 {% endblock %}
