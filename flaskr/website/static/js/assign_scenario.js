@@ -175,6 +175,7 @@ function assignSelectedStudents() {
     // Verify that all selected students have a patient assigned
     let allHavePatients = true;
     const errorMessages = [];
+    const assignments = [];
     
     selectedCheckboxes.forEach(function(checkbox) {
         const row = checkbox.closest('tr');
@@ -185,6 +186,12 @@ function assignSelectedStudents() {
         if (!patientSelect || !patientSelect.value) {
             allHavePatients = false;
             errorMessages.push(`${studentName} is selected but has no patient assigned`);
+        } else {
+            // Collect the assignment data
+            assignments.push({
+                student_id: checkbox.value,
+                patient_id: patientSelect.value
+            });
         }
     });
     
@@ -193,7 +200,47 @@ function assignSelectedStudents() {
         return false;
     }
     
-    return true;
+    // Get the scenario ID from the URL or form
+    const formAction = document.getElementById('assignForm').action;
+    const scenarioIdMatch = formAction.match(/\/scenarios\/(\d+)\//);
+    
+    if (!scenarioIdMatch) {
+        alert('Error: Could not determine scenario ID');
+        return false;
+    }
+    
+    const scenarioId = scenarioIdMatch[1];
+    const csrfToken = document.querySelector('input[name="csrf_token"]').value;
+    
+    // Prepare FormData for AJAX submission
+    const formData = new FormData();
+    formData.append('csrf_token', csrfToken);
+    
+    assignments.forEach(function(assignment, index) {
+        formData.append(`assignments[${index}][student_id]`, assignment.student_id);
+        formData.append(`assignments[${index}][patient_id]`, assignment.patient_id);
+    });
+    
+    // Send via AJAX to the correct endpoint
+    fetch(`/scenarios/${scenarioId}/assign-students`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Successfully assigned ${data.count} students with their patients!`);
+            window.location.href = `/scenarios/${scenarioId}`;
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning students.');
+    });
+    
+    return false; // Prevent form submission since we're using AJAX
 }
 
 /**
@@ -327,19 +374,8 @@ window.onload = function() {
     const assignForm = document.getElementById('assignForm');
     if (assignForm) {
         assignForm.addEventListener('submit', function(e) {
-            console.log('Form submission triggered');
-            e.preventDefault();
-            
-            // Debug: Check what's selected
-            const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
-            console.log('Checked students:', checkedBoxes.length);
-            
-            if (assignSelectedStudents()) {
-                console.log('Validation passed, submitting form');
-                this.submit();
-            } else {
-                console.log('Validation failed');
-            }
+            e.preventDefault(); // Always prevent default
+            assignSelectedStudents(); // This now handles everything via AJAX
         });
     } else {
         console.error('assignForm not found');
