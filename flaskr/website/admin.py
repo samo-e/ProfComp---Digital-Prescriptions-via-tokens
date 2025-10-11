@@ -1,14 +1,12 @@
 import random
 import string
-
-import random
-import string
 import os
 import re
 from flask import send_from_directory, send_file, abort
 
 import csv
 import io
+import pandas as pd
 from flask import (
     Blueprint,
     render_template,
@@ -23,7 +21,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, Length, NumberRange
 from flask_login import login_required, current_user
-from .models import db, User, UserRole
+from .models import db, User, UserRole, ScenarioPatient, StudentScenario, Prescription, Patient, Scenario
 from datetime import datetime
 from functools import wraps
 
@@ -919,3 +917,102 @@ try:
     csrf.exempt(batch_create_accounts)
 except ImportError:
     pass
+
+
+@admin.route("/admin/export_all_students_csv")
+@login_required
+def export_all_students_csv():
+    if current_user.role != "admin":
+        return "Access denied", 403
+
+    # --- STUDENT DATA SHEET ---
+    students = User.query.filter_by(role='student').all()
+    student_rows = []
+    for student in students:
+        student_rows.append({
+            "studentnumber": student.studentnumber,
+            "email": student.email,
+            "first_name": student.first_name,
+            "last_name": student.last_name,
+        })
+    df_students = pd.DataFrame(student_rows)
+
+    # --- SCENARIOS SHEET ---
+    scenario_rows = []
+    for student in students:
+        student_scenarios = (
+            StudentScenario.query.join(Scenario)
+            .filter(StudentScenario.student_id == student.id)
+            .all()
+        )
+
+        for student_scenario in student_scenarios:
+            scenario = Scenario.query.get(student_scenario.scenario_id)
+
+            patient_assignment = ScenarioPatient.query.filter_by(
+                scenario_id=scenario.id, student_id=student.id
+            ).first()
+
+            patient = patient_assignment.patient if patient_assignment else scenario.active_patient
+
+            print(patient)
+
+            prescriptions = []
+            if patient:
+                prescriptions = Prescription.query.filter_by(patient_id=patient.id).all()
+            
+            presc_data = []
+            for prescription in prescriptions:
+                presc_data.append({
+                    'drug_name': prescription.drug_name,
+                    'dose_instr': prescription.dose_instr,
+                    'dose_qty': prescription.dose_qty,
+                    'dose_rpt': prescription.dose_rpt,
+                    'prescribed_date': prescription.prescribed_date,
+                    'dispensed_date': prescription.dispensed_date,
+                    'remaining_repeats': prescription.remaining_repeats,
+                    'paperless': prescription.paperless,
+                    'brand_sub_not_prmt': prescription.brand_sub_not_prmt,
+                    'dispensed_at_this_pharmacy': prescription.dispensed_at_this_pharmacy,
+                    'prescriber_id': prescription.prescriber_id,
+                    'prescriber_name': f"{prescription.prescriber.fname} {prescription.prescriber.lname}" if prescription.prescriber else None
+                })
+
+            scenario_rows.append({
+                # Student info
+                "studentnumber": student.studentnumber if student else None,
+                
+                # Scenario info
+                "scenario_name": scenario.name,
+                "scenario_version": scenario.version,
+                "assigned_at": student_scenario.assigned_at,
+                "submitted_at": student_scenario.submitted_at,
+                "completed_at": student_scenario.completed_at,
+                "score": student_scenario.score,
+                "status": student_scenario.status,
+                
+                # Patient info
+                "patient_id": patient.id if patient else None,
+                "patient_last_name": patient.last_name if patient else None,
+                "patient_given_name": patient.given_name if patient else None,
+                "patient_dob": patient.dob if patient else None,
+
+                # Prescription data
+                'prescriptions': presc_data,
+            })
+    df_scenarios = pd.DataFrame(scenario_rows)
+
+    # --- WRITE XLSX IN MEMORY ---
+    output = io.BytesIO()
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df_students.to_excel(writer, sheet_name="Students", index=False)
+        df_scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
+    output.seek(0)
+
+    return send_file(
+        output,
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        as_attachment=True,
+        download_name="full_student_export.xlsx"
+    )
+
