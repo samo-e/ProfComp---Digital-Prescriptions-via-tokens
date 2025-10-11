@@ -2152,34 +2152,91 @@ def assign_students_to_scenario(scenario_id):
 
             # Create the assignments
             assignments_created = 0
+            errors = []
+            
             for assignment_data in assignments_data:
-                # Check if student is already assigned to this scenario
-                existing = StudentScenario.query.filter_by(
-                    scenario_id=scenario_id, student_id=assignment_data["student_id"]
+                student_id = assignment_data["student_id"]
+                patient_id = assignment_data["patient_id"]
+                
+                # Validate student and patient exist
+                student = User.query.filter_by(id=student_id, role="student").first()
+                patient = Patient.query.get(patient_id)
+                
+                if not student or not patient:
+                    continue
+                
+                # Check if patient is already assigned to another student in this scenario
+                existing_patient_assignment = (
+                    ScenarioPatient.query.filter_by(
+                        scenario_id=scenario.id, patient_id=patient_id
+                    )
+                    .filter(ScenarioPatient.student_id != student_id)
+                    .first()
+                )
+                
+                if existing_patient_assignment:
+                    assigned_student = User.query.get(existing_patient_assignment.student_id)
+                    patient_name = f"{patient.given_name or ''} {patient.last_name or ''}".strip() or f"Patient {patient.id}"
+                    errors.append(f"{patient_name} is already assigned to {assigned_student.get_full_name()}")
+                    continue
+                
+                # Create or get StudentScenario record
+                existing_student_scenario = StudentScenario.query.filter_by(
+                    scenario_id=scenario_id, student_id=student_id
                 ).first()
 
-                if not existing:
-                    assignment = StudentScenario(
+                if not existing_student_scenario:
+                    student_scenario = StudentScenario(
                         scenario_id=scenario_id,
-                        student_id=assignment_data["student_id"],
+                        student_id=student_id,
+                        status="assigned"
                     )
-                    db.session.add(assignment)
-                    assignments_created += 1
+                    db.session.add(student_scenario)
+                
+                # Create or update ScenarioPatient record (THIS WAS MISSING!)
+                existing_patient_assignment = ScenarioPatient.query.filter_by(
+                    scenario_id=scenario.id,
+                    student_id=student_id
+                ).first()
+                
+                if existing_patient_assignment:
+                    # Update existing assignment
+                    existing_patient_assignment.patient_id = patient_id
+                    existing_patient_assignment.assigned_at = datetime.now()
+                else:
+                    # Create new assignment
+                    patient_assignment = ScenarioPatient(
+                        scenario_id=scenario.id,
+                        student_id=student_id,
+                        patient_id=patient_id
+                    )
+                    db.session.add(patient_assignment)
+                
+                assignments_created += 1
 
             db.session.commit()
+            
+            if errors:
+                return jsonify(
+                    {
+                        "success": True,
+                        "count": assignments_created,
+                        "message": f"Assigned {assignments_created} students with warnings: {'; '.join(errors)}",
+                    }
+                )
 
             return jsonify(
                 {
                     "success": True,
                     "count": assignments_created,
-                    "message": f"Successfully assigned {assignments_created} students to {scenario.name}!",
+                    "message": f"Successfully assigned {assignments_created} students with their patients to {scenario.name}!",
                 }
             )
 
         except Exception as e:
             db.session.rollback()
             return jsonify(
-                {"success": False, "message": "Error creating student assignments."}
+                {"success": False, "message": f"Error creating student assignments: {str(e)}"}
             )
 
     return jsonify({"success": False, "message": "Invalid form submission."})

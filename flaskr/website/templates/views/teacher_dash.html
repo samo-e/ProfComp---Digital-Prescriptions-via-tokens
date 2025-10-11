@@ -57,10 +57,10 @@
                         </div>
                     </div>
                     <div class="mt-auto">
-                        <form method="POST" action="{{ url_for('views.create_scenario') }}">
+                        <form method="POST" action="{{ url_for('views.create_scenario') }}" class="mb-0">
                             {{ form.hidden_tag() }}
-                            <button type="submit" class="btn btn-light btn-sm w-100 action-btn">
-                                <i class="bi bi-plus-circle me-2"></i>Create New Scenario
+                            <button type="submit" class="btn btn-light btn-sm w-100">
+                                <i class="bi bi-plus-circle me-1"></i> Create New Scenario
                             </button>
                         </form>
                     </div>
@@ -82,8 +82,8 @@
                         </div>
                     </div>
                     <div class="mt-auto">
-                        <a href="{{ url_for('views.student_management') }}" class="btn btn-light btn-sm w-100 action-btn">
-                            <i class="bi bi-gear me-2"></i>Manage Students
+                        <a href="{{ url_for('views.student_management') }}" class="btn btn-light btn-sm w-100">
+                            <i class="bi bi-gear me-1"></i> Manage Students
                         </a>
                     </div>
                 </div>
@@ -92,7 +92,7 @@
 
         <!-- Total Patients Card -->
         <div class="col-lg-4 col-md-6">
-            <div class="card stats-card bg-info text-white h-100">
+            <div class="card stats-card bg-warning text-dark h-100">
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
@@ -100,12 +100,12 @@
                             <h2 class="mb-0 fw-bold">{{ total_patients }}</h2>
                         </div>
                         <div>
-                            <i class="bi bi-person-plus fs-1 opacity-75"></i>
+                            <i class="bi bi-person-badge fs-1 opacity-75"></i>
                         </div>
                     </div>
                     <div class="mt-auto">
-                        <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-light btn-sm w-100 action-btn">
-                            <i class="bi bi-plus-circle me-2"></i>Manage Patients
+                        <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-dark btn-sm w-100">
+                            <i class="bi bi-gear me-1"></i> Manage Patients
                         </a>
                     </div>
                 </div>
@@ -166,7 +166,7 @@
                                                 <i class="bi bi-check-circle me-2"></i>Marked
                                             </div>
                                         </th>
-                                        <th class="border-0 text-center" width="200">
+                                        <th class="border-0 text-center" width="250">
                                             <div class="th-content">
                                                 <i class="bi bi-gear me-2"></i>Actions
                                             </div>
@@ -238,11 +238,17 @@
                                                    title="Assign Students">
                                                     <i class="bi bi-person-plus"></i>
                                                 </a>
+                                                <!-- NEW: Export Marks Button -->
+                                                <a href="{{ url_for('views.export_scenario_marks', scenario_id=scenario.id) }}" 
+                                                   class="btn btn-sm btn-outline-info btn-action" 
+                                                   title="Export Marks">
+                                                    <i class="bi bi-file-earmark-spreadsheet"></i>
+                                                </a>
                                                 <form method="POST" action="{{ url_for('views.delete_scenario', scenario_id=scenario.id) }}" style="display: inline;">
                                                     {{ delete_form.hidden_tag() }}
                                                     <button type="submit" 
                                                             class="btn btn-sm btn-outline-danger btn-action delete-scenario-btn" 
-                                                            onclick="return confirm('Are you sure you want to archive this scenario?')" 
+                                                            onclick="return confirm('Are you sure you want to archive this scenario?')"
                                                             title="Archive Scenario">
                                                         <i class="bi bi-archive"></i>
                                                     </button>
@@ -276,14 +282,18 @@
 
             <!-- Bulk Actions -->
             <div class="row mt-3">
-                <div class="col-12 d-flex justify-content-between">
+                <div class="col-12 d-flex justify-content-between align-items-center">
                     <div>
+                        <!-- NEW: Bulk Export Button -->
+                        <button class="btn btn-success" id="bulk-export">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> Export Selected Marks
+                        </button>
                         <button class="btn btn-danger ms-2" id="bulk-delete">
                             <i class="bi bi-archive"></i> Archive Selected
                         </button>
                     </div>
                     <div>
-                        <small class="">
+                        <small class="text-muted">
                             <i class="bi bi-info-circle"></i> 
                             Select scenarios to perform bulk actions
                         </small>

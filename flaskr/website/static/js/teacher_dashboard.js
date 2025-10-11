@@ -1,5 +1,3 @@
-// flaskr/website/static/js/teacher_dashboard.js
-
 /**
  * Toggle select all checkboxes for scenarios
  */
@@ -45,28 +43,54 @@ function bulkArchive() {
 }
 
 /**
- * Export selected scenarios in bulk
+ * Export selected scenarios marks in bulk
+ * Downloads a separate CSV file for each selected scenario
  */
 function bulkExport() {
     const checkboxes = document.getElementsByTagName('input');
-    let selected = 0;
+    const selectedScenarioIds = [];
     
+    // Collect all selected scenario IDs
     for (let i = 0; i < checkboxes.length; i++) {
         if (checkboxes[i].type === 'checkbox' && 
             checkboxes[i].id && 
             checkboxes[i].id.indexOf('scenario-') === 0 && 
             checkboxes[i].checked) {
-            selected++;
+            // Extract scenario ID from checkbox id (format: scenario-123)
+            const scenarioId = checkboxes[i].id.replace('scenario-', '');
+            selectedScenarioIds.push(scenarioId);
         }
     }
     
-    if (selected === 0) {
+    if (selectedScenarioIds.length === 0) {
         alert('Please select scenarios to export');
         return;
     }
     
-    alert('Bulk export functionality to be implemented');
-    // TODO: Implement actual bulk export functionality
+    // Show confirmation with count
+    if (!confirm(`Export marks for ${selectedScenarioIds.length} selected scenario(s)?\nA separate CSV file will be downloaded for each scenario.`)) {
+        return;
+    }
+    
+    // Download CSV for each selected scenario with a small delay between downloads
+    // to prevent browser blocking multiple simultaneous downloads
+    selectedScenarioIds.forEach((scenarioId, index) => {
+        setTimeout(() => {
+            // Create a temporary link and trigger download
+            const downloadUrl = `/api/export-marks/${scenarioId}`;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = ''; // Let the server specify the filename
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }, index * 500); // 500ms delay between each download
+    });
+    
+    // Show success message
+    setTimeout(() => {
+        alert(`Started downloading ${selectedScenarioIds.length} CSV file(s). Check your downloads folder.`);
+    }, selectedScenarioIds.length * 500 + 100);
 }
 
 /**
