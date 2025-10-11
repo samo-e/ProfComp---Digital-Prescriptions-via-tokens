@@ -1165,6 +1165,7 @@ def asl(pt: int):
                 .filter(
                     Prescription.patient_id == pt,
                     Prescriber.fname != "ALR",  # Exclude ALR placeholder prescribers
+                    Prescription.status != PrescriptionStatus.DISPENSED.value
                 )
                 .all()
             )
@@ -1175,11 +1176,8 @@ def asl(pt: int):
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
                     Prescription.patient_id == pt,
-                    db.or_(
-                        Prescriber.fname == "ALR",  # ALR placeholder prescribers
-                        Prescription.remaining_repeats
-                        > 0,  # Or prescriptions with remaining repeats
-                    ),
+                    Prescriber.fname == "ALR",  
+                    Prescription.status != PrescriptionStatus.DISPENSED.value,  
                 )
                 .all()
             )
@@ -1596,23 +1594,46 @@ def dispense_prescriptions(patient_id):
         # Update prescriptions to dispensed status
         dispensed_count = 0
 
+        # Get ALR prescriber object
+        alr_prescriber = Prescriber.query.filter_by(fname="ALR").first()
+        if not alr_prescriber:
+            alr_prescriber = Prescriber(
+                fname="ALR",
+                lname="System",
+                title="ALR System",
+                prescriber_id="ALR001"
+            )
+            db.session.add(alr_prescriber)
+            db.session.commit()
+
         for prescription in prescriptions:
             # Check if already dispensed
             if prescription.status == PrescriptionStatus.DISPENSED.value:
                 continue
 
             # Update prescription status
-            prescription.status = PrescriptionStatus.DISPENSED.value
+            if prescription.remaining_repeats is None:
+                prescription.remaining_repeats = prescription.dose_rpt
+
+            if prescription.remaining_repeats > 0:
+                prescription.remaining_repeats -= 1
+
+            # If repeats remain → move to ALR
+            if prescription.remaining_repeats > 0:
+                if alr_prescriber:
+                    prescription.prescriber_id = alr_prescriber.id
+                prescription.status = PrescriptionStatus.AVAILABLE.value
+            else:
+                # No repeats left → mark as fully dispensed
+                prescription.status = PrescriptionStatus.DISPENSED.value
+            
             prescription.dispensed_date = dispensed_date
             prescription.dispensed_at_this_pharmacy = True
-
-            # Handle repeats - if this prescription has repeats, initialize remaining_repeats if not set
-            if prescription.dose_rpt > 0:
-                if prescription.remaining_repeats is None:
-                    prescription.remaining_repeats = prescription.dose_rpt
-                # Don't reduce repeats here - this happens when the prescription moves to ALR
+            prescription.dispensed_by = dispensed_by
+            prescription.dispensing_notes = dispensing_notes
 
             dispensed_count += 1
+
 
         db.session.commit()
 
