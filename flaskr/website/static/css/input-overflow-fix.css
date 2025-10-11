@@ -1,0 +1,265 @@
+/* ============================================
+   Input Field Overflow Fix for ASL Tool
+   File: input-overflow-fix.css
+   ============================================ */
+
+/* General Input Fields - Prevent Text Overflow */
+.form-control,
+.form-select,
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"],
+input[type="date"],
+select {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* For longer text inputs (like addresses) - allow scrolling */
+.form-control.long-text,
+input[type="text"][name*="address"],
+input[id*="address"],
+.address-input {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin;
+}
+
+/* Webkit browsers scrollbar styling for horizontal scroll */
+.form-control.long-text::-webkit-scrollbar,
+input[type="text"][name*="address"]::-webkit-scrollbar,
+input[id*="address"]::-webkit-scrollbar {
+  height: 4px;
+}
+
+.form-control.long-text::-webkit-scrollbar-track,
+input[type="text"][name*="address"]::-webkit-scrollbar-track,
+input[id*="address"]::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.form-control.long-text::-webkit-scrollbar-thumb,
+input[type="text"][name*="address"]::-webkit-scrollbar-thumb,
+input[id*="address"]::-webkit-scrollbar-thumb {
+  background: #667eea;
+  border-radius: 4px;
+}
+
+/* Textarea - Allow vertical scrolling and wrapping */
+textarea.form-control {
+  white-space: pre-wrap !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  word-wrap: break-word !important;
+  word-break: break-word !important;
+}
+
+/* Table cells with long text */
+.table td {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Table cells for address column specifically */
+.table td:has(div:contains("Address")),
+.table td[data-field="address"],
+th:contains("Address") + td {
+  max-width: 200px;
+}
+
+/* Patient names and titles */
+.fw-semibold,
+.patient-name,
+.user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: block;
+}
+
+/* Form groups to ensure proper containment */
+.form-group,
+.col-sm-8,
+.col-sm-10,
+.col-4,
+.col-10 {
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Input groups (for composite inputs like Medicare number) */
+.input-group {
+  flex-wrap: nowrap !important;
+}
+
+.input-group .form-control {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+/* Readonly inputs - same treatment */
+input[readonly].form-control {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  background-color: #e9ecef;
+  cursor: default;
+}
+
+/* Small form controls */
+.form-control-sm,
+.form-select-sm {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Patient dashboard table cells */
+#patientsTable td {
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Specific fix for patient address column */
+#patientsTable td:nth-child(5) {
+  max-width: 180px;
+}
+
+/* ASL Register readonly inputs */
+.asl-register input[readonly] {
+  background-color: #f8f9fa;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dropdown items in address suggestions */
+.dropdown-menu .dropdown-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* User list items in admin panel */
+.user-item .user-name,
+.user-item .user-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Search inputs */
+#patientSearch,
+#studentSearch,
+.search-input {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Fix for Bootstrap grid columns */
+[class*="col-"] {
+  min-width: 0;
+}
+
+/* Scenario names in cards */
+.scenario-name,
+.scenario-name a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  max-width: 100%;
+}
+
+/* Fix for modal inputs */
+.modal-body .form-control {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Prescription item names */
+.prescription-item,
+.medication-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Fix for edit patient form */
+.edit-pt-main .form-control {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge overflow fix */
+.badge {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+  display: inline-block;
+}
+
+/* Responsive fixes for smaller screens */
+@media (max-width: 768px) {
+  .table td {
+    max-width: 150px;
+  }
+  
+  #patientsTable td:nth-child(5) {
+    max-width: 120px;
+  }
+  
+  .form-control,
+  .form-select {
+    font-size: 14px;
+  }
+  
+  .scenario-name {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 576px) {
+  .table td {
+    max-width: 100px;
+  }
+  
+  #patientsTable td:nth-child(5) {
+    max-width: 80px;
+  }
+  
+  .patient-name,
+  .user-name {
+    max-width: 150px;
+  }
+}
+
+/* Tooltip for showing full text on hover */
+[title] {
+  cursor: help;
+}
+
+/* Print styles - show full text when printing */
+@media print {
+  .form-control,
+  .table td,
+  .scenario-name,
+  input[readonly] {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    max-width: none !important;
+  }
+}
