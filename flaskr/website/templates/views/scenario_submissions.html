@@ -152,7 +152,7 @@
                                             <div class="btn-group btn-group-sm" role="group">
                                                 {% for submission in data.submissions %}
                                                 <a href="{{ url_for('views.grade_submission', submission_id=submission.id) }}" class="btn btn-outline-primary">
-                                                    <i class="bi bi-clipboard-data"></i> {% if data.student_scenario.status == 'graded' %}View Grade{% else %}View{% endif %}
+                                                    <i class="bi bi-clipboard-data"></i> {% if data.student_scenario.status == 'graded' %}View Grade{% else %}View Submission{% endif %}
                                                 </a>
                                                 {% if submission.patient %}
                                                 <a href="{{ url_for('views.asl', pt=submission.patient.id) }}" class="btn btn-outline-info" target="_blank">

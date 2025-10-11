@@ -28,14 +28,7 @@ def create_app():
     from .models import db, User
 
     db.init_app(app)
-    # Diagnostic prints to help locate the actual DB file used at runtime
-    try:
-        import os
-        print('DEBUG: SQLALCHEMY_DATABASE_URI =', app.config.get('SQLALCHEMY_DATABASE_URI'))
-        print('DEBUG: app.instance_path =', app.instance_path)
-        print('DEBUG: cwd =', os.getcwd())
-    except Exception:
-        pass
+    # Diagnostic prints were removed to avoid cluttering console output in debug mode
 
     # Initialize Flask-Login
     login_manager = LoginManager()

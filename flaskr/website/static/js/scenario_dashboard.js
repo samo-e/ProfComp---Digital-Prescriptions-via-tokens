@@ -53,12 +53,21 @@ $(document).ready(function() {
         // Show controls for exam
         $controls.removeClass('d-none');
         $hidden.val('exam');
+        // update help text if provided
+        try {
+          var help = $controls.data('help-exam');
+          if (help && $('#modeHelp').length) $('#modeHelp').text(help);
+        } catch(e) {}
       } else {
         $examBtn.removeClass('active');
         $assignmentBtn.addClass('active');
         // For assignments we also want teachers to be able to set start/due times
         $controls.removeClass('d-none');
         $hidden.val('assignment');
+        try {
+          var help = $controls.data('help-assignment');
+          if (help && $('#modeHelp').length) $('#modeHelp').text(help);
+        } catch(e) {}
       }
     }
 

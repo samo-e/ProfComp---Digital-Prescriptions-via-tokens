@@ -157,24 +157,29 @@ def scenario_dashboard(scenario_id):
                 }
             else:
                 # Assignment behavior: teacher can set a start and due date.
-                # Students can view details at start time; submissions allowed from start until start + 7 days.
+                # Students can view details at the exact start time; submissions allowed from start until
+                # 7 days after the due date (if provided) or 7 days after start when no due date is set.
                 start = student_scenario.exam_start
                 due = student_scenario.exam_end
-                can_view_details = True
-                submission_open = True
+                # default to not viewable/not open until conditions are checked
+                can_view_details = False
+                submission_open = False
                 submission_deadline = None
 
                 if start:
-                    # students only see details from start time
+                    # students only see details from the exact start time
                     can_view_details = now >= start
-                    # submissions open from start
-                    if now >= start:
-                        submission_open = True
+                    # compute submission_deadline: prefer due + 7 days if due exists, otherwise start + 7 days
+                    if due:
+                        submission_deadline = due + timedelta(days=7)
+                    else:
                         submission_deadline = start + timedelta(days=7)
-                        # if due (teacher-specified) exists, final deadline is min(due+7days, start+7days?)
-                        # We'll consider due as the 'due' date; submissions close 7 days after due.
-                        if due:
-                            submission_deadline = due + timedelta(days=7)
+
+                    # submissions are allowed from start up to and including the submission_deadline
+                    if now >= start and (submission_deadline is None or now <= submission_deadline):
+                        submission_open = True
+                    else:
+                        submission_open = False
                 else:
                     # no start specified -> visible and open by default
                     can_view_details = True
@@ -848,12 +853,6 @@ def student_dashboard():
                     view_from = ss.exam_start - timedelta(hours=1)
                     view_until = (ss.exam_end + timedelta(minutes=5)) if ss.exam_end else None
 
-                    # Debug logging to diagnose visibility issues
-                    try:
-                        print(f"[DEBUG student_dashboard] student={current_user.id} ss_id={ss.id} exam_start={ss.exam_start!r} exam_end={ss.exam_end!r} now={now!r} view_from={view_from!r} view_until={view_until!r}")
-                    except Exception:
-                        print("[DEBUG student_dashboard] failed to print debug info for student_scenario")
-
                     # Determine whether the scenario should be included on the dashboard
                     if now < view_from:
                         include_scenario = False
@@ -861,11 +860,6 @@ def student_dashboard():
                         include_scenario = False
                     else:
                         include_scenario = True
-
-                    try:
-                        print(f"[DEBUG student_dashboard] include_scenario={include_scenario}")
-                    except Exception:
-                        pass
 
                     # can_view only once the official start time has passed
                     can_view = now >= ss.exam_start
@@ -886,16 +880,26 @@ def student_dashboard():
             else:
                 # assignment: visible from start; submissions allowed from start until due+7days
                 if ss.exam_start:
-                    if now >= ss.exam_start:
-                        can_view = True
-                        # deadline is due+7days if due provided, otherwise start+7days
-                        if ss.exam_end:
-                            submission_deadline = ss.exam_end + timedelta(days=7)
-                        else:
-                            submission_deadline = ss.exam_start + timedelta(days=7)
-                        if now <= submission_deadline:
-                            can_submit = ss.status in ["assigned", "submitted"]
+                    # compute submission deadline (due+7 days, or start+7 days if no due)
+                    if ss.exam_end:
+                        submission_deadline = ss.exam_end + timedelta(days=7)
                     else:
+                        submission_deadline = ss.exam_start + timedelta(days=7)
+
+                    # Visible window: from start up to and including submission_deadline
+                    if now < ss.exam_start:
+                        # not started yet -> hide
+                        include_scenario = False
+                        can_view = False
+                        can_submit = False
+                    elif now <= submission_deadline:
+                        # between start and deadline inclusive -> show and possibly allow submit
+                        include_scenario = True
+                        can_view = True
+                        can_submit = ss.status in ["assigned", "submitted"]
+                    else:
+                        # after the deadline -> hide scenario (closed the day after the 7-day window)
+                        include_scenario = False
                         can_view = False
                         can_submit = False
                 else:
@@ -903,7 +907,18 @@ def student_dashboard():
                     can_view = True
                     can_submit = ss.status in ["assigned", "submitted"]
 
-        scenario_data.append(
+                # compute overdue flag for UI: show overdue when the due date (exam_end) has passed
+                is_overdue = False
+                try:
+                    if ss.exam_end:
+                        is_overdue = now > ss.exam_end
+                    else:
+                        # if no explicit due, we consider not overdue
+                        is_overdue = False
+                except Exception:
+                    is_overdue = False
+
+                scenario_data.append(
             {
                 "student_scenario": ss,
                 "display_start": ss.exam_start,
@@ -915,13 +930,77 @@ def student_dashboard():
                 "can_submit": can_submit,
                 "submission_deadline": submission_deadline,
                 "include_scenario": include_scenario,
-            }
+                    "is_overdue": is_overdue,
+                }
         )
 
     # compute how many scenarios will be visible on the dashboard
     visible_count = sum(1 for d in scenario_data if d.get('include_scenario'))
 
     return render_template("views/student_dash.html", scenario_data=scenario_data, visible_count=visible_count)
+
+
+@views.route("/student/submissions")
+@login_required
+def student_submissions():
+    """Dedicated page listing student's submissions (latest per scenario)."""
+    if current_user.is_teacher():
+        return redirect(url_for("views.teacher_dashboard"))
+
+    # Gather latest submissions for this student by scanning Submission rows
+    recent_submissions = (
+        Submission.query.join(StudentScenario)
+        .filter(StudentScenario.student_id == current_user.id)
+        .order_by(Submission.submitted_at.desc())
+        .all()
+    )
+
+    submissions_list = []
+    seen_ss = set()
+    for sub in recent_submissions:
+        ss = sub.student_scenario
+        if not ss or ss.id in seen_ss:
+            continue
+        seen_ss.add(ss.id)
+        submissions_list.append({
+            'student_scenario': ss,
+            'scenario': ss.scenario,
+            'latest_submission': sub,
+        })
+
+    # sort most recent first (already ordered, but ensure stability)
+    submissions_list.sort(key=lambda s: s['latest_submission'].submitted_at, reverse=True)
+
+    # Also surface how many graded submissions the student has
+    graded_count = StudentScenario.query.filter_by(student_id=current_user.id, status='graded').count()
+
+    return render_template('views/student_submissions.html', submissions=submissions_list, graded_count=graded_count)
+
+
+@views.route('/submissions/download/<path:filename>')
+@login_required
+def download_submission_file(filename):
+    """Serve uploaded submission files to the student who uploaded them or to teachers."""
+    # only allow teachers or the owner of the file to download
+    # uploaded files are stored as <studentid>_<scenarioid>_<patientid>_timestamp_filename
+    parts = filename.split('_')
+    try:
+        owner_id = int(parts[0])
+    except Exception:
+        owner_id = None
+
+    if not (current_user.is_teacher() or (owner_id and current_user.id == owner_id)):
+        flash('You are not authorised to download this file.', 'error')
+        return redirect(url_for('views.student_submissions'))
+
+    uploads_dir = os.path.join(current_app.root_path, 'uploads', 'submissions')
+    file_path = os.path.join(uploads_dir, filename)
+    if not os.path.exists(file_path):
+        flash('File not found.', 'error')
+        return redirect(url_for('views.student_submissions'))
+
+    # Use send_from_directory for safety
+    return send_from_directory(uploads_dir, filename, as_attachment=True)
 
 
 @views.route("/students/manage")
@@ -3512,26 +3591,26 @@ def grade_submission(submission_id):
         feedback = request.form.get("feedback", "")
 
         if score is not None:
-            # Apply late penalty for assignments: 5% per day late after due date (teacher-specified end). Cap at 100%.
+            # Apply late penalty for assignments: absolute point deduction per day late
+            # 1 day late => -5 points, 2 days => -10, 3 days => -15. Cap deduction at 15 points.
             final_score = score
             raw_score = score
             try:
-                # Determine due date: check the student_scenario's exam_end (used as due) or exam_start
-                due = None
-                if student_scenario.exam_end:
-                    due = student_scenario.exam_end
-                elif student_scenario.exam_start:
-                    due = student_scenario.exam_start
+                # Determine due date: prefer the student_scenario's exam_end (used as due) or exam_start
+                due = student_scenario.exam_end or student_scenario.exam_start
 
                 if student_scenario.assignment_condition != 'exam' and due and submission.submitted_at:
                     from math import ceil
                     delta = submission.submitted_at - due
                     # if submitted after due
                     if delta.total_seconds() > 0:
-                        days_late = ceil(delta.total_seconds() / 86400.0)
-                        penalty_rate = min(1.0, 0.05 * days_late)
-                        final_score = round(raw_score * (1.0 - penalty_rate), 2)
-                        flash(f'Late penalty applied: {int(penalty_rate*100)}% ({days_late} days late). Final score: {final_score}', 'info')
+                        days_late = int(ceil(delta.total_seconds() / 86400.0))
+                        # 5 points per day late (linear, no artificial cap)
+                        penalty_points = 5 * days_late
+
+                        # apply deduction, ensure score doesn't go below 0
+                        final_score = round(max(0.0, raw_score - penalty_points), 2)
+                        flash(f'Late penalty applied: -{penalty_points} points ({days_late} day(s) late). Final score: {final_score}', 'info')
             except Exception:
                 final_score = score
 

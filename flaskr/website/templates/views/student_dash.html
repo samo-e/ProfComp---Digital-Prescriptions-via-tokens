@@ -55,6 +55,12 @@
                             <i class="bi bi-send fs-1 opacity-75"></i>
                         </div>
                     </div>
+                    <div class="mt-auto">
+                        <a href="{{ url_for('views.student_submissions') }}" class="btn btn-outline-light btn-sm w-100 action-btn d-flex align-items-center justify-content-center" title="View your submitted scenarios">
+                            <i class="bi bi-eye-fill me-2"></i>
+                            View Submitted
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -83,6 +89,7 @@
     </div>
 
     <!-- Assigned Scenarios Section -->
+    {# Submissions moved to dedicated page - link above #}
     <div class="card shadow-sm">
         <div class="card-header">
             <div class="row align-items-center">
@@ -143,6 +150,9 @@
                                                 {% endif %}
                                                 {% if end %}
                                                     <small class="text-muted ms-2">Due: {{ end.strftime('%d/%m/%Y, %I:%M %p') }}</small>
+                                                    {% if data.is_overdue %}
+                                                        <span class="badge bg-danger ms-2">Due</span>
+                                                    {% endif %}
                                                 {% endif %}
                                             {% endif %}
                                         </div>
