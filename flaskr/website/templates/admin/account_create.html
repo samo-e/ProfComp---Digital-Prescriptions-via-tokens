@@ -604,23 +604,24 @@ document.addEventListener("DOMContentLoaded", function () {
       .then((response) => response.json())
       .then((data) => {
         const feedback = document.getElementById("batch-create-feedback");
-        if (data.success) {
-          // Remove cards for successful accounts
-          cards.forEach((card) => {
-            const form = card.querySelector("form");
-            const email = form
-              .querySelector('input[name="email"]')
-              .value.trim();
-            if (data.created_emails.includes(email)) {
-              card.remove();
-            }
-          });
-          saveCardsToStorage();
-          updateCreateBtnVisibility();
-          feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-        } else {
+        if (!data.success) {
           feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+          return;
         }
+
+        // Remove cards for successful accounts
+        cards.forEach((card) => {
+        const form = card.querySelector("form");
+        const email = form
+            .querySelector('input[name="email"]')
+            .value.trim();
+        if (data.created_emails.includes(email)) {
+            card.remove();
+        }
+        });
+        saveCardsToStorage();
+        updateCreateBtnVisibility();
+        feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
 
         // Ask user if they want to download the CSV
         if (confirm("Accounts created successfully. Would you like to download the account data (with added passwords, if they were added automatically)?")) {

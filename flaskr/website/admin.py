@@ -5,7 +5,7 @@ import random
 import string
 import os
 import re
-from flask import send_from_directory
+from flask import send_from_directory, send_file, abort
 
 import csv
 import io
@@ -22,12 +22,14 @@ from flask import (
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, Length, NumberRange
-from flask_login import login_user, logout_user, login_required, current_user
+from flask_login import login_required, current_user
 from .models import db, User, UserRole
 from datetime import datetime
 from functools import wraps
 
 admin = Blueprint("admin", __name__)
+
+_last_created_csv_path = None
 
 
 @admin.route("/admin/update_user/<int:user_id>", methods=["POST"])
@@ -116,6 +118,17 @@ def export_and_encrypt_csv(csv_filename, zip_filename, password):
     except Exception as e:
         print(f"Failed to delete CSV: {e}")
     print(f"Encrypted ZIP created: {zip_filename}")
+
+
+@admin.route("/admin/download_last_created_accounts_csv")
+@login_required
+def download_last_created_accounts_csv():
+    global _last_created_csv_path
+    if current_user.role != "admin":
+        return "Access denied", 403
+    if not _last_created_csv_path or not os.path.exists(_last_created_csv_path):
+        return "No CSV available", 404
+    return send_file(_last_created_csv_path, as_attachment=True)
 
 
 # Exempt the batch_create_accounts route from CSRF protection using the csrf instance
@@ -628,6 +641,8 @@ def create_account():
 @admin.route("/admin/batch_create_accounts", methods=["POST"])
 @login_required
 def batch_create_accounts():
+    global _last_created_csv_path
+    print("DEBUGSADASD: ", request.get_json(force=True) or {})
     print("[DEBUG] batch_create_accounts called by:", current_user.email)
     if current_user.role != "admin":
         print("[DEBUG] Access denied: not admin")
@@ -642,10 +657,6 @@ def batch_create_accounts():
 
     created_accounts_for_csv = []
 
-    def generate_password(length=10):
-        chars = string.ascii_letters + string.digits + string.punctuation
-        return "".join(random.choice(chars) for _ in range(length))
-
     for acc in accounts:
         print("[DEBUG] Processing account:", acc)
         # Check for required fields
@@ -654,8 +665,6 @@ def batch_create_accounts():
         last_name = acc.get("last_name")
         email = acc.get("email")
         password = acc.get("password")
-        if not password:
-            password = generate_password()
         studentnumber = acc.get("studentnumber")
         if not (role and first_name and last_name and email and password):
             print(
@@ -721,6 +730,7 @@ def batch_create_accounts():
         timestamp = time.strftime("%Y%m%d_%H%M%S")
         export_filename = f"created_accounts_{timestamp}.csv"
         export_path = os.path.join(export_dir, export_filename)
+        _last_created_csv_path = export_path
         with open(export_path, "w", newline="", encoding="utf-8") as csvfile:
             num_accounts = len(created_accounts_for_csv)
             now = time.localtime()
@@ -742,8 +752,12 @@ def batch_create_accounts():
         msg = f"Created accounts: {', '.join(created_emails)}."
         if errors:
             msg += "<br>Some errors: " + "<br>".join(errors)
-        print(f"[DEBUG] Success: {msg}")
+        # print(f"[DEBUG] Success: {msg}")
         return jsonify(success=True, message=msg, created_emails=created_emails)
+    return (
+        jsonify(success=False, message="<br>Some errors: " + "<br>".join(errors)),
+        400,
+    )
 
 
 # Account creation success page to prevent browser back issues
