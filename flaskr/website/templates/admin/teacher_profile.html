@@ -36,29 +36,32 @@
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div class="mb-3">
                                 <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" name="first_name" value="" placeholder="{{ user.first_name }}" style="color: #6c757d;">
+                                <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}"">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="last_name" value="" placeholder="{{ user.last_name }}" style="color: #6c757d;">
+                                <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}"">
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">Email</label>
-                                <input type="email" class="form-control" name="email" value="" placeholder="{{ user.email }}" style="color: #6c757d;">
+                                <input type="email" class="form-control" name="email" value="{{ user.email }}"">
                             </div>
                         </form>
                         <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}">
                             {{ password_form.hidden_tag() }}
-                            <div class="mb-3">
+                            <div class="password-wrapper mb-3">
                                 {{ password_form.new_password.label(class="form-label") }}
-                                {{ password_form.new_password(class="form-control") }}
+                                <div class="password-wrapper position-relative" id="password-wrapper">
+                                    {{ password_form.new_password(class="form-control password-wrapper", disabled=True) }}
+                                    <i class="bi bi-lock position-absolute top-50 start-50 translate-middle"></i>
+                                </div>
                                 {% if password_form.new_password.errors %}
                                     {% for error in password_form.new_password.errors %}
                                         <div class="text-danger small">{{ error }}</div>
                                     {% endfor %}
                                 {% endif %}
                             </div>
-                            <button type="submit" class="btn btn-primary">Change Password</button>
+                            <button type="submit" class="btn btn-primary invisible" id="change-password-btn">Change Password</button>
                         </form>
                         <script>
                         // Submit info-form when Confirm Changes is clicked
@@ -105,7 +108,7 @@
                                 <input type="text" id="student-search" placeholder="Search students..." class="form-control mb-3">
                                 <ul id="students-list" class="list-group">
                                 {# Unassigned students first #}
-                                {% for student in students|sort(attribute='studentnumber') if student not in user.students %}
+                                {% for student in students|selectattr('studentnumber')|sort(attribute='studentnumber') if student not in user.students %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span class="student-name">
                                             {{ student.studentnumber }} {{ student.get_full_name() }}
@@ -121,7 +124,7 @@
                                     </li>
                                 {% endfor %}
                                 {# Assigned students at the bottom #}
-                                {% for student in students|sort(attribute='studentnumber') if student in user.students %}
+                                {% for student in students|selectattr('studentnumber')|sort(attribute='studentnumber')  if student in user.students %}
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         <span class="student-name">
                                             {{ student.studentnumber }} {{ student.get_full_name() }}
