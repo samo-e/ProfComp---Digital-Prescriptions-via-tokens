@@ -138,7 +138,7 @@ def export_accounts_zip():
             ])
     # Encrypt and delete CSV
     export_and_encrypt_csv(csv_filename, zip_filename, password)
-    flash('Accounts exported and encrypted ZIP created.', 'success')
+    # flash('Accounts exported and encrypted ZIP created.', 'success')
     return redirect(url_for('admin.csv_exports'))
 try:
     from flaskr.website import csrf
