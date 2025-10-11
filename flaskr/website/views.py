@@ -3077,10 +3077,10 @@ def download_file(filename):
     if current_user.role not in ["teacher", "admin"]:
         flash("Unauthorized access.", "error")
         return redirect(url_for("views.student_dashboard"))
-
-    Teachers can download any file. Students can download files that belong to their submissions.
     """
+    Teachers can download any file. Students can download files that belong to their submissions.
     # Uploads are stored under root_path/uploads/submissions
+    """
     uploads_dir = os.path.join(current_app.root_path, "uploads", "submissions")
     file_path = os.path.join(uploads_dir, filename)
 
