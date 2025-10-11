@@ -4,68 +4,8 @@
 
 {% block head %}
 {{ super() }}
-    <style>
-    .card-header.clickable-card-header {
-        display: flex;
-        align-items: center;
-        min-height: 48px;
-    }
-    /* Mini role badge styles for account card header */
-    .account-role-badge {
-        display: inline-block;
-        padding: 0.15em 0.7em;
-        font-size: 0.92em;
-        font-weight: 600;
-        border-radius: 0.8em;
-        margin-left: 0.6em;
-        vertical-align: middle;
-        letter-spacing: 0.01em;
-        text-transform: capitalize;
-    }
-    .account-role-admin {
-        background: #ffd6e6;
-        color: #b8004c;
-        border: 1px solid #ffb3d1;
-    }
-    .account-role-teacher {
-        background: #fff7d6;
-        color: #b88a00;
-        border: 1px solid #ffe9a3;
-    }
-    .account-role-student {
-        background: #d6eaff;
-        color: #0056b8;
-        border: 1px solid #a3d1ff;
-    }
-    /* Custom disabled style for student number in dark mode */
-    html[data-bs-theme="dark"] #studentnumber:disabled {
-        background-color: #181b1f !important;
-        color: #666 !important;
-        border-color: #333 !important;
-    }
-    /* Hide browser scrollbars and prevent scrolling */
-    html, body {
-        overflow: hidden !important;
-    }
-    /* Main content scroll area below top bar */
-    .admin-main-scroll-area {
-        overflow-y: scroll; /* Always show vertical scrollbar */
-        max-height: calc(100vh - 70px); /* adjust 70px to match your top bar height */
-        min-height: 400px;
-        padding-bottom: 2rem;
-    }
-    .container {
-        min-height: 0;
-    }
-    /* Hide scrollbar and arrows for admin-main-scroll-area */
-    .admin-main-scroll-area {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE 10+ */
-    }
-    .admin-main-scroll-area::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
-    }
-    </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account_create.css') }}">
+
     <script>
         // Track form submission to prevent duplicate submissions
         let formSubmitted = false;
@@ -163,6 +103,18 @@
         window.addEventListener('load', function() {
             toggleStudentNumber();
         });
+
+$(document).on('click', '.toggle-password', function() {
+    const $input = $(this).siblings('.new-user-password-field');
+    const $icon = $(this).find('i');
+    if ($input.attr('type') === 'password') {
+        $input.attr('type', 'text');
+        $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+    } else {
+        $input.attr('type', 'password');
+        $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+    }
+});
     </script>
 {% endblock %}
 
@@ -239,9 +191,14 @@
                     {{ form.email.label(class="form-label") }}
                     {{ form.email(class="form-control") }}
                 </div>
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control") }}
+                    <div class="input-group">
+                        {{ form.password(class="form-control new-user-password-field") }}
+                        <span class="input-group-text toggle-password" style="cursor: pointer;">
+                            <i class="bi bi-eye"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="d-flex gap-2 mt-4">
                     <!-- Hide individual submit, only show cancel -->

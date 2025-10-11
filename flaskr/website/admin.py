@@ -85,7 +85,7 @@ def download_csv(filename):
     export_dir = os.path.join(os.path.dirname(__file__), "..", "exports")
     # Only allow ZIP files to be downloaded
     if not filename.endswith(".zip"):
-        flash("Only encrypted ZIP files are available for download.", "error")
+        # flash("Only encrypted ZIP files are available for download.", "error")
         return redirect(url_for("admin.csv_exports"))
     return send_from_directory(export_dir, filename, as_attachment=True)
 

@@ -1,0 +1,95 @@
+/* Admin-specific styles */
+.admin-nav-bar {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  margin: 0;
+  padding: 0;
+}
+
+.admin-nav-container {
+  max-width: 75%;
+  margin: 0px auto;
+  padding: 0;
+}
+
+.admin-tab-list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-content: center;
+}
+
+.admin-tab-item {
+  flex: 1;
+}
+
+.admin-tab-link {
+  display: block;
+  padding: 18px 40px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  font-size: 16px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border-bottom: 3px solid transparent;
+  position: relative;
+}
+
+.admin-tab-link:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.admin-tab-link.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-bottom-color: #ffc107;
+  font-weight: 600;
+}
+
+.admin-tab-link.active::before {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid #ffc107;
+}
+
+.admin-content {
+  padding-top: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+/* Mobile responsive design for admin nav */
+@media (max-width: 768px) {
+  .admin-tab-link {
+    padding: 15px 20px;
+    font-size: 14px;
+  }
+
+  .admin-tab-list {
+    justify-content: stretch;
+  }
+
+  .admin-nav-container {
+    max-width: 100%;
+  }
+}
+
+/* Remove margin from body when using admin base */
+body {
+  margin: 0;
+  padding: 0;
+}
