@@ -126,9 +126,9 @@ def create_dummy_patients():
                 repeats_held=random.choice([True, False]),
                 pt_deceased=False,
                 carer=None,
-                consented_to_asl=random.choice([True, False]),
-                consented_to_upload=random.choice([True, False]),
-                asl_status=random.choice([1, 2, 3]),
+                consented_to_asl=True,
+                consented_to_upload=True,
+                asl_status=1,
                 consent_last_updated=datetime.now().strftime("%d/%m/%Y %I:%M %p"),
                 is_registered=True
             )
