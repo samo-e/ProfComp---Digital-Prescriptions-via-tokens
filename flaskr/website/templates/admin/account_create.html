@@ -130,7 +130,7 @@ if ($input.attr('type') === 'password') {
             <!-- CSV Upload Dropbox -->
             <div class="mb-4">
                 <form id="csv-upload-form" method="POST" action="/admin/upload_accounts_csv" enctype="multipart/form-data" style="margin-bottom:0;">
-                    <label for="csv-file" class="form-label">Upload CSV file for batch account creation:
+                    <p class="form-label">Upload CSV file for batch account creation:
                         <i class="bi bi-info-circle"
                            data-bs-toggle="tooltip"
                            data-bs-placement="right"
@@ -154,7 +154,7 @@ if ($input.attr('type') === 'password') {
   </ul>
 </div>"
                         ></i>
-                    </label>
+                    </p>
                     <!-- CSRF Token for CSV upload form -->
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="file" id="csv-file" name="csv_file" accept=".csv" class="form-control w-100 mb-2" required>
