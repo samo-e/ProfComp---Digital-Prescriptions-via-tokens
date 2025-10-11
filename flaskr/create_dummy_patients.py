@@ -55,7 +55,6 @@ def create_dummy_patients():
             # Generate valid Medicare number (format: 10 digits without spaces)
             # Australian Medicare: 4 digits + 5 digits + 1 digit
             medicare_num = f"{random.randint(1000, 9999)}{random.randint(10000, 99999)}{random.randint(1, 9)}"
-            medicare_issue = random.randint(1, 9)
             
             # Generate random date of birth (ages between 18-90)
             current_year = datetime.now().year
