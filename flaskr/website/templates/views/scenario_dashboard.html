@@ -20,6 +20,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             {% endfor %}
+
+            {# If last flash was success, disable controls and show inline Edit button that re-enables them when clicked #}
+            {% set last_cat, last_msg = messages[-1] %}
+            {% if last_cat != 'error' %}
+            {# Inline saved/Edit UI removed. Use external JS in static/js/scenario_dashboard.js to manage saved/edit state. #}
+            {% endif %}
         {% endif %}
     {% endwith %}
 
@@ -93,6 +99,7 @@
         </form>
     </div>
     {% endif %}
+<!-- chooser removed: chooser behavior is handled on the assign page -->
     
     <!-- Information Alert -->
     <div class="info-alert text-dark">
@@ -176,9 +183,38 @@
             <h2 class="section-title mb-0">
                 <i class="bi bi-people me-2"></i>Assigned Students ({{ assigned_students|length }})
             </h2>
-            <a href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" class="btn btn-sm btn-warning">
-                <i class="bi bi-person-plus"></i> {% if assigned_students %}Assign More Students{% else %}Assign Students{% endif %}
-            </a>
+            <div class="d-flex align-items-center gap-2">
+                <form id="modeForm" method="POST" action="{{ url_for('views.set_scenario_mode', scenario_id=scenario.id) }}" class="d-flex align-items-center" data-teacher-saved="{{ '1' if teacher_saved else '0' }}">
+                <div class="condition-chooser">
+                    <div class="btn-group btn-group-sm" role="group" aria-label="Condition chooser">
+                        <button type="button" class="btn btn-outline-secondary condition-choice {% if not is_exam %}active{% endif %}" data-value="assignment" id="condAssignmentSmall">Assignment</button>
+                        <button type="button" class="btn btn-outline-secondary condition-choice {% if is_exam %}active{% endif %}" data-value="exam" id="condExamSmall">Exam</button>
+                    </div>
+                </div>
+
+                <div id="smallExamControls" class="ms-3 me-2" data-exam-start="{{ exam_info.start.isoformat() if exam_info and exam_info.start else '' }}" data-exam-end="{{ exam_info.end.isoformat() if exam_info and exam_info.end else '' }}" data-help-assignment="Students will see the scenario at the exact start time; submissions are accepted until 7 days after the due date (or 7 days after start if no due). Late submissions incur a 5% penalty per day." data-help-exam="Students will see the scenario 1 hour before start; submissions close 5 minutes after end.">
+                    <label class="form-label small mb-1">Start / Due</label>
+                    <div class="d-flex gap-2">
+                        <input id="small_exam_start" name="exam_start" class="form-control form-control-sm" type="datetime-local" value="{{ exam_info.start.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.start else '' }}" />
+                        <input id="small_exam_end" name="exam_end" class="form-control form-control-sm" type="datetime-local" value="{{ exam_info.end.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.end else '' }}" />
+                    </div>
+                    {% if not is_exam %}
+                    <div id="modeHelp" class="form-text small">Students will see the scenario at the exact start time; submissions are accepted until 7 days after the due date (or 7 days after start if no due). Late submissions incur a 5% penalty per day.</div>
+                    {% else %}
+                    <div id="modeHelp" class="form-text small">Students will see the scenario 1 hour before start; submissions close 5 minutes after end.</div>
+                    {% endif %}
+                </div>
+                <input type="hidden" name="assignment_condition" id="small_assignment_condition" value="{{ 'exam' if is_exam else 'assignment' }}" />
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button id="modeSaveBtn" type="submit" class="btn btn-sm btn-success ms-2">Save</button>
+                </form>
+
+                {# Saved/Edit UI handled by external JS (static/js/scenario_dashboard.js) - inline script removed to avoid duplication #}
+
+                <a id="assignMoreBtn" data-base-href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" href="{{ url_for('views.assign_scenario', scenario_id=scenario.id) }}" class="btn btn-sm btn-warning ms-2">
+                    <i class="bi bi-person-plus"></i> {% if assigned_students %}Assign More Students{% else %}Assign Students{% endif %}
+                </a>
+            </div>
         </div>
         
         {% if assigned_students %}
@@ -414,14 +450,29 @@
                         <div class="col-md-4">
                             <div class="action-panel text-center">
                                 <div class="d-grid gap-3">
+                                    {% if not is_exam or can_view_details %}
                                     <a href="{{ url_for('views.asl', pt=assigned_patient.id) }}" class="btn btn-primary btn-lg shadow-sm">
-                                        <i class="bi bi-file-medical me-2"></i>
+                                        <i class="bi bi-file-medical me-2"></i> 
                                         <span class="fw-semibold">View ASL</span>
                                     </a>
+                                    {% else %}
+                                    <a href="#" class="btn btn-primary btn-lg shadow-sm disabled" tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-lock-fill me-2"></i>
+                                        <span class="fw-semibold">View ASL (locked)</span>
+                                    </a>
+                                    {% endif %}
+
+                                    {% if not is_exam or submission_open %}
                                     <a href="{{ url_for('views.submit_work', scenario_id=scenario.id, patient_id=assigned_patient.id) }}" class="btn btn-success btn-lg shadow-sm">
                                         <i class="bi bi-send me-2"></i>
                                         <span class="fw-semibold">Submit Work</span>
                                     </a>
+                                    {% else %}
+                                    <a href="#" class="btn btn-success btn-lg shadow-sm disabled" tabindex="-1" aria-disabled="true">
+                                        <i class="bi bi-x-circle me-2"></i>
+                                        <span class="fw-semibold">Submission Closed</span>
+                                    </a>
+                                    {% endif %}
                                 </div>
                                 
                                 <div class="mt-4 pt-3 border-top">
@@ -443,6 +494,11 @@
                                     </div>
                                 </div>
                             </div>
+                            {% if is_exam and not can_view_details %}
+                                <div class="alert alert-warning mt-3">
+                                    This exam is scheduled for {{ exam_info.start.strftime('%d/%m/%Y %H:%M') }} — details will be visible from {{ exam_info.viewable_from.strftime('%d/%m/%Y %H:%M') }}.
+                                </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -466,6 +522,80 @@
         {% endif %}
         {% endif %}
     </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const choices = document.querySelectorAll('.condition-choice');
+    const assignBtn = document.getElementById('assignMoreBtn');
+    const smallExamControls = document.getElementById('smallExamControls');
+    const smallExamStart = document.getElementById('small_exam_start');
+    const smallExamEnd = document.getElementById('small_exam_end');
+    const hiddenCondition = document.getElementById('small_assignment_condition');
+
+        function updateAssignHref() {
+            if (!assignBtn) return;
+            const base = assignBtn.dataset.baseHref || assignBtn.getAttribute('href');
+            const active = document.querySelector('.condition-choice.active');
+            let params = new URLSearchParams();
+            if (active) params.set('condition', active.dataset.value);
+            if (smallExamStart && smallExamStart.value) params.set('exam_start', smallExamStart.value);
+            if (smallExamEnd && smallExamEnd.value) params.set('exam_end', smallExamEnd.value);
+            const href = base + (params.toString() ? ('?' + params.toString()) : '');
+            assignBtn.href = href;
+        }
+
+        choices.forEach(choice => {
+            choice.addEventListener('click', function() {
+                choices.forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+                if (this.dataset.value === 'exam') {
+                    smallExamControls.classList.remove('d-none');
+                    if (hiddenCondition) hiddenCondition.value = 'exam';
+                } else {
+                    smallExamControls.classList.add('d-none');
+                    if (hiddenCondition) hiddenCondition.value = 'assignment';
+                }
+                updateAssignHref();
+            });
+        });
+
+        [smallExamStart, smallExamEnd].forEach(el => {
+            if (el) el.addEventListener('change', updateAssignHref);
+        });
+
+        // initialize; if server provided exam_info, populate
+        const active = document.querySelector('.condition-choice.active');
+        if (active && active.dataset.value === 'exam') {
+            smallExamControls.classList.remove('d-none');
+            if (hiddenCondition) hiddenCondition.value = 'exam';
+        }
+
+    // server-provided exam ISO strings
+    {% if exam_info and exam_info.start %}
+    const examStartIso = {{ exam_info.start.isoformat() | tojson }};
+    {% else %}
+    const examStartIso = null;
+    {% endif %}
+    {% if exam_info and exam_info.end %}
+    const examEndIso = {{ exam_info.end.isoformat() | tojson }};
+    {% else %}
+    const examEndIso = null;
+    {% endif %}
+        try {
+            // Only populate inputs if they are empty (the template already sets values server-side)
+            if (examStartIso && smallExamStart && !smallExamStart.value) {
+                // examStartIso is an ISO string like 'YYYY-MM-DDTHH:MM:SS' or 'YYYY-MM-DDTHH:MM'
+                smallExamStart.value = examStartIso.slice(0,16);
+            }
+            if (examEndIso && smallExamEnd && !smallExamEnd.value) {
+                smallExamEnd.value = examEndIso.slice(0,16);
+            }
+        } catch (e) {
+            // ignore
+        }
+
+        updateAssignHref();
+    });
+    </script>
     
     <!-- Navigation -->
     <div class="d-flex align-items-center gap-2">

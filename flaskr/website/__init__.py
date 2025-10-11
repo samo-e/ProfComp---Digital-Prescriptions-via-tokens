@@ -31,6 +31,9 @@ def create_app():
     from .models import db, User
 
     db.init_app(app)
+    # Diagnostic prints were removed to avoid cluttering console output in debug mode
+
+
     # Set up Flask-Migrate
     migrate = Migrate(app, db)
     

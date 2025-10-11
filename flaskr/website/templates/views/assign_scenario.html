@@ -30,7 +30,18 @@
 
         <form method="POST" id="assignForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <input type="hidden" name="action" id="formAction" value="assign"/>
+            <!-- Mode is set on the Scenario dashboard. Show read-only mode here and include hidden fields so backend receives values -->
+            <input type="hidden" name="assignment_condition" id="assignment_condition" value="assignment" />
+            <input type="hidden" name="exam_start" id="exam_start" />
+            <input type="hidden" name="exam_end" id="exam_end" />
+            <div class="mb-3 d-flex align-items-center gap-3">
+                <div>
+                    <strong>Mode:</strong> <span id="assignModeLabel">Assignment</span>
+                </div>
+                <div id="assignModeInfo" class="ms-3 small text-muted d-none">
+                    Exam scheduled: <span id="assignModeSchedule"></span>
+                </div>
+            </div>
             
             <!-- Search and Actions Row -->
             <div class="">
@@ -176,4 +187,377 @@
         </form>
     </div>
 </div>
+
+<script>
+// Function to update patient dropdown availability (from old assign.html)
+function updatePatientAvailability() {
+    const selects = document.querySelectorAll('select[name^="patient_"]');
+    const selectedPatients = new Set();
+    
+    // Collect all selected patients
+    selects.forEach(select => {
+        if (select.value) {
+            selectedPatients.add(select.value);
+        }
+    });
+    
+    // Update each dropdown
+    selects.forEach(select => {
+        const currentValue = select.value;
+        const options = select.querySelectorAll('option');
+        
+        options.forEach(option => {
+            if (option.value === '') return; // Skip the default "Select Patient" option
+            
+            // Check if this option is already assigned to another student
+            if (selectedPatients.has(option.value) && option.value !== currentValue) {
+                option.style.display = 'none';
+                option.disabled = true;
+            } else if (!option.hasAttribute('data-already-assigned')) {
+                option.style.display = 'block';
+                option.disabled = false;
+            }
+        });
+    });
+}
+
+// Add event listeners to patient selects for real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    // Read ?condition, ?exam_start, ?exam_end from URL and populate hidden inputs & readonly label
+    const urlParams = new URLSearchParams(window.location.search);
+    const cond = urlParams.get('condition');
+    const examStartParam = urlParams.get('exam_start');
+    const examEndParam = urlParams.get('exam_end');
+    if (cond) {
+        const input = document.getElementById('assignment_condition');
+        const label = document.getElementById('assignModeLabel');
+        const info = document.getElementById('assignModeInfo');
+        const scheduleSpan = document.getElementById('assignModeSchedule');
+        if (input) input.value = cond;
+        if (label) label.textContent = cond.charAt(0).toUpperCase() + cond.slice(1);
+        if (cond === 'exam') {
+            // show schedule if provided
+            let parts = [];
+            if (examStartParam) parts.push(new Date(examStartParam).toLocaleString());
+            if (examEndParam) parts.push('to ' + new Date(examEndParam).toLocaleString());
+            if (scheduleSpan) scheduleSpan.textContent = parts.join(' ');
+            if (info) info.classList.remove('d-none');
+            // Also populate hidden inputs used by server on submit
+            const hs = document.getElementById('exam_start');
+            const he = document.getElementById('exam_end');
+            if (hs && examStartParam) hs.value = examStartParam;
+            if (he && examEndParam) he.value = examEndParam;
+        }
+    }
+    const patientSelects = document.querySelectorAll('.patient-select');
+    
+    patientSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            const selectedPatientId = this.value;
+            const studentId = this.dataset.studentId;
+            
+            if (selectedPatientId) {
+                // Check if this patient is already assigned to another student
+                const otherSelects = document.querySelectorAll('.patient-select:not([data-student-id="' + studentId + '"])');
+                let alreadyAssigned = false;
+                
+                otherSelects.forEach(otherSelect => {
+                    if (otherSelect.value === selectedPatientId) {
+                        alreadyAssigned = true;
+                    }
+                });
+                
+                if (alreadyAssigned) {
+                    alert('This patient is already assigned to another student. Please select a different patient.');
+                    this.value = '';
+                    return;
+                }
+            }
+            
+            updatePatientDropdowns();
+        });
+    });
+    
+    // Initial update
+    updatePatientDropdowns();
+});
+
+function toggleStudent(studentId) {
+    var checkbox = document.getElementById('student_' + studentId);
+    if (!checkbox) {
+        var inputs = document.getElementsByClassName('student-checkbox');
+        for (var i = 0; i < inputs.length; i++) {
+            if (inputs[i].value == studentId) {
+                checkbox = inputs[i];
+                break;
+            }
+        }
+    }
+    
+    if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        updateCount();
+    }
+}
+
+function updateCount() {
+    var checkboxes = document.getElementsByClassName('student-checkbox');
+    var count = 0;
+    for (var i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+            count++;
+        }
+    }
+    
+    var countElement = document.getElementById('selectedCount');
+    var summaryElement = document.getElementById('selectionSummary');
+    var btnElement = document.getElementById('assignBtn');
+    
+    if (countElement) countElement.innerHTML = count;
+    
+    if (summaryElement) {
+        $(summaryElement).toggleClass('d-none', count === 0);
+    }
+    
+    if (btnElement) {
+        btnElement.disabled = count === 0;
+    }
+}
+
+function selectAll() {
+    var checkboxes = document.getElementsByClassName('student-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var row = checkboxes[i].closest('tr');
+        if (!row || row.style.display !== 'none') {
+            checkboxes[i].checked = true;
+        }
+    }
+    updateCount();
+}
+
+function selectNone() {
+    var checkboxes = document.getElementsByClassName('student-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        checkboxes[i].checked = false;
+    }
+    updateCount();
+}
+
+function selectNew() {
+    var checkboxes = document.getElementsByClassName('student-checkbox');
+    for (var i = 0; i < checkboxes.length; i++) {
+        var row = checkboxes[i].closest('tr');
+        // Status element uses class 'status-badge' in the row
+        var statusEl = row ? row.querySelector('.status-badge') : null;
+        var isVisible = !row || row.style.display !== 'none';
+        var isAvailable = false;
+        if (statusEl && statusEl.textContent) {
+            isAvailable = statusEl.textContent.toLowerCase().indexOf('available') !== -1;
+        }
+
+        if (isAvailable && isVisible) {
+            checkboxes[i].checked = true;
+        } else {
+            checkboxes[i].checked = false;
+        }
+    }
+    updateCount();
+}
+
+function searchStudents() {
+    var searchBox = document.getElementById('searchBox');
+    var searchValue = searchBox ? searchBox.value.toLowerCase() : '';
+    var rows = document.getElementsByClassName('student-row');
+    var visibleCount = 0;
+    
+    for (var i = 0; i < rows.length; i++) {
+        var name = rows[i].getAttribute('data-name') || '';
+        var email = rows[i].getAttribute('data-email') || '';
+        
+        if (name.indexOf(searchValue) > -1 || email.indexOf(searchValue) > -1 || searchValue === '') {
+            rows[i].style.display = '';
+            visibleCount++;
+        } else {
+            rows[i].style.display = 'none';
+        }
+    }
+    
+    $('#noResults').toggleClass('d-none', visibleCount !== 0 || searchValue === '');
+}
+
+// Function to assign selected students with patient validation (from old assign.html)
+function assignSelectedStudents() {
+    const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+    const assignments = [];
+    let hasErrors = false;
+    let errorMessages = [];
+    
+    checkboxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const studentId = checkbox.value;
+        const studentNameElement = row.querySelector('.student-name');
+        const studentName = studentNameElement ? studentNameElement.textContent : `Student ${studentId}`;
+        const patientSelect = row.querySelector('select[name^="patient_"]');
+        const patientId = patientSelect ? patientSelect.value : '';
+        
+        if (!patientId) {
+            hasErrors = true;
+            errorMessages.push(`${studentName} is selected but has no patient assigned`);
+        } else {
+            assignments.push({
+                studentId: studentId,
+                patientId: patientId,
+                studentName: studentName
+            });
+        }
+    });
+    
+    if (hasErrors) {
+        alert('Error:\\n' + errorMessages.join('\\n'));
+        return false;
+    }
+    
+    if (assignments.length === 0) {
+        alert('Please select at least one student to assign.');
+        return false;
+    }
+    
+    // Add assignments data to form before submission
+    const form = document.getElementById('assignForm');
+    
+    // Remove existing assignment inputs
+    const existingInputs = form.querySelectorAll('input[name^="assignments"]');
+    existingInputs.forEach(input => input.remove());
+    
+    // Add new assignment inputs
+    assignments.forEach((assignment, index) => {
+        const studentInput = document.createElement('input');
+        studentInput.type = 'hidden';
+        studentInput.name = `assignments[${index}][student_id]`;
+        studentInput.value = assignment.studentId;
+        form.appendChild(studentInput);
+        
+        const patientInput = document.createElement('input');
+        patientInput.type = 'hidden';
+        patientInput.name = `assignments[${index}][patient_id]`;
+        patientInput.value = assignment.patientId;
+        form.appendChild(patientInput);
+    });
+    
+    return true;
+}
+
+    // Unassign selected students button behaviour
+function setupUnassignButton() {
+    const unassignBtn = document.getElementById('unassignSelectedBtn');
+    const formAction = document.getElementById('form_action');
+    const assignForm = document.getElementById('assignForm');
+    if (unassignBtn && formAction && assignForm) {
+        unassignBtn.addEventListener('click', function () {
+            if (!confirm('Unassign selected students from this scenario? This will remove their access.')) return;
+            formAction.value = 'unassign';
+            assignForm.submit();
+        });
+    }
+}
+
+window.onload = function() {
+    // Set up button event handlers
+    var selectAllBtn = document.getElementById('selectAllBtn');
+    if (selectAllBtn) {
+        selectAllBtn.onclick = selectAll;
+    }
+    
+    var selectNoneBtn = document.getElementById('selectNoneBtn');
+    if (selectNoneBtn) {
+        selectNoneBtn.onclick = selectNone;
+    }
+    
+    var selectNewBtn = document.getElementById('selectNewBtn');
+    if (selectNewBtn) {
+        selectNewBtn.onclick = selectNew;
+    }
+    
+    // Set up search functionality
+    var searchBox = document.getElementById('searchBox');
+    if (searchBox) {
+        if (searchBox.addEventListener) {
+            searchBox.addEventListener('keyup', searchStudents);
+        } else {
+            searchBox.onkeyup = searchStudents;
+        }
+    }
+    
+    // Set up select all checkbox in table header
+    var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                selectAll();
+            } else {
+                selectNone();
+            }
+        });
+    }
+    
+    // Set up individual checkboxes
+    var studentCheckboxes = document.getElementsByClassName('student-checkbox');
+    for (var i = 0; i < studentCheckboxes.length; i++) {
+        studentCheckboxes[i].addEventListener('change', function() {
+            updateCount();
+            
+            // Update master checkbox
+            var checkedCount = document.querySelectorAll('.student-checkbox:checked').length;
+            var totalCount = document.querySelectorAll('.student-checkbox').length;
+            var masterCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (masterCheckbox) {
+                if (checkedCount === 0) {
+                    masterCheckbox.indeterminate = false;
+                    masterCheckbox.checked = false;
+                } else if (checkedCount === totalCount) {
+                    masterCheckbox.indeterminate = false;
+                    masterCheckbox.checked = true;
+                } else {
+                    masterCheckbox.indeterminate = true;
+                }
+            }
+        });
+    }
+    
+    // Set up patient dropdown change handlers for availability checking
+    var patientSelects = document.querySelectorAll('select[name^="patient_"]');
+    patientSelects.forEach(select => {
+        select.addEventListener('change', updatePatientAvailability);
+    });
+    // Initialize unassign button handler
+    setupUnassignButton();
+    
+    // Set up form submission handler
+    var assignForm = document.getElementById('assignForm');
+    if (assignForm) {
+        assignForm.addEventListener('submit', function(e) {
+            console.log('Form submission triggered');
+            e.preventDefault();
+            
+            // Debug: Check what's selected
+            const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+            console.log('Checked students:', checkedBoxes.length);
+            
+            if (assignSelectedStudents()) {
+                console.log('Validation passed, submitting form');
+                this.submit();
+            } else {
+                console.log('Validation failed');
+            }
+        });
+    } else {
+        console.error('assignForm not found');
+    }
+    
+    // Initialize
+    updateCount();
+    updatePatientAvailability();
+};
+</script>
 {% endblock %}

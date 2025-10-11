@@ -56,8 +56,16 @@
                     </div>
 
                     <!-- Submission Form -->
-                    {% if student_scenario.status != 'graded' %}
-                    <form method="POST" enctype="multipart/form-data" class="mt-4">
+                    {% if student_scenario.status in ['assigned', 'submitted'] %}
+                    {% if submission_deadline %}
+                    <div class="mb-3">
+                        <small class="text-muted">Submission deadline: {{ submission_deadline.strftime('%d/%m/%Y %I:%M %p') }}</small>
+                        {% if submission_deadline < now %}
+                        <div class="text-danger">Submission window has closed.</div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <form method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                         
                         <div class="mb-3">
@@ -94,7 +102,7 @@
                                 <i class="bi bi-arrow-left"></i> Back to Dashboard
                             </a>
                             
-                            <button type="submit" id="submit-btn" class="btn btn-success">
+                            <button type="submit" id="submit-btn" class="btn btn-success" {% if submission_deadline and submission_deadline < now %}disabled{% endif %}>
                                 <i class="bi bi-send me-2"></i>
                                 {% if student_scenario.status == 'submitted' %}Resubmit Work{% else %}Submit Work{% endif %}
                             </button>
