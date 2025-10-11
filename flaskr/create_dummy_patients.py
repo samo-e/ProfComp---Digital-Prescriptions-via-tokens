@@ -83,7 +83,6 @@ def create_dummy_patients():
             
             patient = Patient(
                 medicare=medicare_num,
-                medicare_issue=medicare_issue,
                 pharmaceut_ben_entitlement_no=f"PB{random.randint(100000, 999999)}",
                 sfty_net_entitlement_cardholder=random.choice([True, False]),
                 rpbs_ben_entitlement_cardholder=random.choice([True, False]),
@@ -125,11 +124,11 @@ def create_dummy_patients():
                 ctg_registered=random.choice([True, False]),
                 generics_only=random.choice([True, False]),
                 repeats_held=random.choice([True, False]),
-                pt_deceased=False,  # Keep them alive for testing
-                carer=None,  # or add carer data if needed
+                pt_deceased=False,
+                carer=None,
                 consented_to_asl=random.choice([True, False]),
                 consented_to_upload=random.choice([True, False]),
-                asl_status=random.choice([1, 2, 3]),  # 1=GRANTED, 2=DECLINED, 3=PENDING
+                asl_status=random.choice([1, 2, 3]),
                 consent_last_updated=datetime.now().strftime("%d/%m/%Y %I:%M %p"),
                 is_registered=True
             )
