@@ -35,29 +35,28 @@
 
 <script>
 // Tab functionality for admin pages
-document.addEventListener('DOMContentLoaded', function() {
-    // Set active tab based on current URL
+$(document).ready(function() {
     const currentPath = window.location.pathname;
-    const tabLinks = document.querySelectorAll('.admin-tab-link');
-    
-    tabLinks.forEach(function(link) {
-        link.classList.remove('active');
-        
-        // Check if this tab link matches the current page
-        const linkPath = new URL(link.href).pathname;
+
+    $('.admin-tab-link').removeClass('active').each(function() {
+        const linkPath = new URL(this.href).pathname;
         if (linkPath === currentPath) {
-            link.classList.add('active');
+            $(this).addClass('active');
         }
     });
-    
-    // If no exact match found (e.g., on profile pages), default to "Profiles" tab
-    const hasActiveTab = document.querySelector('.admin-tab-link.active');
-    if (!hasActiveTab) {
-        const profilesTab = document.getElementById('profiles-tab');
-        if (profilesTab && (currentPath.includes('/admin/teacher_profile') || currentPath.includes('/admin/student_profile'))) {
-            profilesTab.classList.add('active');
+
+    // Special case for CSV tab
+    if (currentPath === '/admin/csv_exports') {
+        $('#csv-tab').addClass('active');
+    }
+
+    if ($('.admin-tab-link.active').length === 0) {
+        if (currentPath.includes('/admin/teacher_profile') || currentPath.includes('/admin/student_profile')) {
+            $('#profiles-tab').addClass('active');
         }
     }
 });
+
+
 </script>
 {% endblock %}

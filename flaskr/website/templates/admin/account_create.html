@@ -5,13 +5,6 @@
 {% block styles %}
 {{ super() }}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/account_create.css') }}">
-<style>
-.custom-tooltip .tooltip-inner {
-    max-width: 400px; /* adjust as needed */
-    white-space: normal; /* allow wrapping */
-}
-</style>
-
 {% endblock %}
 
 {% block scripts %}
@@ -627,6 +620,13 @@ document.addEventListener("DOMContentLoaded", function () {
           feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
         } else {
           feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+        }
+
+        // Ask user if they want to download the CSV
+        if (confirm("Accounts created successfully. Would you like to download the account data (with added passwords, if they were added automatically)?")) {
+            // Trigger download via a temporary endpoint
+            // Server should provide a URL to the CSV
+            window.open("/admin/download_last_created_accounts_csv", "_blank");
         }
       })
       .catch(() => {

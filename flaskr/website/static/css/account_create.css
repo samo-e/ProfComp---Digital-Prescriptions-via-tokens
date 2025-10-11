@@ -59,3 +59,7 @@ body {
 .admin-main-scroll-area::-webkit-scrollbar {
   display: none; /* Chrome, Safari, Opera */
 }
+.custom-tooltip .tooltip-inner {
+  max-width: 400px;
+  white-space: normal;
+}
