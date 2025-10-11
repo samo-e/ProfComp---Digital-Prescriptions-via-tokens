@@ -20,7 +20,9 @@ from wtforms.validators import (
     DataRequired,
     Regexp,
     Optional,
+    ValidationError,
 )
+from datetime import datetime
 
 DEFAULT_CHOICE = ("", "")
 
@@ -323,3 +325,81 @@ class DeleteForm(FlaskForm):
 
 class EmptyForm(FlaskForm):
     pass
+
+
+class ASL_ConsentStatusForm(FlaskForm):
+    is_registered = SelectField(
+        "Is Registered",
+        choices=[
+            ("true", "Yes"),
+            ("false", "No"),
+        ],
+        validators=[DataRequired()],
+    )
+    status = SelectField(  # required
+        "Status",
+        choices=[
+            ("", "Select..."),
+            ("NO CONSENT", "No Consent"),
+            ("PENDING", "Pending"),
+            ("GRANTED", "Granted"),
+            ("REJECTED", "Rejected"),
+        ],
+        validators=[DataRequired()],
+    )
+    last_updated = StringField(
+        "Last Updated",
+        validators=[DataRequired()],
+        render_kw={"placeholder": "DD/MM/YYYY HH:MM am/pm"},
+        default=lambda: datetime.now().strftime("%d/%m/%Y %H:%M %p"),
+    )
+
+
+class ASL_ALR_PrescriberSubform(FlaskForm):
+    fname = StringField("First Name", validators=[Optional()])
+    lname = StringField("Last Name", validators=[Optional()])
+    title = StringField("Title / Qualifications", validators=[Optional()])
+    address_1 = StringField("Address", validators=[Optional()])
+    phone = StringField("Phone", validators=[Optional(), length(max=20)])
+    fax = StringField("Fax", validators=[Optional(), length(max=20)])
+
+
+class ASL_ALR_PrescriptionSubform(FlaskForm):
+    paperless = SelectField(
+        "Paperless",
+        choices=[("true", "True"), ("false", "False")],
+        validators=[Optional()],
+    )
+    prescribed_date = StringField(
+        "Prescribed Date",
+        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
+        render_kw={"placeholder": "DD/MM/YYYY"},
+    )
+    dispensed_date = StringField(
+        "Last Dispensed Date",
+        validators=[Optional(), Regexp(r"^\d{2}/\d{2}/\d{4}$", message="DD/MM/YYYY")],
+        render_kw={"placeholder": "DD/MM/YYYY"},
+    )
+    drug_name = TextAreaField("Drug Name", validators=[Optional()])
+    dose_instr = TextAreaField(
+        "Dose Instructions",
+        validators=[Optional()],
+        render_kw={"placeholder": 'e.g. "ONCE PER DAY" or "AS REQUIRED"'},
+    )
+    dose_qty = IntegerField("Dose Qty", validators=[Optional(), NumberRange(min=1)])
+    dose_rpt = IntegerField(
+        "Dose Repeats (Remaining)", validators=[Optional(), NumberRange(min=0)]
+    )
+    brand_sub_not_prmt = SelectField(
+        "Brand Substitution Not Permitted",
+        choices=[("false", "False"), ("true", "True")],
+        validators=[Optional()],
+    )
+
+    prescriber = FormField(ASL_ALR_PrescriberSubform)
+
+
+class ASL_ALR_CreationForm(FlaskForm):
+    consent_status = FormField(ASL_ConsentStatusForm)
+    asl_creations = FieldList(FormField(ASL_ALR_PrescriptionSubform))
+    alr_creations = FieldList(FormField(ASL_ALR_PrescriptionSubform))

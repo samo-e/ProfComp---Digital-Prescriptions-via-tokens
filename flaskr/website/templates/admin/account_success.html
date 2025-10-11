@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Created Successfully</title>
+    <script>
+        // Prevent browser back button from returning to form
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+        
+        // Add additional history manipulation to prevent back navigation
+        window.history.pushState(null, null, window.location.href);
+        window.addEventListener('popstate', function(event) {
+            window.history.pushState(null, null, window.location.href);
+            alert('Navigation back is not allowed. Account has been created permanently.');
+        });
+        
+        // Clear any form data from browser cache
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
+        
+        // Prevent Ctrl+Z or any undo operations
+        document.addEventListener('keydown', function(e) {
+            // Prevent undo operations
+            if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) {
+                e.preventDefault();
+                alert('Undo is not allowed. The account has been created permanently in the database.');
+                return false;
+            }
+            
+            // Prevent browser refresh that might cause confusion
+            if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
+                e.preventDefault();
+                alert('Page refresh disabled. Use the navigation links below.');
+                return false;
+            }
+            
+            // Prevent browser back shortcut
+            if (e.altKey && e.key === 'ArrowLeft') {
+                e.preventDefault();
+                alert('Back navigation is disabled. The account has been created permanently.');
+                return false;
+            }
+        });
+        
+        // Disable right-click context menu to prevent confusion
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            alert('Right-click disabled. The account has been created permanently. Use the links below for navigation.');
+        });
+        
+        // Additional protection against browser back button
+        window.addEventListener('beforeunload', function(e) {
+            // This doesn't prevent navigation but gives a warning
+            const message = 'The account has been created successfully and permanently saved to the database.';
+            e.returnValue = message;
+            return message;
+        });
+    </script>
+</head>
+<body>
+    <h1>Account Created Successfully!</h1>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div>{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div>
+        <h2>Account Details:</h2>
+        <p><strong>Name:</strong> {{ user.get_full_name() }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Student Number:</strong> {{ user.studentnumber if user.studentnumber else "N/A" }}</p>
+        <p><strong>Role:</strong> {{ user.role.title() }}</p>
+        <p><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <a href="{{ url_for('admin.create_account') }}">Create Another Account</a> |
+        <a href="{{ url_for('admin.admin_dashboard') }}">Back to Admin Dashboard</a>
+    </div>
+    
+    <script>
+        // Additional protection - disable form resubmission
+        window.addEventListener('beforeunload', function() {
+            // Clear any cached form data
+            if (document.forms) {
+                for (let form of document.forms) {
+                    form.reset();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,7 +1,9 @@
 import os
 from flask import Flask
+
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 from flask_minify import Minify
 
 
@@ -25,11 +27,16 @@ def create_app():
     csrf = CSRFProtect(app)
 
     # import the database
+
     from .models import db, User
 
     db.init_app(app)
     # Diagnostic prints were removed to avoid cluttering console output in debug mode
 
+
+    # Set up Flask-Migrate
+    migrate = Migrate(app, db)
+    
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -41,12 +48,15 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
+
     from .views import views
     from .auth import auth
+    from .admin import admin
 
     # Register blueprints
-    app.register_blueprint(views, url_prefix="/")
-    app.register_blueprint(auth, url_prefix="/")
+    app.register_blueprint(views, url_prefix='/')
+    app.register_blueprint(auth, url_prefix='/')
+    app.register_blueprint(admin, url_prefix='/')
 
     # Check and initialize database if needed
     initialize_database(app)

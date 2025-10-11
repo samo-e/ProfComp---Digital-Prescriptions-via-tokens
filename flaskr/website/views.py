@@ -25,7 +25,14 @@ from .models import (
     ScenarioPatient,
     Submission,
 )
-from .forms import PatientForm, ASLForm, DeleteForm, EmptyForm
+from .forms import (
+    PatientForm,
+    ASLForm,
+    DeleteForm,
+    EmptyForm,
+    ASL_ALR_CreationForm,
+    ASL_ALR_PrescriptionSubform,
+)
 from sqlalchemy import or_
 from .converters import ingest_pt_data_contract
 from datetime import datetime
@@ -34,6 +41,9 @@ import requests
 import os
 from pathlib import Path
 from werkzeug.utils import secure_filename
+import csv
+from io import StringIO
+from flask import make_response
 
 # Optional import for readme rendering
 try:
@@ -65,6 +75,7 @@ def teacher_required(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
 
 
 @views.route("/scenarios/<int:scenario_id>")
@@ -350,17 +361,26 @@ def assign_scenario(scenario_id):
         form_action = request.form.get('form_action', 'assign')
         if form_action == 'unassign':
             # Unassign selected students: remove StudentScenario and any ScenarioPatient mapping for them
-            student_ids = request.form.getlist('student_ids')
+            student_ids = request.form.getlist("student_ids")
             if student_ids:
                 for sid in student_ids:
-                    StudentScenario.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
-                    ScenarioPatient.query.filter_by(student_id=sid, scenario_id=scenario.id).delete()
+                    StudentScenario.query.filter_by(
+                        student_id=sid, scenario_id=scenario.id
+                    ).delete()
+                    ScenarioPatient.query.filter_by(
+                        student_id=sid, scenario_id=scenario.id
+                    ).delete()
                 db.session.commit()
-                flash(f"Unassigned {len(student_ids)} students from the scenario.", "success")
+                flash(
+                    f"Unassigned {len(student_ids)} students from the scenario.",
+                    "success",
+                )
             else:
                 flash("No students selected to unassign.", "warning")
 
-            return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+            return redirect(
+                url_for("views.scenario_dashboard", scenario_id=scenario.id)
+            )
 
         # Check if we're handling individual patient assignments
         assignments_data = {}
@@ -517,9 +537,9 @@ def assign_scenario(scenario_id):
     assigned_student_ids = [s.id for s in scenario.assigned_students]
     # Exclude the scenario's active patient from the dropdown list
     if scenario and scenario.active_patient_id:
-        available_patients = (
-            Patient.query.filter(Patient.id != scenario.active_patient_id).all()
-        )
+        available_patients = Patient.query.filter(
+            Patient.id != scenario.active_patient_id
+        ).all()
     else:
         available_patients = Patient.query.all()
 
@@ -794,7 +814,6 @@ def teacher_dashboard():
 
 
 @views.route("/student/dashboard")
-@login_required
 def student_dashboard():
     """Student dashboard showing assigned scenarios"""
     if current_user.is_teacher():
@@ -802,11 +821,9 @@ def student_dashboard():
 
     # Get student's assigned scenarios with submission status
     student_scenarios = (
-        StudentScenario.query
-        .join(Scenario)
+        StudentScenario.query.join(Scenario)
         .filter(
-            StudentScenario.student_id == current_user.id,
-            Scenario.is_archived == False
+            StudentScenario.student_id == current_user.id, Scenario.is_archived == False
         )
         .all()
     )
@@ -1008,8 +1025,8 @@ def download_submission_file(filename):
 def student_management():
     """Student management dashboard for teachers"""
     try:
-        # Get all students
-        students = User.query.filter_by(role="student").all()
+        # Show only students assigned to the current teacher
+        students = current_user.students.filter_by(role="student", is_active=True).all()
         active_students = []
 
         # Calculate stats
@@ -1017,7 +1034,6 @@ def student_management():
         total_assignments = 0
 
         for student in students:
-            # Check if student has assigned_scenarios attribute
             if not student.is_active:
                 continue
             active_students.append(student)
@@ -1046,7 +1062,6 @@ def student_management():
     except Exception as e:
         print(f"Error in student_management: {str(e)}")
         import traceback
-
         traceback.print_exc()
         flash(f"Error loading student management: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
@@ -1229,7 +1244,7 @@ def view_student(student_id):
 
         assigned_scenarios = []
         for ss in student_scenarios:
-            print("ss.id=",ss.id)
+            print("ss.id=", ss.id)
             scenario = Scenario.query.get(ss.id)
             if scenario:
                 assigned_scenarios.append(
@@ -1554,6 +1569,341 @@ def show_users():
         ]
     )
 
+@views.route("/api/export-asl/<int:patient_id>", methods=["GET"])
+@login_required
+def export_asl_csv(patient_id):
+    """Export patient's complete ASL and ALR data as CSV"""
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+        
+        # Check if user can view this patient's ASL
+        can_view_asl = patient.can_view_asl()
+        
+        if not can_view_asl:
+            flash("Cannot export ASL - patient consent not granted", "error")
+            return redirect(url_for("views.patient_dashboard"))
+        
+        # Get ASL prescriptions (available status)
+        asl_prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.patient_id == patient_id,
+                Prescriber.fname != "ALR",  # Exclude ALR placeholder prescribers
+            )
+            .all()
+        )
+        
+        # Get ALR prescriptions (dispensed with remaining repeats)
+        alr_prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.patient_id == patient_id,
+                db.or_(
+                    Prescriber.fname == "ALR",  # ALR placeholder prescribers
+                    Prescription.remaining_repeats > 0,  # Or prescriptions with remaining repeats
+                ),
+            )
+            .all()
+        )
+        
+        # Create CSV in memory
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Write patient information header
+        writer.writerow(["=" * 80])
+        writer.writerow(["PATIENT INFORMATION"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Patient Name:", patient.name or ""])
+        writer.writerow(["Date of Birth:", patient.dob or ""])
+        writer.writerow(["Address:", patient.address or ""])
+        writer.writerow(["Preferred Contact:", patient.preferred_contact or ""])
+        writer.writerow(["Medicare Number:", patient.medicare or ""])
+        writer.writerow(["Pharmaceutical Benefit Entitlement No:", patient.pharmaceut_ben_entitlement_no or ""])
+        writer.writerow(["Safety Net Entitlement:", "Yes" if patient.sfty_net_entitlement_cardholder else "No"])
+        writer.writerow(["RPBS Beneficiary:", "Yes" if patient.rpbs_ben_entitlement_cardholder else "No"])
+        writer.writerow(["ASL Registration Status:", "Registered" if patient.is_registered else "Not Registered"])
+        writer.writerow(["ASL Consent Status:", patient.get_asl_status().name.replace("_", " ").title()])
+        writer.writerow(["Consent Last Updated:", patient.consent_last_updated or "N/A"])
+        writer.writerow(["Script Date:", patient.script_date or ""])
+        writer.writerow(["PBS:", patient.pbs or ""])
+        writer.writerow(["RPBS:", patient.rpbs or ""])
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Write ASL Scripts section
+        writer.writerow(["=" * 80])
+        writer.writerow(["ACTIVE SCRIPT LIST (ASL)"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        if asl_prescriptions:
+            writer.writerow([
+                "Prescription ID",
+                "DSPID",
+                "Status",
+                "Drug Name",
+                "Drug Code",
+                "Dosage Instructions",
+                "Quantity",
+                "Repeats",
+                "Prescribed Date",
+                "Paperless",
+                "Brand Substitution Not Permitted",
+                "Prescriber Name",
+                "Prescriber Title",
+                "Prescriber ID",
+                "Prescriber Address Line 1",
+                "Prescriber Address Line 2",
+                "Prescriber HPII",
+                "Prescriber HPIO",
+                "Prescriber Phone",
+                "Prescriber Fax"
+            ])
+            
+            for prescription, prescriber in asl_prescriptions:
+                writer.writerow([
+                    prescription.id,
+                    prescription.DSPID or "",
+                    prescription.get_status().name.title(),
+                    prescription.drug_name or "",
+                    prescription.drug_code or "",
+                    prescription.dose_instr or "",
+                    prescription.dose_qty or "",
+                    prescription.dose_rpt or "",
+                    prescription.prescribed_date or "",
+                    "Yes" if prescription.paperless else "No",
+                    "Yes" if prescription.brand_sub_not_prmt else "No",
+                    f"{prescriber.fname} {prescriber.lname}",
+                    prescriber.title or "",
+                    prescriber.prescriber_id or "",
+                    prescriber.address_1 or "",
+                    prescriber.address_2 or "",
+                    prescriber.hpii or "",
+                    prescriber.hpio or "",
+                    prescriber.phone or "",
+                    prescriber.fax or ""
+                ])
+        else:
+            writer.writerow(["No active prescriptions found"])
+        
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Write ALR section
+        writer.writerow(["=" * 80])
+        writer.writerow(["AVAILABLE LOCAL REPEATS (ALR)"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        if alr_prescriptions:
+            writer.writerow([
+                "Prescription ID",
+                "DSPID",
+                "Status",
+                "Drug Name",
+                "Drug Code",
+                "Dosage Instructions",
+                "Quantity",
+                "Total Repeats",
+                "Remaining Repeats",
+                "Prescribed Date",
+                "Dispensed Date",
+                "Paperless",
+                "Brand Substitution Not Permitted",
+                "Dispensed at This Pharmacy",
+                "Prescriber Name",
+                "Prescriber Title",
+                "Prescriber ID",
+                "Prescriber Address Line 1",
+                "Prescriber Address Line 2",
+                "Prescriber HPII",
+                "Prescriber HPIO",
+                "Prescriber Phone",
+                "Prescriber Fax"
+            ])
+            
+            for prescription, prescriber in alr_prescriptions:
+                writer.writerow([
+                    prescription.id,
+                    prescription.DSPID or "",
+                    prescription.get_status().name.title(),
+                    prescription.drug_name or "",
+                    prescription.drug_code or "",
+                    prescription.dose_instr or "",
+                    prescription.dose_qty or "",
+                    prescription.dose_rpt or "",
+                    prescription.remaining_repeats or "",
+                    prescription.prescribed_date or "",
+                    prescription.dispensed_date or "",
+                    "Yes" if prescription.paperless else "No",
+                    "Yes" if prescription.brand_sub_not_prmt else "No",
+                    "Yes" if prescription.dispensed_at_this_pharmacy else "No",
+                    f"{prescriber.fname} {prescriber.lname}",
+                    prescriber.title or "",
+                    prescriber.prescriber_id or "",
+                    prescriber.address_1 or "",
+                    prescriber.address_2 or "",
+                    prescriber.hpii or "",
+                    prescriber.hpio or "",
+                    prescriber.phone or "",
+                    prescriber.fax or ""
+                ])
+        else:
+            writer.writerow(["No available local repeats found"])
+        
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        # Create response
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        # Create safe filename
+        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
+        safe_patient_name = safe_patient_name.replace(' ', '_')
+        filename = f"ASL_{safe_patient_name}_{patient.dob.replace('/', '-')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting ASL: {str(e)}", "error")
+        return redirect(url_for("views.patient_dashboard"))
+
+
+@views.route("/api/export-asl-selected/<int:patient_id>", methods=["POST"])
+@login_required
+def export_selected_asl_csv(patient_id):
+    """Export selected prescriptions as CSV"""
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+        prescription_ids = request.form.get("prescription_ids", "").split(",")
+        
+        if not prescription_ids or not prescription_ids[0]:
+            flash("No prescriptions selected for export", "warning")
+            return redirect(url_for("views.asl", pt=patient_id))
+        
+        # Get selected prescriptions with prescriber info
+        prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
+        prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.id.in_(prescription_id_list),
+                Prescription.patient_id == patient_id
+            )
+            .all()
+        )
+        
+        if not prescriptions:
+            flash("No valid prescriptions found to export", "error")
+            return redirect(url_for("views.asl", pt=patient_id))
+        
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        # Patient header
+        writer.writerow(["=" * 80])
+        writer.writerow(["PATIENT INFORMATION"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Patient Name:", patient.name or ""])
+        writer.writerow(["Date of Birth:", patient.dob or ""])
+        writer.writerow(["Address:", patient.address or ""])
+        writer.writerow([])
+        writer.writerow([])
+        
+        # Selected prescriptions
+        writer.writerow(["=" * 80])
+        writer.writerow(["SELECTED PRESCRIPTIONS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow([
+            "Type",
+            "Prescription ID",
+            "DSPID",
+            "Status",
+            "Drug Name",
+            "Drug Code",
+            "Dosage Instructions",
+            "Quantity",
+            "Total Repeats",
+            "Remaining Repeats",
+            "Prescribed Date",
+            "Dispensed Date",
+            "Paperless",
+            "Brand Substitution Not Permitted",
+            "Dispensed at This Pharmacy",
+            "Prescriber Name",
+            "Prescriber Title",
+            "Prescriber ID",
+            "Prescriber Phone",
+            "Prescriber Fax"
+        ])
+        
+        for prescription, prescriber in prescriptions:
+            # Determine type based on status and remaining repeats
+            if prescription.status == PrescriptionStatus.DISPENSED.value and prescription.remaining_repeats and prescription.remaining_repeats > 0:
+                script_type = "ALR"
+            else:
+                script_type = "ASL"
+                
+            writer.writerow([
+                script_type,
+                prescription.id,
+                prescription.DSPID or "",
+                prescription.get_status().name.title(),
+                prescription.drug_name or "",
+                prescription.drug_code or "",
+                prescription.dose_instr or "",
+                prescription.dose_qty or "",
+                prescription.dose_rpt or "",
+                prescription.remaining_repeats or "",
+                prescription.prescribed_date or "",
+                prescription.dispensed_date or "",
+                "Yes" if prescription.paperless else "No",
+                "Yes" if prescription.brand_sub_not_prmt else "No",
+                "Yes" if prescription.dispensed_at_this_pharmacy else "No",
+                f"{prescriber.fname} {prescriber.lname}",
+                prescriber.title or "",
+                prescriber.prescriber_id or "",
+                prescriber.phone or "",
+                prescriber.fax or ""
+            ])
+        
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow([f"Total Prescriptions Exported: {len(prescriptions)}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        # Create safe filename
+        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
+        safe_patient_name = safe_patient_name.replace(' ', '_')
+        filename = f"ASL_Selected_{safe_patient_name}_{len(prescriptions)}_items.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting selected prescriptions: {str(e)}", "error")
+        return redirect(url_for("views.asl", pt=patient_id))
 
 @views.route("/asl/<int:pt>")
 def asl(pt: int):
@@ -1571,27 +1921,24 @@ def asl(pt: int):
         if can_view_asl:
             # Get ALL prescriptions for ASL display (not just available ones)
             # For ASL items - we distinguish them from ALR by having a non-minimal prescriber
+            # ASL prescriptions
             asl_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
                     Prescription.patient_id == pt,
-                    Prescriber.fname != "ALR",  # Exclude ALR placeholder prescribers
+                    Prescription.DSPID == "asl",  # filter by DSPID
                 )
                 .all()
             )
 
-            # For ALR items - these have the placeholder ALR prescriber or have remaining repeats
+            # ALR prescriptions
             alr_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
                     Prescription.patient_id == pt,
-                    db.or_(
-                        Prescriber.fname == "ALR",  # ALR placeholder prescribers
-                        Prescription.remaining_repeats
-                        > 0,  # Or prescriptions with remaining repeats
-                    ),
+                    Prescription.DSPID == "alr",  # filter by DSPID
                 )
                 .all()
             )
@@ -1627,7 +1974,7 @@ def asl(pt: int):
         for prescription, prescriber in asl_prescriptions:
             asl_item = {
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "status": prescription.get_status().name.title(),
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
@@ -1656,7 +2003,7 @@ def asl(pt: int):
         for prescription, prescriber in alr_prescriptions:
             alr_item = {
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
                 "dose-instr": prescription.dose_instr,
@@ -1696,7 +2043,9 @@ def asl(pt: int):
 
         user_role = "teacher" if current_user.is_teacher() else "student"
 
-        return render_template("views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role)
+        return render_template(
+            "views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role
+        )
 
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500
@@ -1943,7 +2292,7 @@ def print_selected_prescriptions():
                 "pbs": patient.pbs,
                 "rpbs": patient.rpbs,
                 "prescription_id": prescription.id,
-                "DSPID": prescription.DSPID,
+                "DSPID": "null",
                 "status": prescription.get_status().name.title(),
                 "drug-name": prescription.drug_name,
                 "drug-code": prescription.drug_code,
@@ -2215,34 +2564,91 @@ def assign_students_to_scenario(scenario_id):
 
             # Create the assignments
             assignments_created = 0
+            errors = []
+            
             for assignment_data in assignments_data:
-                # Check if student is already assigned to this scenario
-                existing = StudentScenario.query.filter_by(
-                    scenario_id=scenario_id, student_id=assignment_data["student_id"]
+                student_id = assignment_data["student_id"]
+                patient_id = assignment_data["patient_id"]
+                
+                # Validate student and patient exist
+                student = User.query.filter_by(id=student_id, role="student").first()
+                patient = Patient.query.get(patient_id)
+                
+                if not student or not patient:
+                    continue
+                
+                # Check if patient is already assigned to another student in this scenario
+                existing_patient_assignment = (
+                    ScenarioPatient.query.filter_by(
+                        scenario_id=scenario.id, patient_id=patient_id
+                    )
+                    .filter(ScenarioPatient.student_id != student_id)
+                    .first()
+                )
+                
+                if existing_patient_assignment:
+                    assigned_student = User.query.get(existing_patient_assignment.student_id)
+                    patient_name = f"{patient.given_name or ''} {patient.last_name or ''}".strip() or f"Patient {patient.id}"
+                    errors.append(f"{patient_name} is already assigned to {assigned_student.get_full_name()}")
+                    continue
+                
+                # Create or get StudentScenario record
+                existing_student_scenario = StudentScenario.query.filter_by(
+                    scenario_id=scenario_id, student_id=student_id
                 ).first()
 
-                if not existing:
-                    assignment = StudentScenario(
+                if not existing_student_scenario:
+                    student_scenario = StudentScenario(
                         scenario_id=scenario_id,
-                        student_id=assignment_data["student_id"],
+                        student_id=student_id,
+                        status="assigned"
                     )
-                    db.session.add(assignment)
-                    assignments_created += 1
+                    db.session.add(student_scenario)
+                
+                # Create or update ScenarioPatient record (THIS WAS MISSING!)
+                existing_patient_assignment = ScenarioPatient.query.filter_by(
+                    scenario_id=scenario.id,
+                    student_id=student_id
+                ).first()
+                
+                if existing_patient_assignment:
+                    # Update existing assignment
+                    existing_patient_assignment.patient_id = patient_id
+                    existing_patient_assignment.assigned_at = datetime.now()
+                else:
+                    # Create new assignment
+                    patient_assignment = ScenarioPatient(
+                        scenario_id=scenario.id,
+                        student_id=student_id,
+                        patient_id=patient_id
+                    )
+                    db.session.add(patient_assignment)
+                
+                assignments_created += 1
 
             db.session.commit()
+            
+            if errors:
+                return jsonify(
+                    {
+                        "success": True,
+                        "count": assignments_created,
+                        "message": f"Assigned {assignments_created} students with warnings: {'; '.join(errors)}",
+                    }
+                )
 
             return jsonify(
                 {
                     "success": True,
                     "count": assignments_created,
-                    "message": f"Successfully assigned {assignments_created} students to {scenario.name}!",
+                    "message": f"Successfully assigned {assignments_created} students with their patients to {scenario.name}!",
                 }
             )
 
         except Exception as e:
             db.session.rollback()
             return jsonify(
-                {"success": False, "message": "Error creating student assignments."}
+                {"success": False, "message": f"Error creating student assignments: {str(e)}"}
             )
 
     return jsonify({"success": False, "message": "Invalid form submission."})
@@ -2575,7 +2981,9 @@ def set_active_patient(scenario_id):
                     "The selected patient is already assigned to a student and cannot be set as the active patient.",
                     "error",
                 )
-                return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
+                return redirect(
+                    url_for("views.scenario_dashboard", scenario_id=scenario.id)
+                )
 
             scenario.active_patient_id = patient.id
 
@@ -2723,462 +3131,128 @@ def asl_form(patient_id):
     patient = Patient.query.get_or_404(patient_id)
 
     if request.method == "POST":
-        # print(f"DEBUG: ASL form POST received for patient {patient_id}")
-        # print(f"DEBUG: Form data keys: {list(request.form.keys())}")
-        # Handle form submission
+        form = ASL_ALR_CreationForm(request.form)
+    else:
+        # GET: pre-populate
+        form = ASL_ALR_CreationForm(obj=patient)
+
+    # Pre-populate form on GET
+    if request.method == "GET":
+        # Prepare data structure for FormField / FieldList
+        from .models import ASL, Prescription, Prescriber
+
+        asl_record = ASL.query.filter_by(patient_id=patient_id).first()
+        prescriptions = Prescription.query.filter_by(patient_id=patient_id).all()
+
+        # Build dictionary compatible with ASL_ALR_CreationForm
+        data = {
+            "consent_status": {
+                "is_registered": "true" if patient.is_registered else "false",
+                "status": (
+                    patient.get_asl_status().name if patient.get_asl_status() else ""
+                ),
+                "last_updated": patient.consent_last_updated,
+            },
+            "asl_creations": [],
+            "alr_creations": [],
+        }
+
+        for prescription in prescriptions:
+            prescriber_data = {
+                "fname": prescription.prescriber.fname,
+                "lname": prescription.prescriber.lname,
+                "title": prescription.prescriber.title,
+                "address_1": prescription.prescriber.address_1,
+                "address_2": getattr(prescription.prescriber, "address_2", ""),
+                "id": prescription.prescriber.prescriber_id,
+                "phone": prescription.prescriber.phone,
+                "fax": prescription.prescriber.fax,
+            }
+
+            presc_data = {
+                "prescription_id": prescription.id,
+                "DSPID": prescription.DSPID,
+                "status": prescription.get_status().name,
+                "prescribed_date": prescription.prescribed_date,
+                "dispensed_date": getattr(prescription, "dispensed_date", None),
+                "drug_name": prescription.drug_name,
+                "drug_code": prescription.drug_code,
+                "dose_instr": prescription.dose_instr,
+                "dose_qty": prescription.dose_qty,
+                "dose_rpt": getattr(prescription, "dose_rpt", None),
+                "paperless": prescription.paperless,
+                "brand_sub_not_prmt": getattr(prescription, "brand_sub_not_prmt", None),
+                "prescriber": prescriber_data,
+            }
+
+            if getattr(prescription, "DSPID", "asl") != "asl":
+                data["alr_creations"].append(presc_data)
+            else:
+                data["asl_creations"].append(presc_data)
+
+        form = ASL_ALR_CreationForm(data=data)
+
+    if form.validate_on_submit():
+        print("form did validate")
         try:
-            # Extract patient data from form
-            pt_data = request.form.to_dict()
+            # Update patient info
+            patient.is_registered = form.consent_status.is_registered.data == "true"
+            patient.asl_status = ASLStatus[form.consent_status.status.data].value
+            patient.consent_last_updated = form.consent_status.last_updated.data
 
-            # Update patient information
-            if "pt_data[name]" in pt_data and pt_data["pt_data[name]"]:
-                # Split full name into first and last name
-                full_name = pt_data["pt_data[name]"].strip()
-                name_parts = full_name.split(" ", 1)
-                patient.given_name = name_parts[0] if name_parts else ""
-                patient.last_name = name_parts[1] if len(name_parts) > 1 else ""
-                patient.name = full_name
-
-            # Update other patient fields
-            if "pt_data[medicare]" in pt_data:
-                patient.medicare = pt_data["pt_data[medicare]"]
-
-            if "pt_data[pharmaceut-ben-entitlement-no]" in pt_data:
-                patient.pharmaceut_ben_entitlement_no = pt_data[
-                    "pt_data[pharmaceut-ben-entitlement-no]"
-                ]
-
-            if "pt_data[preferred-contact]" in pt_data:
-                patient.preferred_contact = pt_data["pt_data[preferred-contact]"]
-
-            if "pt_data[dob]" in pt_data:
-                patient.dob = pt_data["pt_data[dob]"]
-
-            if "pt_data[script-date]" in pt_data:
-                patient.script_date = pt_data["pt_data[script-date]"]
-
-            if "pt_data[address-1]" in pt_data:
-                patient.address = pt_data["pt_data[address-1]"]
-
-            # Parse address line 2 (suburb state postcode)
-            if "pt_data[address-2]" in pt_data and pt_data["pt_data[address-2]"]:
-                address_parts = pt_data["pt_data[address-2]"].strip().split()
-                if len(address_parts) >= 3:
-                    patient.postcode = address_parts[-1]  # Last part is postcode
-                    patient.state = address_parts[-2]  # Second to last is state
-                    patient.suburb = " ".join(
-                        address_parts[:-2]
-                    )  # Everything else is suburb
-                elif len(address_parts) == 2:
-                    patient.state = address_parts[0]
-                    patient.postcode = address_parts[1]
-                elif len(address_parts) == 1:
-                    patient.suburb = address_parts[0]
-
-            # Update entitlement flags
-            if "pt_data[sfty-net-entitlement-cardholder]" in pt_data:
-                patient.sfty_net_entitlement_cardholder = (
-                    pt_data["pt_data[sfty-net-entitlement-cardholder]"].lower()
-                    == "true"
-                )
-
-            if "pt_data[rpbs-ben-entitlement-cardholder]" in pt_data:
-                patient.rpbs_ben_entitlement_cardholder = (
-                    pt_data["pt_data[rpbs-ben-entitlement-cardholder]"].lower()
-                    == "true"
-                )
-
-            # Update additional fields
-            if "pt_data[pbs]" in pt_data:
-                patient.pbs = (
-                    pt_data["pt_data[pbs]"] if pt_data["pt_data[pbs]"] else None
-                )
-
-            if "pt_data[rpbs]" in pt_data:
-                patient.rpbs = (
-                    pt_data["pt_data[rpbs]"] if pt_data["pt_data[rpbs]"] else None
-                )
-
-            # Update consent status information
-            if "pt_data[consent-status][is-registered]" in pt_data:
-                patient.is_registered = (
-                    pt_data["pt_data[consent-status][is-registered]"].lower() == "true"
-                )
-
-            if "pt_data[consent-status][status]" in pt_data:
-                # Map consent status to ASL status
-                status_value = pt_data["pt_data[consent-status][status]"]
-                if status_value == "Granted":
-                    patient.asl_status = ASLStatus.GRANTED.value
-                elif status_value == "Pending":
-                    patient.asl_status = ASLStatus.PENDING.value
-                else:
-                    patient.asl_status = ASLStatus.NO_CONSENT.value
-
-            if "pt_data[consent-status][last-updated]" in pt_data:
-                patient.consent_last_updated = (
-                    pt_data["pt_data[consent-status][last-updated]"]
-                    if pt_data["pt_data[consent-status][last-updated]"]
-                    else None
-                )
-
-            # Set patient as registered (fallback)
-            if not hasattr(patient, "is_registered") or patient.is_registered is None:
-                patient.is_registered = True
-
-            # Process prescription data (ASL and ALR items)
+            # Process ASL prescriptions
             from .models import ASL, Prescription, Prescriber
 
-            # Save ASL data to ASL table
-            # Check if ASL record exists for this patient
-            asl_record = ASL.query.filter_by(patient_id=patient_id).first()
-            if not asl_record:
-                asl_record = ASL(patient_id=patient_id)
-                db.session.add(asl_record)
-
-            # Update ASL record with form data
-            asl_record.consent_status = patient.asl_status
-            if "pt_data[carer][name]" in pt_data:
-                asl_record.carer_name = pt_data["pt_data[carer][name]"]
-            if "pt_data[carer][relationship]" in pt_data:
-                asl_record.carer_relationship = pt_data["pt_data[carer][relationship]"]
-            if "pt_data[carer][mobile]" in pt_data:
-                asl_record.carer_mobile = pt_data["pt_data[carer][mobile]"]
-            if "pt_data[carer][email]" in pt_data:
-                asl_record.carer_email = pt_data["pt_data[carer][email]"]
-            if "pt_data[notes]" in pt_data:
-                asl_record.notes = pt_data["pt_data[notes]"]
-
-            # Clear existing prescriptions for this patient to replace with new data
+            ASL.query.filter_by(patient_id=patient_id).delete()
             Prescription.query.filter_by(patient_id=patient_id).delete()
 
-            # Process ASL prescriptions (pt_data[asl-data])
-            # Find all ASL prescription indices
-            asl_indices = set()
-            for key in pt_data.keys():
-                if "pt_data[asl-data]" in key and "[prescription_id]" in key:
-                    # Extract index from key like pt_data[asl-data][0][prescription_id]
-                    start = key.find("[asl-data][") + len("[asl-data][")
-                    end = key.find("]", start)
-                    if start < end:
-                        try:
-                            asl_indices.add(int(key[start:end]))
-                        except ValueError:
-                            continue
+            for subform, presc_type in (
+                *( (sf, "asl") for sf in form.asl_creations.entries ),
+                *( (sf, "alr") for sf in form.alr_creations.entries )
+            ):
+                presc_data = dict(subform.data)
+                prescriber_data = presc_data.pop("prescriber", {})
 
-            # Process each ASL prescription
-            for idx in asl_indices:
-                # Get prescription data
-                prescription_id = pt_data.get(
-                    f"pt_data[asl-data][{idx}][prescription_id]"
-                )
-                if not prescription_id:
-                    continue
-
-                # Create or get prescriber
-                prescriber_fname = pt_data.get(
-                    f"pt_data[asl-data][{idx}][prescriber][fname]", ""
-                )
-                prescriber_lname = pt_data.get(
-                    f"pt_data[asl-data][{idx}][prescriber][lname]", ""
-                )
-                prescriber_id_num = pt_data.get(
-                    f"pt_data[asl-data][{idx}][prescriber][id]", ""
-                )
-
-                if prescriber_fname and prescriber_lname:
-                    prescriber = Prescriber(
-                        fname=prescriber_fname,
-                        lname=prescriber_lname,
-                        title=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescriber][title]", ""
-                        ),
-                        address_1=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescriber][address-1]", ""
-                        ),
-                        address_2=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescriber][address-2]", ""
-                        ),
-                        prescriber_id=(
-                            int(prescriber_id_num) if prescriber_id_num else None
-                        ),
-                        hpii=int(
-                            pt_data.get(
-                                f"pt_data[asl-data][{idx}][prescriber][hpii]", "0"
-                            )
-                            or 0
-                        ),
-                        hpio=int(
-                            pt_data.get(
-                                f"pt_data[asl-data][{idx}][prescriber][hpio]", "0"
-                            )
-                            or 0
-                        ),
-                        phone=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescriber][phone]", ""
-                        ),
-                        fax=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescriber][fax]", ""
-                        ),
-                    )
-                    db.session.add(prescriber)
-                    db.session.flush()  # Get the prescriber ID
-
-                    # Create prescription
-                    prescription = Prescription(
-                        patient_id=patient_id,
-                        prescriber_id=prescriber.id,
-                        DSPID=pt_data.get(f"pt_data[asl-data][{idx}][DSPID]", ""),
-                        status=1,  # Available status
-                        drug_name=pt_data.get(
-                            f"pt_data[asl-data][{idx}][drug-name]", ""
-                        ),
-                        drug_code=pt_data.get(
-                            f"pt_data[asl-data][{idx}][drug-code]", ""
-                        ),
-                        dose_instr=pt_data.get(
-                            f"pt_data[asl-data][{idx}][dose-instr]", ""
-                        ),
-                        dose_qty=int(
-                            pt_data.get(f"pt_data[asl-data][{idx}][dose-qty]", "0") or 0
-                        ),
-                        prescribed_date=pt_data.get(
-                            f"pt_data[asl-data][{idx}][prescribed-date]", ""
-                        ),
-                        paperless=True,
-                        dispensed_at_this_pharmacy=False,
-                    )
-                    db.session.add(prescription)
-
-            # Process ALR prescriptions (pt_data[alr-data])
-            alr_indices = set()
-            for key in pt_data.keys():
-                if "pt_data[alr-data]" in key and "[prescription_id]" in key:
-                    # Extract index from key like pt_data[alr-data][0][prescription_id]
-                    start = key.find("[alr-data][") + len("[alr-data][")
-                    end = key.find("]", start)
-                    if start < end:
-                        try:
-                            alr_indices.add(int(key[start:end]))
-                        except ValueError:
-                            continue
-
-            # Process each ALR prescription
-            for idx in alr_indices:
-                # Get prescription data
-                prescription_id = pt_data.get(
-                    f"pt_data[alr-data][{idx}][prescription_id]"
-                )
-                if not prescription_id:
-                    continue
-
-                # For ALR, we'll use a default prescriber or create a minimal one
-                # Since ALR prescriptions might not have complete prescriber data
-                prescriber = Prescriber(
-                    fname="ALR",
-                    lname="Prescriber",
-                    title="",
-                    address_1="",
-                    address_2="",
-                    prescriber_id=0,
-                    hpii=0,
-                    hpio=0,
-                    phone="",
-                    fax="",
-                )
+                # Remove unwanted keys from prescriber
+                prescriber_data.pop("csrf_token", None)
+                prescriber = Prescriber(**prescriber_data)
                 db.session.add(prescriber)
-                db.session.flush()  # Get the prescriber ID
+                db.session.flush()  # get prescriber.id
 
-                # Create ALR prescription
+                # Remove unwanted keys from prescription
+                presc_data.pop("csrf_token", None)
+                presc_data.pop("prescription_id", None)
+                presc_data.pop("prescriber", None)
+
+                # Convert string booleans to actual booleans
+                for bool_field in ["paperless", "brand_sub_not_prmt"]:
+                    if bool_field in presc_data:
+                        presc_data[bool_field] = presc_data[bool_field] == "true"
+
+                print("Prescription data:", presc_data)
                 prescription = Prescription(
                     patient_id=patient_id,
                     prescriber_id=prescriber.id,
-                    DSPID=pt_data.get(f"pt_data[alr-data][{idx}][DSPID]", ""),
-                    status=1,  # Available status
-                    drug_name=pt_data.get(f"pt_data[alr-data][{idx}][drug-name]", ""),
-                    drug_code=pt_data.get(f"pt_data[alr-data][{idx}][drug-code]", ""),
-                    dose_instr=pt_data.get(f"pt_data[alr-data][{idx}][dose-instr]", ""),
-                    dose_qty=int(
-                        pt_data.get(f"pt_data[alr-data][{idx}][dose-qty]", "0") or 0
-                    ),
-                    dose_rpt=int(
-                        pt_data.get(f"pt_data[alr-data][{idx}][dose-rpt]", "0") or 0
-                    ),
-                    remaining_repeats=int(
-                        pt_data.get(f"pt_data[alr-data][{idx}][remaining-repeats]", "0")
-                        or 0
-                    ),
-                    prescribed_date=patient.script_date or "",
-                    paperless=True,
-                    dispensed_at_this_pharmacy=False,
+                    DSPID=presc_type,
+                    **presc_data
                 )
                 db.session.add(prescription)
+                print("added prescription to session",prescription)
 
-            # Save all changes to database
+            
             db.session.commit()
+            flash("ASL/ALR data saved successfully.", "success")
 
-            flash(
-                "All ASL form data saved successfully! Patient details, prescriptions, and prescriber information have been stored.",
-                "success",
-            )
-
-            # Redirect to ASL view after submission
-            return redirect(url_for("views.asl", pt=patient_id))
-
+            asls = ASL.query.filter_by(patient_id=patient_id).all()
+            return redirect(url_for("views.asl_form", patient_id=patient_id))
         except Exception as e:
             db.session.rollback()
-            flash(f"Error saving form data: {str(e)}", "error")
+            flash(f"Error saving form: {str(e)}", "error")
 
-    # GET request - pre-populate form with existing data
-    from .models import ASL, Prescription, Prescriber
-
-    # Get existing ASL record
-    asl_record = ASL.query.filter_by(patient_id=patient_id).first()
-
-    # Get existing prescriptions
-    prescriptions = Prescription.query.filter_by(patient_id=patient_id).all()
-
-    # Prepare pre-populated data structure similar to what the form expects
-    pt_data = {
-        "medicare": patient.medicare or "",
-        "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no or "",
-        "sfty-net-entitlement-cardholder": (
-            "true"
-            if patient.sfty_net_entitlement_cardholder is True
-            else ("false" if patient.sfty_net_entitlement_cardholder is False else "")
-        ),
-        "rpbs-ben-entitlement-cardholder": (
-            "true"
-            if patient.rpbs_ben_entitlement_cardholder is True
-            else ("false" if patient.rpbs_ben_entitlement_cardholder is False else "")
-        ),
-        "can_view_asl": "true" if patient.can_view_asl() else "false",
-        "name": patient.name or "",
-        "dob": patient.dob or "",
-        "preferred-contact": patient.preferred_contact or "",
-        "address-1": patient.address or "",
-        "address-2": f"{patient.suburb or ''} {patient.state or ''} {patient.postcode or ''}".strip(),
-        "script-date": patient.script_date or "",
-        "pbs": patient.pbs or "",
-        "rpbs": patient.rpbs or "",
-        "consent-status": {
-            "is-registered": (
-                "true"
-                if patient.is_registered is True
-                else ("false" if patient.is_registered is False else "")
-            ),
-            "status": (
-                patient.get_asl_status().name.replace("_", " ").title()
-                if patient.get_asl_status()
-                else ""
-            ),
-            "last-updated": patient.consent_last_updated or "",
-        },
-        "carer": {
-            "name": (
-                asl_record.carer_name if asl_record and asl_record.carer_name else ""
-            ),
-            "relationship": (
-                asl_record.carer_relationship
-                if asl_record and asl_record.carer_relationship
-                else ""
-            ),
-            "mobile": (
-                asl_record.carer_mobile
-                if asl_record and asl_record.carer_mobile
-                else ""
-            ),
-            "email": (
-                asl_record.carer_email if asl_record and asl_record.carer_email else ""
-            ),
-        },
-        "notes": asl_record.notes if asl_record and asl_record.notes else "",
-        "asl-data": [],
-        "alr-data": [],
-    }
-
-    # Debug information
-    # print(f"DEBUG: Patient {patient_id}")
-    # print(
-    #     f"  - sfty_net: {patient.sfty_net_entitlement_cardholder} -> {pt_data['sfty-net-entitlement-cardholder']}"
-    # )
-    # print(
-    #     f"  - rpbs: {patient.rpbs_ben_entitlement_cardholder} -> {pt_data['rpbs-ben-entitlement-cardholder']}"
-    # )
-    # print(f"  - can_view_asl: {patient.can_view_asl()} -> {pt_data['can_view_asl']}")
-    # print(
-    #     f"  - is_registered: {patient.is_registered} -> {pt_data['consent-status']['is-registered']}"
-    # )
-    # print(
-    #     f"  - asl_status: {patient.get_asl_status().name} -> {pt_data['consent-status']['status']}"
-    # )
-    # print(f"DEBUG: ASL record exists: {asl_record is not None}")
-    # if asl_record:
-    # print(f"  - carer_name: '{asl_record.carer_name}'")
-    # print(f"  - carer_mobile: '{asl_record.carer_mobile}'")
-
-    # Process existing prescriptions into ASL and ALR data
-    for prescription in prescriptions:
-        prescriber = prescription.prescriber
-
-        prescription_data = {
-            "prescription_id": prescription.id,
-            "DSPID": prescription.DSPID or "",
-            "status": prescription.get_status().name.title(),
-            "drug-name": prescription.drug_name or "",
-            "drug-code": prescription.drug_code or "",
-            "dose-instr": prescription.dose_instr or "",
-            "dose-qty": prescription.dose_qty or 0,
-            "dose-rpt": prescription.dose_rpt or 0,
-            "prescribed-date": prescription.prescribed_date or "",
-            "paperless": "true" if prescription.paperless else "false",
-            "brand-sub-not-prmt": (
-                "true" if prescription.brand_sub_not_prmt else "false"
-            ),
-            "prescriber": {
-                "fname": prescriber.fname or "",
-                "lname": prescriber.lname or "",
-                "title": prescriber.title or "",
-                "address-1": prescriber.address_1 or "",
-                "address-2": prescriber.address_2 or "",
-                "id": str(prescriber.prescriber_id) if prescriber.prescriber_id else "",
-                "hpii": (
-                    f"{int(prescriber.hpii):016d}"
-                    if prescriber.hpii and prescriber.hpii > 0
-                    else "0000000000000000"
-                ),
-                "hpio": (
-                    f"{int(prescriber.hpio):016d}"
-                    if prescriber.hpio and prescriber.hpio > 0
-                    else "0000000000000000"
-                ),
-                "phone": prescriber.phone or "",
-                "fax": prescriber.fax or "",
-            },
-        }
-
-        # Determine if this is ASL or ALR data
-        if (
-            prescriber.fname == "ALR"
-            or prescription.remaining_repeats
-            and prescription.remaining_repeats > 0
-        ):
-            # This is ALR data
-            prescription_data["dispensed-date"] = prescription.dispensed_date or ""
-            prescription_data["remaining-repeats"] = prescription.remaining_repeats or 0
-            pt_data["alr-data"].append(prescription_data)
-            # print(
-            #     f"DEBUG: Added ALR prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
-            # )
-        else:
-            # This is ASL data
-            pt_data["asl-data"].append(prescription_data)
-            # print(
-            #     f"DEBUG: Added ASL prescription - HPI-I: {prescription_data['prescriber']['hpii']}, HPI-O: {prescription_data['prescriber']['hpio']}"
-            # )
-
-    # print(f"DEBUG: Final pt_data structure: {pt_data}")
-    return render_template("views/asl_form.html", patient=patient, pt_data=pt_data)
+    empty_asl_alr_form = ASL_ALR_PrescriptionSubform()
+    return render_template(
+        "views/asl_form.html", patient=patient, form=form, empty_form=empty_asl_alr_form
+    )
 
 
 @views.route("/help")
@@ -3664,11 +3738,14 @@ def view_submission(submission_id):
 @views.route("/download_file/<filename>")
 @login_required
 def download_file(filename):
-    """Download uploaded file.
-
-    Teachers can download any file. Students can download files that belong to their submissions.
+    """Download uploaded file (only for teachers/admins)"""
+    if current_user.role not in ["teacher", "admin"]:
+        flash("Unauthorized access.", "error")
+        return redirect(url_for("views.student_dashboard"))
     """
+    Teachers can download any file. Students can download files that belong to their submissions.
     # Uploads are stored under root_path/uploads/submissions
+    """
     uploads_dir = os.path.join(current_app.root_path, "uploads", "submissions")
     file_path = os.path.join(uploads_dir, filename)
 
@@ -3719,3 +3796,269 @@ def download_file(filename):
         if current_user.is_student():
             return redirect(url_for("views.student_dashboard"))
         return redirect(url_for("views.teacher_dash"))
+
+
+@views.route("/api/export-marks/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_marks(scenario_id):
+    """Export all student marks/grades for a specific scenario as CSV"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export marks for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT MARKS REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Assigned Date",
+            "Submitted Date",
+            "Completed Date",
+            "Status",
+            "Score (out of 100)",
+            "Feedback"
+        ])
+        
+        scores = []
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else "",
+                student_scenario.completed_at.strftime('%Y-%m-%d') if student_scenario.completed_at else "",
+                student_scenario.status.capitalize(),
+                student_scenario.score if student_scenario.score is not None else "Not Graded",
+                student_scenario.feedback or ""
+            ])
+            
+            if student_scenario.score is not None:
+                scores.append(student_scenario.score)
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow(["STATISTICS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Total Students Assigned:", len(student_scenarios)])
+        writer.writerow(["Students Submitted:", sum(1 for ss, _ in student_scenarios if ss.submitted_at)])
+        writer.writerow(["Students Graded:", len(scores)])
+        writer.writerow(["Pending Grading:", sum(1 for ss, _ in student_scenarios if ss.status == 'submitted')])
+        writer.writerow([])
+        
+        if scores:
+            writer.writerow(["Average Score:", f"{sum(scores) / len(scores):.2f}"])
+            writer.writerow(["Highest Score:", f"{max(scores):.2f}"])
+            writer.writerow(["Lowest Score:", f"{min(scores):.2f}"])
+            writer.writerow(["Median Score:", f"{sorted(scores)[len(scores)//2]:.2f}"])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        safe_scenario_name = safe_scenario_name.replace(' ', '_')
+        filename = f"Marks_{safe_scenario_name}_v{scenario.version}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting marks: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-students", methods=["GET"])
+@teacher_required
+def export_student_list():
+    """Export complete list of all students in the system as CSV"""
+    try:
+        students = (
+            User.query
+            .filter_by(role='student')
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["STUDENT LIST REPORT"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Total Students:", len(students)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Username",
+            "First Name",
+            "Last Name",
+            "Full Name",
+            "Email",
+            "Phone",
+            "Date Joined",
+            "Total Scenarios Assigned",
+            "Scenarios Submitted",
+            "Scenarios Graded",
+            "Average Score"
+        ])
+        
+        for student in students:
+            student_scenarios = StudentScenario.query.filter_by(student_id=student.id).all()
+            
+            total_assigned = len(student_scenarios)
+            total_submitted = sum(1 for ss in student_scenarios if ss.submitted_at)
+            total_graded = sum(1 for ss in student_scenarios if ss.status == 'graded')
+            
+            scores = [ss.score for ss in student_scenarios if ss.score is not None]
+            avg_score = sum(scores) / len(scores) if scores else None
+            
+            writer.writerow([
+                student.id,
+                student.username,
+                student.first_name or "",
+                student.last_name or "",
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student.created_at.strftime('%Y-%m-%d') if hasattr(student, 'created_at') and student.created_at else "",
+                total_assigned,
+                total_submitted,
+                total_graded,
+                f"{avg_score:.2f}" if avg_score is not None else "N/A"
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        filename = f"Student_List_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))
+
+
+@views.route("/api/export-scenario-students/<int:scenario_id>", methods=["GET"])
+@teacher_required
+def export_scenario_students(scenario_id):
+    """Export list of students assigned to a specific scenario"""
+    try:
+        scenario = Scenario.query.get_or_404(scenario_id)
+        
+        if scenario.teacher_id != current_user.id:
+            flash("You can only export students for your own scenarios.", "error")
+            return redirect(url_for("views.teacher_dashboard"))
+        
+        student_scenarios = (
+            db.session.query(StudentScenario, User)
+            .join(User, StudentScenario.student_id == User.id)
+            .filter(StudentScenario.scenario_id == scenario_id)
+            .order_by(User.last_name, User.first_name)
+            .all()
+        )
+        
+        output = StringIO()
+        writer = csv.writer(output)
+        
+        writer.writerow(["=" * 80])
+        writer.writerow(["SCENARIO STUDENT LIST"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Scenario:", scenario.name])
+        writer.writerow(["Version:", f"v{scenario.version}"])
+        writer.writerow(["Teacher:", current_user.get_full_name()])
+        writer.writerow(["Total Students:", len(student_scenarios)])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        
+        writer.writerow([
+            "Student ID",
+            "Student Name",
+            "Email",
+            "Phone",
+            "Status",
+            "Assigned Date",
+            "Submitted Date"
+        ])
+        
+        for student_scenario, student in student_scenarios:
+            writer.writerow([
+                student.id,
+                student.get_full_name(),
+                student.email,
+                student.phone or "",
+                student_scenario.status.capitalize(),
+                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
+                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else ""
+            ])
+        
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(["=" * 80])
+        
+        output.seek(0)
+        response = make_response(output.getvalue())
+        
+        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
+        filename = f"Students_{safe_scenario_name}_{datetime.now().strftime('%Y%m%d')}.csv"
+        
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+        
+        return response
+        
+    except Exception as e:
+        flash(f"Error exporting student list: {str(e)}", "error")
+        return redirect(url_for("views.teacher_dashboard"))

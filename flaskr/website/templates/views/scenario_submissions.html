@@ -7,15 +7,34 @@
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div>
+                <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="mb-2 mb-md-0">
                         <h4 class="card-title mb-0">Submissions: {{ scenario.name }}</h4>
                         <small class="text-muted">{{ scenario.description or 'No description' }}</small>
                     </div>
-                    <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to Scenario
-                    </a>
+                    <div class="btn-group" role="group">
+                        <!-- Export Marks Button -->
+                        <a href="{{ url_for('views.export_scenario_marks', scenario_id=scenario.id) }}" 
+                           class="btn btn-success"
+                           title="Export all student marks and grades for this scenario">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> Export Marks
+                        </a>
+                        
+                        <!-- Export Students Button -->
+                        <a href="{{ url_for('views.export_scenario_students', scenario_id=scenario.id) }}" 
+                           class="btn btn-info"
+                           title="Export list of students assigned to this scenario">
+                            <i class="bi bi-people"></i> Export Students
+                        </a>
+                        
+                        <!-- Back Button -->
+                        <a href="{{ url_for('views.scenario_dashboard', scenario_id=scenario.id) }}" 
+                           class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Back to Scenario
+                        </a>
+                    </div>
                 </div>
+                
                 <div class="card-body">
                     <div class="mb-3 d-flex justify-content-end">
                         {% if not scenario.grades_published %}
@@ -162,7 +181,7 @@
                                                 {% endfor %}
                                             </div>
                                         {% else %}
-                                            <span class="text-muted">No submissions</span>
+                                            <span class="text-muted">No submission</span>
                                         {% endif %}
                                     </div>
                                 </div>

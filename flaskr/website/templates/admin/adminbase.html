@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+{% endblock %}
+
+{% block body %}
+<!-- Full-width Admin Navigation Bar -->
+<nav class="admin-nav-bar">
+    <div class="admin-nav-container">
+        <ul class="admin-tab-list">
+            <li class="admin-tab-item">
+                <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-tab-link" id="profiles-tab">
+                    📊 Profiles
+                </a>
+            </li>
+            <li class="admin-tab-item">
+                <a href="{{ url_for('admin.create_account') }}" class="admin-tab-link" id="create-account-tab">
+                    ➕ Create Account
+                </a>
+            </li>
+            <li class="admin-tab-item">
+                <a href="{{ url_for('admin.export_accounts_zip') }}" class="admin-tab-link" id="csv-tab">
+                    📁 Export Accounts
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<!-- Admin Content Area -->
+<div class="admin-content mx-5">
+    {% block admin_content %}{% endblock %}
+</div>
+
+<script>
+// Tab functionality for admin pages
+$(document).ready(function() {
+    const currentPath = window.location.pathname;
+
+    $('.admin-tab-link').removeClass('active').each(function() {
+        const linkPath = new URL(this.href).pathname;
+        if (linkPath === currentPath) {
+            $(this).addClass('active');
+        }
+    });
+
+    // Special case for CSV tab
+    if (currentPath === '/admin/csv_exports') {
+        $('#csv-tab').addClass('active');
+    }
+
+    if ($('.admin-tab-link.active').length === 0) {
+        if (currentPath.includes('/admin/teacher_profile') || currentPath.includes('/admin/student_profile')) {
+            $('#profiles-tab').addClass('active');
+        }
+    }
+});
+
+
+</script>
+{% endblock %}

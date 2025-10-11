@@ -1,517 +1,114 @@
 {% extends "base.html" %}
 {% block title %}ASL Data Contract - Patient ASL Form{% endblock %}
 
-{% block head %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/markdown-it/13.0.2/markdown-it.min.js" integrity="sha512-ohlWmsCxOu0bph1om5eDL0jm/83eH09fvqLDhiEdiqfDeJbEvz4FSbeY0gLJSVJwQAp0laRhTXbUQG+ZUuifUQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-{% endblock %}
-
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/asl_form.css') }}">
 {% endblock %}
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jquery.dirty@0.8.4/dist/jquery.dirty.min.js"></script>
+{% endblock %}
+
 {% block body %}
-  <div class="container py-4">
+<div class="container py-4">
     <header class="mb-4 d-flex align-items-center">
-    <div>
-      <h1 class="h3 mb-1">Active Script List (ASL) — Patient Data Form</h1>
-      <p class="text-muted mb-0">Complete all required fields. Dates use DD/MM/YYYY format.</p>
-    </div>
-    <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary ms-auto d-none d-md-flex">
-      <i class="bi bi-arrow-left"></i>
-      {% if user_role == "teacher" %}
-          Back to Patient Dashboard
-      {% else %}
-          Back to Student Dashboard
-      {% endif %}
-    </a>
+        <div>
+            <h1 class="h3 mb-1">Active Script List (ASL) — Patient Data Form</h1>
+            <p class="text-muted mb-0">Complete all required fields. Dates use DD/MM/YYYY format.</p>
+        </div>
+        <a href="{{ url_for('views.patient_dashboard') }}" class="btn btn-outline-secondary ms-auto d-none d-md-flex">
+            <i class="bi bi-arrow-left"></i> Back to Patient Dashboard
+        </a>
     </header>
 
-    <form class="needs-validation" method="POST" action="{{ url_for('views.asl_form', patient_id=patient.id) }}" novalidate>
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <!-- Consent Status -->
-      <div class="card">
-        <div class="card-body">
-          <h2 class="section-title mb-3">Consent Status</h2>
-          <fieldset>
-            <div class="row g-3">
-              <div class="col-md-3">
-                <label class="form-label required" for="isRegistered">Is Registered</label>
-                <select class="form-select" id="isRegistered" name="pt_data[consent-status][is-registered]" required>
-                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['is-registered'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option value="true" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'true' %}selected{% endif %}>True</option>
-                  <option value="false" {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['is-registered'] == 'false' %}selected{% endif %}>False</option>
-                </select>
-              </div>
-              <div class="col-md-5">
-                <label class="form-label required" for="consentStatus">Status</label>
-                <select class="form-select" id="consentStatus" name="pt_data[consent-status][status]" required>
-                  <option value="" {% if not pt_data or not pt_data['consent-status'] or pt_data['consent-status']['status'] == '' %}selected{% endif %} disabled>Select...</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'No Consent' %}selected{% endif %}>No Consent</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Pending' %}selected{% endif %}>Pending</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Granted' %}selected{% endif %}>Granted</option>
-                  <option {% if pt_data and pt_data['consent-status'] and pt_data['consent-status']['status'] == 'Rejected' %}selected{% endif %}>Rejected</option>
-                </select>
-                <div class="help-text">When not "No Consent", include Last Updated.</div>
-              </div>
-              <div class="col-md-4">
-                <label class="form-label" for="lastUpdated">Last Updated</label>
-                <input type="text" class="form-control" id="lastUpdated" name="pt_data[consent-status][last-updated]" placeholder="25/09/2025 06:03 PM" value="{{ pt_data['consent-status']['last-updated'] if pt_data and pt_data['consent-status'] and pt_data['consent-status']['last-updated'] else '' }}" />
-              </div>
+    <form id="asl-form" method="POST" class="needs-validation" novalidate>
+        {{ form.hidden_tag() }}
+        <input id="hidden-dirtier" type="hidden" value="0"/>
+
+        <!-- Consent Status -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="section-title mb-3">Consent Status</h2>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        {{ form.consent_status.is_registered.label(class="form-label required") }}
+                        {{ form.consent_status.is_registered(class="form-select") }}
+                    </div>
+                    <div class="col-md-5">
+                        {{ form.consent_status.status.label(class="form-label required") }}
+                        {{ form.consent_status.status(class="form-select") }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.consent_status.last_updated.label(class="form-label required") }}
+                        {{ form.consent_status.last_updated(class="form-control") }}
+                    </div>
+                </div>
             </div>
-          </fieldset>
         </div>
-      </div>
 
-      <!-- ASL Prescriptions -->
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="section-title mb-0">ASL Prescriptions</h2>
-            <span class="badge rounded-pill muted-badge">Array: asl-data</span>
-          </div>
-          <p class="text-muted mb-3">Add one or more ASL prescription items.</p>
-
-          <div id="asl-items" class="d-grid gap-3"></div>
-
-          <div class="mt-2">
-            <button type="button" class="btn btn-outline-primary" id="add-asl-item">
-              + Add ASL Prescription
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- ALR Prescriptions -->
-      <div class="card">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-2">
-            <h2 class="section-title mb-0">ALR Prescriptions</h2>
-            <span class="badge rounded-pill muted-badge">Array: alr-data</span>
-          </div>
-          <p class="text-muted mb-3">Add one or more ALR prescription items.</p>
-
-          <div id="alr-items" class="d-grid gap-3"></div>
-
-          <div class="mt-2">
-            <button type="button" class="btn btn-outline-primary" id="add-alr-item">
-              + Add ALR Prescription
-            </button>
+        {% import 'partials/form_item_macro.html' as form_item %}
+        <!-- ASL Prescriptions -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title mb-0">ASL Prescriptions</h2>
+                <button type="button" class="btn btn-outline-primary ms-5" id="add-asl-item">+ Add ASL Prescription</button>
+                <button type="button" class="btn btn-outline-info ms-2" id="collapse-asl-items">Collpase All</button>
+              </div>
+              <div class="badge text-bg-secondary">Count: <span id="asl-counter">{{ form.asl_creations|length }}</span></div>
+            </div>
+            <div id="asl-items" class="accordion">
+              {% for subform in form.asl_creations %}
+                {{ form_item.render_item(subform, 'ASL', loop.index) }}
+              {% endfor %}
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- Submit -->
-      <div class="card sticky-actions mt-3">
-        <div class="card-body d-flex justify-content-between align-items-center">
-          <div class="text-muted">Review entries before submitting.</div>
-          <button type="submit" class="btn btn-success btn-lg">Submit</button>
+        <!-- ALR Prescriptions -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <h2 class="section-title mb-0">ALR Prescriptions</h2>
+                <button type="button" class="btn btn-outline-primary ms-5" id="add-alr-item">+ Add ALR Prescription</button>
+                <button type="button" class="btn btn-outline-info ms-2" id="collapse-alr-items">Collpase All</button>
+              </div>
+              <div class="badge text-bg-secondary">Count: <span id="alr-counter">{{ form.alr_creations|length }}</span></div>
+            </div>
+            <div id="alr-items" class="accordion">
+              {% for subform in form.alr_creations %}
+                {{ form_item.render_item(subform, 'ALR', loop.index) }}
+              {% endfor %}
+            </div>
+          </div>
         </div>
-      </div>
+
+        <div class="card sticky-actions mt-3">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div class="text-dark">Review entries before submitting.</div>
+                <div>
+                  <span class="invisible unsaved-changes text-danger fw-bold me-2" id="edits-made">
+                    <i class="bi bi-exclamation-triangle mx-1"></i>Unsaved Changes
+                  </span>
+                  <button type="submit" class="btn btn-success btn-lg">Save</button>
+                </div>
+            </div>
+        </div>
     </form>
-  </div>
+</div>
 
-  <!-- TEMPLATES -->
-  <template id="asl-item-template">
-    <div class="card item-card">
-      <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-action="remove">Remove</button>
-      <div class="card-body">
-        <legend>ASL Prescription Item</legend>
-        <div class="row g-3">
-          <div class="col-md-2">
-            <label class="form-label required">Prescription ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescription_id]" placeholder="1" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label required">DSPID</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][DSPID]" placeholder="MPK00009002011563" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Status</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][status]" placeholder="Available" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescribed-date]" placeholder="10/06/2021" required />
-            <div class="help-text">DD/MM/YYYY</div>
-          </div>
+<!-- Hidden ASL template -->
+<div id="asl-template" class="d-none">
+    {% set subform = empty_form %}
+    {{ form_item.render_item(subform, 'ASL', '__INDEX__') }}
+</div>
 
-          <div class="col-md-6">
-            <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[asl-data][__INDEX__][drug-name]" placeholder="Coversyl 5mg tablet, 30 5 mg 30 Tablets" required></textarea>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][drug-code]" placeholder="9007C" required />
-            <div class="help-text">4–5 alphanumeric chars.</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][dose-instr]" placeholder="ONCE A DAY" required />
-          </div>
+<!-- Hidden ALR template -->
+<div id="alr-template" class="d-none">
+    {% set subform = empty_form %}
+    {{ form_item.render_item(subform, 'ALR', '__INDEX__') }}
+</div>
 
-          <div class="col-md-3">
-            <label class="form-label required">Dose Qty</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][dose-qty]" placeholder="30" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Dose Repeats</label>
-            <input type="number" min="0" class="form-control" name="pt_data[asl-data][__INDEX__][dose-rpt]" placeholder="6" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Paperless</label>
-            <select class="form-select" name="pt_data[asl-data][__INDEX__][paperless]" required>
-              <option value="" selected disabled>Select...</option>
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Brand Substitution Not Permitted</label>
-            <select class="form-select" name="pt_data[asl-data][__INDEX__][brand-sub-not-prmt]" required>
-              <option value="" selected disabled>Select...</option>
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
-          </div>
-        </div>
-
-        <hr class="my-3" />
-
-        <legend>Prescriber</legend>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Title / Qualifications</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
-          </div>
-          <div class="col-md-6"></div>
-
-          <div class="col-md-3">
-            <label class="form-label required">Prescriber ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][id]" placeholder="987774" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Fax (optional)</label>
-            <input type="text" class="form-control" name="pt_data[asl-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-
-  <template id="alr-item-template">
-    <div class="card item-card">
-      <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn" data-action="remove">Remove</button>
-      <div class="card-body">
-        <legend>ALR Prescription Item</legend>
-        <div class="row g-3">
-          <div class="col-md-2">
-            <label class="form-label required">Prescription ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescription_id]" placeholder="2" required />
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">DSPID (optional)</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][DSPID]" placeholder="(optional, usually null)" />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label required">Drug Name</label>
-            <textarea class="form-control" rows="2" name="pt_data[alr-data][__INDEX__][drug-name]" placeholder="Levlen ED Tablets, 150mcg-30mcg(28)" required></textarea>
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label required">Drug Code</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][drug-code]" placeholder="1394J" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Dose Instructions</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dose-instr]" placeholder="ONCE DAILY" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Dose Qty</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][dose-qty]" placeholder="4" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Original Repeats</label>
-            <input type="number" min="0" class="form-control" name="pt_data[alr-data][__INDEX__][dose-rpt]" placeholder="6" required />
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label required">Remaining Repeats</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][remaining-repeats]" placeholder="3" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Prescribed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescribed-date]" placeholder="05/07/2021" required />
-            <div class="help-text">DD/MM/YYYY</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Dispensed Date</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][dispensed-date]" placeholder="05/07/2021" required />
-            <div class="help-text">DD/MM/YYYY</div>
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Paperless</label>
-            <select class="form-select" name="pt_data[alr-data][__INDEX__][paperless]" required>
-              <option value="" selected disabled>Select...</option>
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label required">Brand Substitution Not Permitted</label>
-            <select class="form-select" name="pt_data[alr-data][__INDEX__][brand-sub-not-prmt]" required>
-              <option value="" selected disabled>Select...</option>
-              <option value="true">True</option>
-              <option value="false">False</option>
-            </select>
-          </div>
-        </div>
-
-        <hr class="my-3" />
-
-        <legend>Prescriber</legend>
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label required">First Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fname]" placeholder="Phillip" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Last Name</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][lname]" placeholder="Davis" required />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Title / Qualifications</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][title]" placeholder="( MBBS; FRACGP )" />
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label required">Address Line 1</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-1]" placeholder="Level 3 60 Albert Rd" required />
-          </div>
-          <div class="col-md-6">
-            <label class="form-label required">Address Line 2</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][address-2]" placeholder="SOUTH MELBOURNE VIC 3205" required />
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label required">Prescriber ID</label>
-            <input type="number" min="1" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][id]" placeholder="987774" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">HPI-I (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpii]" placeholder="8003619900026805" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">HPI-O (16 digits)</label>
-            <input type="text" inputmode="numeric" pattern="^\d{16}$" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][hpio]" placeholder="8003626566692846" required />
-          </div>
-          <div class="col-md-3">
-            <label class="form-label required">Phone</label>
-            <input type="tel" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][phone]" placeholder="03 9284 3300" required />
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Fax (optional)</label>
-            <input type="text" class="form-control" name="pt_data[alr-data][__INDEX__][prescriber][fax]" placeholder="(optional)" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </template>
-
-  <!-- JS: minimal cloning for repeatable arrays -->
-  <script>
-    (function () {
-      const aslContainer = document.getElementById('asl-items');
-      const alrContainer = document.getElementById('alr-items');
-      const aslTemplate = document.getElementById('asl-item-template');
-      const alrTemplate = document.getElementById('alr-item-template');
-      const addAslBtn = document.getElementById('add-asl-item');
-      const addAlrBtn = document.getElementById('add-alr-item');
-
-      function addItem(container, templateEl, data = null, index = null) {
-        const itemIndex = index !== null ? index : container.children.length;
-        const clone = templateEl.content.cloneNode(true);
-        
-        // Replace placeholder indices in name attributes
-        clone.querySelectorAll('[name]').forEach((el) => {
-          el.name = el.name.replaceAll('__INDEX__', itemIndex.toString());
-        });
-        
-        container.appendChild(clone);
-        
-        // If data is provided, populate the fields immediately after adding to DOM
-        if (data) {
-          setTimeout(() => {
-            // Get the last added item (the one we just added)
-            const addedItem = container.lastElementChild;
-            
-            // Populate prescription fields
-            Object.entries(data).forEach(([key, value]) => {
-              if (value !== null && value !== undefined && value !== '') {
-                // Find field by exact name match in the added item
-                const fieldName = `pt_data[${container.id === 'asl-items' ? 'asl' : 'alr'}-data][${itemIndex}][${key}]`;
-                const field = addedItem.querySelector(`[name="${fieldName}"]`);
-                if (field) {
-                  if (field.tagName === 'SELECT') {
-                    field.value = value.toString();
-                  } else if (field.tagName === 'TEXTAREA') {
-                    field.textContent = value;
-                  } else {
-                    field.value = value;
-                  }
-                  // Trigger validation check after setting value
-                  field.dispatchEvent(new Event('input', { bubbles: true }));
-                  console.log(`Pre-populated ${key}:`, value);
-                } else {
-                  console.log(`Field not found: ${fieldName}`);
-                }
-              }
-            });
-            
-            // Populate prescriber fields
-            if (data.prescriber) {
-              Object.entries(data.prescriber).forEach(([key, value]) => {
-                if (value !== null && value !== undefined && value !== '') {
-                  const fieldName = `pt_data[${container.id === 'asl-items' ? 'asl' : 'alr'}-data][${itemIndex}][prescriber][${key}]`;
-                  const field = addedItem.querySelector(`[name="${fieldName}"]`);
-                  if (field) {
-                    field.value = value;
-                    // Trigger validation check after setting value
-                    field.dispatchEvent(new Event('input', { bubbles: true }));
-                    console.log(`Pre-populated prescriber ${key}:`, value);
-                  } else {
-                    console.log(`Prescriber field not found: ${fieldName}`);
-                  }
-                }
-              });
-            }
-          }, 10);
-        }
-        
-        return clone;
-      }
-
-      function handleRemove(e) {
-        const btn = e.target.closest('[data-action="remove"]');
-        if (!btn) return;
-        const card = btn.closest('.item-card');
-        if (card && card.parentElement) {
-          const container = card.parentElement;
-          card.remove();
-          // Reindex remaining items to keep names sequential
-          Array.from(container.children).forEach((child, idx) => {
-            child.querySelectorAll('[name]').forEach((el) => {
-              el.name = el.name.replace(/\[(asl-data|alr-data)\]\[\d+\]/, '[$1][' + idx + ']');
-            });
-          });
-        }
-      }
-
-      addAslBtn.addEventListener('click', () => addItem(aslContainer, aslTemplate));
-      addAlrBtn.addEventListener('click', () => addItem(alrContainer, alrTemplate));
-      document.addEventListener('click', handleRemove);
-
-      // Pre-populate with existing data if available
-      const ptData = {{ pt_data|tojson if pt_data else '{}' }};
-      console.log('Pre-population data:', ptData);
-      
-      // Populate ASL prescriptions
-      if (ptData && ptData['asl-data'] && ptData['asl-data'].length > 0) {
-        console.log('Found existing ASL data, populating', ptData['asl-data'].length, 'items');
-        ptData['asl-data'].forEach((aslItem, index) => {
-          addItem(aslContainer, aslTemplate, aslItem, index);
-        });
-      } else {
-        console.log('No existing ASL data found, adding empty form');
-        addItem(aslContainer, aslTemplate);
-      }
-      
-      // Populate ALR prescriptions
-      if (ptData && ptData['alr-data'] && ptData['alr-data'].length > 0) {
-        console.log('Found existing ALR data, populating', ptData['alr-data'].length, 'items');
-        ptData['alr-data'].forEach((alrItem, index) => {
-          addItem(alrContainer, alrTemplate, alrItem, index);
-        });
-      } else {
-        console.log('No existing ALR data found, adding empty form');
-        addItem(alrContainer, alrTemplate);
-      }
-
-      
-    })();
-  </script>
-
-  <script>
-  (function () {
-    const form = document.querySelector("form.needs-validation");
-    console.log("form element:", form); 
-  
-    function assignNested(obj, path, value) {
-      let cur = obj;
-      for (let i = 0; i < path.length - 1; i++) {
-        const k = path[i];
-        if (!(k in cur)) cur[k] = /^\d+$/.test(path[i + 1]) ? [] : {};
-        cur = cur[k];
-      }
-      const last = path[path.length - 1];
-      if (Array.isArray(cur)) {
-        cur[parseInt(last, 10)] = value;
-      } else {
-        cur[last] = value;
-      }
-    }
-  
-    function formDataToNestedJSON(form) {
-      const fd = new FormData(form);
-      const out = {};
-      for (const [name, value] of fd.entries()) {
-        const parts = name.replace(/\]/g, "").split("["); 
-        assignNested(out, parts, value);
-      }
-      return out.pt_data || out;
-    }
-  
-    form.addEventListener("submit", function (e) {
-      console.log("submit handler triggered"); 
-      
-      // Bootstrap validation
-      if (!form.checkValidity()) {
-        e.preventDefault();
-        e.stopPropagation();
-        form.classList.add("was-validated");
-        return;
-      }
-      
-      // Allow normal form submission to Flask route
-      console.log("Form is valid, submitting to Flask route");
-    });
-  })();
-</script>
-
+<script src="{{ url_for('static', filename='js/asl_alr_dynamic.js') }}"></script>
 {% endblock %}
