@@ -2,168 +2,123 @@
 
 {% block title %}Create Account{% endblock %}
 
-{% block head %}
+{% block styles %}
 {{ super() }}
-    <style>
-    .card-header.clickable-card-header {
-        display: flex;
-        align-items: center;
-        min-height: 48px;
-    }
-    /* Mini role badge styles for account card header */
-    .account-role-badge {
-        display: inline-block;
-        padding: 0.15em 0.7em;
-        font-size: 0.92em;
-        font-weight: 600;
-        border-radius: 0.8em;
-        margin-left: 0.6em;
-        vertical-align: middle;
-        letter-spacing: 0.01em;
-        text-transform: capitalize;
-    }
-    .account-role-admin {
-        background: #ffd6e6;
-        color: #b8004c;
-        border: 1px solid #ffb3d1;
-    }
-    .account-role-teacher {
-        background: #fff7d6;
-        color: #b88a00;
-        border: 1px solid #ffe9a3;
-    }
-    .account-role-student {
-        background: #d6eaff;
-        color: #0056b8;
-        border: 1px solid #a3d1ff;
-    }
-    /* Custom disabled style for student number in dark mode */
-    html[data-bs-theme="dark"] #studentnumber:disabled {
-        background-color: #181b1f !important;
-        color: #666 !important;
-        border-color: #333 !important;
-    }
-    /* Hide browser scrollbars and prevent scrolling */
-    html, body {
-        overflow: hidden !important;
-    }
-    /* Main content scroll area below top bar */
-    .admin-main-scroll-area {
-        overflow-y: scroll; /* Always show vertical scrollbar */
-        max-height: calc(100vh - 70px); /* adjust 70px to match your top bar height */
-        min-height: 400px;
-        padding-bottom: 2rem;
-    }
-    .container {
-        min-height: 0;
-    }
-    /* Hide scrollbar and arrows for admin-main-scroll-area */
-    .admin-main-scroll-area {
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE 10+ */
-    }
-    .admin-main-scroll-area::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
-    }
-    </style>
-    <script>
-        // Track form submission to prevent duplicate submissions
-        let formSubmitted = false;
+<link rel="stylesheet" href="{{ url_for('static', filename='css/account_create.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" integrity="sha512-dfX5uYVXzyU8+KHqj8bjo7UkOdg18PaOtpa48djpNbZHwExddghZ+ZmzWT06R5v6NSk3ZUfsH6FNEDepLx9hPQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+    // Track form submission to prevent duplicate submissions
+    let formSubmitted = false;
+    
+    function preventDuplicateSubmission() {
+        if (formSubmitted) {
+            alert('Account creation already in progress. Please wait.');
+            return false;
+        }
+        formSubmitted = true;
         
-        function preventDuplicateSubmission() {
-            if (formSubmitted) {
-                alert('Account creation already in progress. Please wait.');
-                return false;
-            }
-            formSubmitted = true;
-            
-            // Disable the submit button and show loading state
-            const submitBtn = document.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.textContent = 'Creating Account...';
-                submitBtn.style.opacity = '0.6';
-            }
-            
-            return true;
+        // Disable the submit button and show loading state
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating Account...';
+            submitBtn.style.opacity = '0.6';
         }
         
-        // Always reset to fresh state when page loads (including back navigation)
-        window.addEventListener('load', function() {
-            resetToFreshState();
-        });
+        return true;
+    }
+    
+    // Always reset to fresh state when page loads (including back navigation)
+    window.addEventListener('load', function() {
+        resetToFreshState();
+    });
+    
+    // Reset form when user navigates back using browser cache
+    window.addEventListener('pageshow', function(event) {
+        // This fires when page is shown, including from back/forward cache
+        resetToFreshState();
+    });
+    
+    function resetToFreshState() {
+        // Reset form submission state
+        formSubmitted = false;
         
-        // Reset form when user navigates back using browser cache
-        window.addEventListener('pageshow', function(event) {
-            // This fires when page is shown, including from back/forward cache
-            resetToFreshState();
-        });
-        
-        function resetToFreshState() {
-            // Reset form submission state
-            formSubmitted = false;
-            
-            // Reset submit button
-            const submitBtn = document.querySelector('button[type="submit"]');
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Create Account';
-                submitBtn.style.opacity = '1';
-            }
-            
-            // Clear all form fields for a fresh start
-            const form = document.querySelector('form');
-            if (form) {
-                // Clear all input fields except CSRF token
-                const inputs = form.querySelectorAll('input:not([name="csrf_token"]), select');
-                inputs.forEach(function(input) {
-                    if (input.type === 'text' || input.type === 'email' || input.type === 'password' || input.type === 'number') {
-                        input.value = '';
-                    } else if (input.tagName === 'SELECT') {
-                        input.selectedIndex = 0; // Reset to first option
-                    }
-                });
-            }
-            
-            // Reset student number field state
-            toggleStudentNumber();
-            
-            console.log('Account creation form reset to fresh state');
+        // Reset submit button
+        const submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+            submitBtn.style.opacity = '1';
         }
         
-        // Function to toggle student number field based on role
-        function toggleStudentNumber() {
-            const roleSelect = document.getElementById('role');
-            const studentNumberField = document.getElementById('studentnumber');
-            const studentNumberLabel = document.querySelector('label[for="studentnumber"]');
-            
-            if (roleSelect && studentNumberField) {
-                if (roleSelect.value === 'student') {
-                    studentNumberField.disabled = false;
-                    studentNumberField.style.backgroundColor = '';
-                    studentNumberField.style.color = '';
-                    studentNumberField.required = true;
-                    if (studentNumberLabel) {
-                        studentNumberLabel.style.color = 'var(--bs-body-color)';
-                    }
-                } else {
-                    studentNumberField.disabled = true;
-                    studentNumberField.style.backgroundColor = '#f5f5f5';
-                    studentNumberField.style.color = '#999';
-                    studentNumberField.value = '';
-                    studentNumberField.required = false;
-                    if (studentNumberLabel) {
-                        studentNumberLabel.style.color = '#999';
-                    }
+        // Clear all form fields for a fresh start
+        const form = document.querySelector('form');
+        if (form) {
+            // Clear all input fields except CSRF token
+            const inputs = form.querySelectorAll('input:not([name="csrf_token"]), select');
+            inputs.forEach(function(input) {
+                if (input.type === 'text' || input.type === 'email' || input.type === 'password' || input.type === 'number') {
+                    input.value = '';
+                } else if (input.tagName === 'SELECT') {
+                    input.selectedIndex = 0; // Reset to first option
+                }
+            });
+        }
+        
+        // Reset student number field state
+        toggleStudentNumber();
+        
+        console.log('Account creation form reset to fresh state');
+    }
+    
+    // Function to toggle student number field based on role
+    function toggleStudentNumber() {
+        const roleSelect = document.getElementById('role');
+        const studentNumberField = document.getElementById('studentnumber');
+        const studentNumberLabel = document.querySelector('label[for="studentnumber"]');
+        
+        if (roleSelect && studentNumberField) {
+            if (roleSelect.value === 'student') {
+                studentNumberField.disabled = false;
+                studentNumberField.style.backgroundColor = '';
+                studentNumberField.style.color = '';
+                studentNumberField.required = true;
+                if (studentNumberLabel) {
+                    studentNumberLabel.style.color = 'var(--bs-body-color)';
+                }
+            } else {
+                studentNumberField.disabled = true;
+                studentNumberField.style.backgroundColor = '#f5f5f5';
+                studentNumberField.style.color = '#999';
+                studentNumberField.value = '';
+                studentNumberField.required = false;
+                if (studentNumberLabel) {
+                    studentNumberLabel.style.color = '#999';
                 }
             }
         }
-        
-        // Initialize when page loads
-        window.addEventListener('load', function() {
-            toggleStudentNumber();
-        });
-    </script>
+    }
+    
+    // Initialize when page loads
+    window.addEventListener('load', function() {
+        toggleStudentNumber();
+    });
+
+$(document).on('click', '.toggle-password', function() {
+const $input = $(this).siblings('.new-user-password-field');
+const $icon = $(this).find('i');
+if ($input.attr('type') === 'password') {
+    $input.attr('type', 'text');
+    $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+} else {
+    $input.attr('type', 'password');
+    $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+}
+});
+</script>
 {% endblock %}
 
 {% block admin_content %}
@@ -175,13 +130,40 @@
             <!-- CSV Upload Dropbox -->
             <div class="mb-4">
                 <form id="csv-upload-form" method="POST" action="/admin/upload_accounts_csv" enctype="multipart/form-data" style="margin-bottom:0;">
-                    <label for="csv-file" class="form-label">Upload CSV file for batch account creation:</label>
+                    <label for="csv-file" class="form-label">Upload CSV file for batch account creation:
+                        <i class="bi bi-info-circle"
+                           data-bs-toggle="tooltip"
+                           data-bs-placement="right"
+                           data-bs-custom-class="custom-tooltip"
+                           data-bs-html="true"
+                           data-bs-title="
+<div class='text-start'>
+  <strong>CSV column requirements:</strong>  
+  <ul>
+    <li><strong>First Name</strong></li>
+    <li><strong>Last Name</strong></li>
+    <li><strong>Email</strong></li>
+    <li><strong>Password</strong> (optional) → leave blank to auto-generate</li>
+    <li><strong>User Type</strong> → valid values: <code>student</code>, <code>teacher</code>, <code>admin</code></li>
+    <li><strong>Student Number</strong> → required only for students</li>
+  </ul>
+  <strong>Tips:</strong>
+  <ul>
+    <li>Columns can be in any order.</li>
+    <li>Empty passwords will be auto-generated.</li>
+  </ul>
+</div>"
+                        ></i>
+                    </label>
                     <!-- CSRF Token for CSV upload form -->
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <input type="file" id="csv-file" name="csv_file" accept=".csv" class="form-control w-100 mb-2" required>
                     <div class="d-flex justify-content-between gap-2">
-                        <button type="button" id="upload-csv-btn" class="btn btn-outline-primary">Upload CSV</button>
-                        <button id="add-account-btn" class="btn btn-success" type="button" style="white-space:nowrap;">&#43; Add New Account</button>
+                        <div>
+                            <button type="button" id="upload-csv-btn" class="btn btn-outline-primary">Generate Accounts from File</button>
+                            <button id="add-account-btn" class="btn btn-success ms-2" type="button" style="white-space:nowrap;">&#43; Add New Account Manually</button>
+                        </div>
+                        <button id="create-accounts-btn" class="btn btn-primary" style="display:none;" type="button">Confirm Account Creation</button>
                     </div>
                 </form>
             </div>
@@ -197,7 +179,6 @@
                 {% endif %}
             {% endwith %}
             <div id="account-cards-container"></div>
-            <button id="create-accounts-btn" class="btn btn-primary mt-3" style="display:none;" type="button">Create Account(s)</button>
             <div id="batch-create-feedback" class="mt-2"></div>
         </div>
     </div>
@@ -239,9 +220,14 @@
                     {{ form.email.label(class="form-label") }}
                     {{ form.email(class="form-control") }}
                 </div>
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
                     {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control") }}
+                    <div class="input-group">
+                        {{ form.password(class="form-control new-user-password-field") }}
+                        <span class="input-group-text toggle-password" style="cursor: pointer;">
+                            <i class="bi bi-eye"></i>
+                        </span>
+                    </div>
                 </div>
                 <div class="d-flex gap-2 mt-4">
                     <!-- Hide individual submit, only show cancel -->
@@ -252,290 +238,403 @@
     </div>
 </template>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Password generator
-    function generatePassword(length = 10) {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
-        let password = '';
-        for (let i = 0; i < length; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
-    }
-    // CSV upload logic
-    const csvUploadBtn = document.getElementById('upload-csv-btn');
-    const csvFileInput = document.getElementById('csv-file');
-    csvUploadBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        const file = csvFileInput.files[0];
-        if (!file) {
-            alert('Please select a CSV file.');
-            return;
-        }
-        const formData = new FormData();
-        formData.append('csv_file', file);
-        formData.append('csrf_token', document.querySelector('input[name="csrf_token"]').value);
-        fetch('/admin/upload_accounts_csv', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success && Array.isArray(data.accounts)) {
-                // Remove all current cards
-                container.innerHTML = '';
-                data.accounts.forEach(acc => addAccountCard(acc));
-                saveCardsToStorage();
-                updateCreateBtnVisibility();
-            } else {
-                alert(data.message || 'Error processing CSV.');
-            }
-        })
-        .catch(() => {
-            alert('Error uploading CSV.');
-        });
-    });
-    const addBtn = document.getElementById('add-account-btn');
-    const container = document.getElementById('account-cards-container');
-    const template = document.getElementById('account-card-template');
-    const createBtn = document.getElementById('create-accounts-btn');
+bootstrap.Tooltip.getOrCreateInstance(
+  document.querySelector(".bi-info-circle")
+);
 
-    // Show/hide create button based on card count
-    function updateCreateBtnVisibility() {
-        createBtn.style.display = container.children.length > 0 ? '' : 'none';
+document.addEventListener("DOMContentLoaded", function () {
+  // Password generator
+  function generatePassword(length = 10) {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";
+    let password = "";
+    const array = new Uint32Array(length);
+    window.crypto.getRandomValues(array);
+    for (let i = 0; i < length; i++) {
+      password += chars[array[i] % chars.length];
     }
-    // --- Save/restore state helpers ---
-    function getAllCardStates() {
-        const cards = Array.from(container.querySelectorAll('.account-card'));
-        return cards.map(card => {
-            const form = card.querySelector('form');
-            const role = form.querySelector('.role-select').value;
-            const studentnumber = form.querySelector('.studentnumber-field').value;
-            const first_name = form.querySelector('input[name="first_name"]').value;
-            const last_name = form.querySelector('input[name="last_name"]').value;
-            const email = form.querySelector('input[name="email"]').value;
-            const password = form.querySelector('input[name="password"]').value;
-            const expanded = card.querySelector('.card-body-collapsible').style.display !== 'none';
-            return { role, studentnumber, first_name, last_name, email, password, expanded };
-        });
-    }
-    function saveCardsToStorage() {
-        const state = getAllCardStates();
-        localStorage.setItem('accountCards', JSON.stringify(state));
-    }
-    function clearCardsFromStorage() {
-        localStorage.removeItem('accountCards');
-    }
-    function restoreCardsFromStorage() {
-        const state = localStorage.getItem('accountCards');
-        if (!state) return;
-        try {
-            const cards = JSON.parse(state);
-            if (!Array.isArray(cards)) return;
-            cards.forEach(cardData => addAccountCard(cardData));
-        } catch (e) { /* ignore */ }
+    return password;
+  }
+  // CSV upload logic
+  const csvUploadBtn = document.getElementById("upload-csv-btn");
+  const csvFileInput = document.getElementById("csv-file");
+  
+  csvUploadBtn.addEventListener("click", function (e) {
+    e.preventDefault();
+    const file = csvFileInput.files[0];
+    if (!file) {
+        alert("Please select a CSV file.");
+        return;
     }
 
-    // --- Card creation logic ---
-    function addAccountCard(cardData) {
-        const clone = template.content.cloneNode(true);
-        // Remove handler (both in header and in form)
-        clone.querySelectorAll('.remove-account-card').forEach(btn => {
-            btn.onclick = function() {
-                this.closest('.account-card').remove();
-                saveCardsToStorage();
-                updateCreateBtnVisibility();
-            };
-        });
-        // Collapsible logic: expand/collapse on header click (except remove button)
-        const card = clone.querySelector('.card');
-        const cardHeader = clone.querySelector('.clickable-card-header');
-        const cardBody = clone.querySelector('.card-body-collapsible');
-        // Default to collapsed for new cards unless restoring from storage
-        let expanded = cardData && typeof cardData.expanded === 'boolean' ? cardData.expanded : false;
-        function setExpanded(state) {
-            expanded = state;
-            if (expanded) {
-                cardBody.style.display = '';
-                cardHeader.style.borderBottomLeftRadius = '';
-                cardHeader.style.borderBottomRightRadius = '';
-            } else {
-                cardBody.style.display = 'none';
-                cardHeader.style.borderBottomLeftRadius = '0.5rem';
-                cardHeader.style.borderBottomRightRadius = '0.5rem';
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: function (results) {
+            const rows = results.data;
+            if (!rows || rows.length === 0) {
+                alert("CSV is empty or invalid.");
+                return;
             }
-            saveCardsToStorage();
-        }
-        cardHeader.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-account-card')) return;
-            setExpanded(!expanded);
-        });
-        // Dynamic card header update (name and role)
-    const cardHeaderStudentNumber = clone.querySelector('.account-header-studentnumber');
-    const cardHeaderName = clone.querySelector('.account-header-name');
-    const cardHeaderRole = clone.querySelector('.account-header-role');
-        const firstNameInput = clone.querySelector('input[name="first_name"]');
-        const lastNameInput = clone.querySelector('input[name="last_name"]');
-        const roleSelect = clone.querySelector('.role-select');
-        function updateHeader() {
-            const first = firstNameInput.value.trim();
-            const last = lastNameInput.value.trim();
-            cardHeaderName.textContent = (first || last) ? `${first} ${last}`.trim() : 'New Account';
-            const role = roleSelect.value;
-            cardHeaderRole.innerHTML = '';
-            // Student number logic
-            const studentNumber = studentNumberField.value.trim();
-            if (role === 'student' && studentNumber) {
-                cardHeaderStudentNumber.style.display = '';
-                cardHeaderStudentNumber.textContent = studentNumber;
-            } else {
-                cardHeaderStudentNumber.style.display = 'none';
-                cardHeaderStudentNumber.textContent = '';
-            }
-            if (role) {
-                let badgeClass = '';
-                if (role === 'admin') badgeClass = 'account-role-badge account-role-admin';
-                else if (role === 'teacher') badgeClass = 'account-role-badge account-role-teacher';
-                else if (role === 'student') badgeClass = 'account-role-badge account-role-student';
-                if (badgeClass) {
-                    const badge = document.createElement('span');
-                    badge.className = badgeClass;
-                    badge.textContent = role;
-                    cardHeaderRole.appendChild(badge);
+
+            container.innerHTML = ""; // Clear existing cards
+
+            rows.forEach(row => {
+                // Normalise header names to lower case for matching
+                const normalised = {};
+                for (const key in row) {
+                    if (!key) continue;
+                    const lower = key.trim().toLowerCase();
+                    normalised[lower] = row[key];
                 }
-            }
-            saveCardsToStorage();
-        }
-        firstNameInput.addEventListener('input', updateHeader);
-        lastNameInput.addEventListener('input', updateHeader);
-        roleSelect.addEventListener('change', updateHeader);
 
-        // Student number toggle logic
-        const studentNumberField = clone.querySelector('.studentnumber-field');
-        function toggleStudentNumberField() {
-            if (roleSelect.value === 'student') {
-                studentNumberField.disabled = false;
-                studentNumberField.required = true;
-                studentNumberField.style.backgroundColor = '';
-                studentNumberField.style.color = '';
-            } else {
-                studentNumberField.disabled = true;
-                studentNumberField.required = false;
-                studentNumberField.value = '';
-                studentNumberField.style.backgroundColor = '#f5f5f5';
-                studentNumberField.style.color = '#999';
-            }
-            saveCardsToStorage();
-        }
-        roleSelect.addEventListener('change', toggleStudentNumberField);
-        setExpanded(expanded);
-        container.appendChild(clone);
-        // Attach event listeners to all input/select fields in the newly added card (now in DOM)
-        const newCard = container.lastElementChild;
-        newCard.querySelectorAll('input,select').forEach(input => {
-            input.addEventListener('input', saveCardsToStorage);
-            input.addEventListener('change', saveCardsToStorage);
-        });
-        // --- Restore card data if provided (after DOM insert and listeners) ---
-        const roleSelectNew = newCard.querySelector('.role-select');
-        const studentNumberFieldNew = newCard.querySelector('.studentnumber-field');
-        const firstNameInputNew = newCard.querySelector('input[name="first_name"]');
-        const lastNameInputNew = newCard.querySelector('input[name="last_name"]');
-        const emailInputNew = newCard.querySelector('input[name="email"]');
-        const passwordInputNew = newCard.querySelector('input[name="password"]');
-        if (cardData) {
-            if (roleSelectNew) roleSelectNew.value = cardData.role || '';
-            if (studentNumberFieldNew) studentNumberFieldNew.value = cardData.studentnumber || '';
-            if (firstNameInputNew) firstNameInputNew.value = cardData.first_name || '';
-            if (lastNameInputNew) lastNameInputNew.value = cardData.last_name || '';
-            if (emailInputNew) emailInputNew.value = cardData.email || '';
-            if (passwordInputNew) passwordInputNew.value = cardData.password || generatePassword();
-        } else {
-            if (passwordInputNew) passwordInputNew.value = generatePassword();
-        }
-        // After setting values, update UI logic
-        if (typeof toggleStudentNumberField === 'function') toggleStudentNumberField.call(roleSelectNew);
-        if (typeof updateHeader === 'function') updateHeader.call(firstNameInputNew);
-        updateCreateBtnVisibility();
-    }
-    addBtn.onclick = function() { addAccountCard(); saveCardsToStorage(); };
-
-    // Restore cards on load
-    restoreCardsFromStorage();
-    updateCreateBtnVisibility();
-
-
-    // Save state on page unload
-    window.addEventListener('beforeunload', saveCardsToStorage);
-
-    // Batch create accounts button logic
-    createBtn.onclick = function() {
-        const cards = Array.from(container.querySelectorAll('.account-card'));
-        let validAccounts = [];
-        let invalidCards = [];
-        cards.forEach(card => {
-            const form = card.querySelector('form');
-            const role = form.querySelector('.role-select').value.trim();
-            const first = form.querySelector('input[name="first_name"]').value.trim();
-            const last = form.querySelector('input[name="last_name"]').value.trim();
-            const email = form.querySelector('input[name="email"]').value.trim();
-            const password = form.querySelector('input[name="password"]').value.trim();
-            let valid = role && first && last && email && password;
-            let studentnumber = '';
-            if (role === 'student') {
-                studentnumber = form.querySelector('.studentnumber-field').value.trim();
-                valid = valid && studentnumber;
-            }
-            // For admin/teacher, studentnumber is not required
-            if (valid) {
-                validAccounts.push({
-                    role, first_name: first, last_name: last, email, password, studentnumber
-                });
-            } else {
-                invalidCards.push(card);
-            }
-        });
-        // Highlight invalid cards
-        invalidCards.forEach(card => {
-            card.classList.add('border-danger');
-            setTimeout(() => card.classList.remove('border-danger'), 1500);
-        });
-        if (validAccounts.length === 0) {
-            alert('Please fill all required fields in at least one account card.');
-            return;
-        }
-        // Send AJAX request to batch endpoint
-        fetch('/admin/batch_create_accounts', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': document.querySelector('input[name="csrf_token"]').value
-            },
-            body: JSON.stringify({ accounts: validAccounts })
-        })
-        .then(response => response.json())
-        .then(data => {
-            const feedback = document.getElementById('batch-create-feedback');
-            if (data.success) {
-                // Remove cards for successful accounts
-                cards.forEach(card => {
-                    const form = card.querySelector('form');
-                    const email = form.querySelector('input[name="email"]').value.trim();
-                    if (data.created_emails.includes(email)) {
-                        card.remove();
+                // Try to detect which key corresponds to each field
+                const findKey = (patternFn, fallback = '') => {
+                    for (const key in normalised) {
+                        if (patternFn(key)) return normalised[key].trim();
                     }
-                });
-                saveCardsToStorage();
-                updateCreateBtnVisibility();
-                feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-            } else {
-                feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-            }
-        })
-        .catch(() => {
-            document.getElementById('batch-create-feedback').innerHTML = '<div class="alert alert-danger">Error creating accounts. Please try again.</div>';
+                    return fallback;
+                };
+
+                const email = findKey(k => k.includes('mail'));
+                const rawRole = findKey(k => k.includes('role'));
+                const password = findKey(k => k === 'p' || k.startsWith('p') || k.includes('pass'));
+                const first_name = findKey(k => k === 'f' || k.startsWith('f'));
+                const last_name = findKey(k => k === 'l' || k.startsWith('l'));
+
+                // Any remaining column value becomes the student number
+                let usedKeys = ['mail', 'role', 'p', 'f', 'l'];
+                let studentnumber = '';
+                for (const key in normalised) {
+                    if (!usedKeys.some(u => key.includes(u))) {
+                        studentnumber = normalised[key].trim();
+                        break;
+                    }
+                }
+
+                // Role normalisation
+                let role = 'student'; // default
+                if (rawRole) {
+                    const r = rawRole.toLowerCase().trim();
+                    if (r.startsWith('a')) role = 'admin';
+                    else if (r.startsWith('t')) role = 'teacher';
+                }
+
+                const account = {
+                    first_name: first_name || '',
+                    last_name: last_name || '',
+                    email: email || '',
+                    password: password || generatePassword(),
+                    role: role || 'student',
+                    studentnumber: studentnumber || ''
+                };
+
+                addAccountCard(account);
+            });
+
+            saveCardsToStorage();
+            updateCreateBtnVisibility();
+        },
+        error: function (err) {
+            alert("Error parsing CSV: " + err.message);
+        }
+    });
+});
+
+
+  const addBtn = document.getElementById("add-account-btn");
+  const container = document.getElementById("account-cards-container");
+  const template = document.getElementById("account-card-template");
+  const createBtn = document.getElementById("create-accounts-btn");
+
+  // Show/hide create button based on card count
+  function updateCreateBtnVisibility() {
+    createBtn.style.display = container.children.length > 0 ? "" : "none";
+  }
+  // --- Save/restore state helpers ---
+  function getAllCardStates() {
+    const cards = Array.from(container.querySelectorAll(".account-card"));
+    return cards.map((card) => {
+      const form = card.querySelector("form");
+      const role = form.querySelector(".role-select").value;
+      const studentnumber = form.querySelector(".studentnumber-field").value;
+      const first_name = form.querySelector('input[name="first_name"]').value;
+      const last_name = form.querySelector('input[name="last_name"]').value;
+      const email = form.querySelector('input[name="email"]').value;
+      const password = form.querySelector('input[name="password"]').value;
+      const expanded =
+        card.querySelector(".card-body-collapsible").style.display !== "none";
+      return {
+        role,
+        studentnumber,
+        first_name,
+        last_name,
+        email,
+        password,
+        expanded,
+      };
+    });
+  }
+  function saveCardsToStorage() {
+    const state = getAllCardStates();
+    localStorage.setItem("accountCards", JSON.stringify(state));
+  }
+  function clearCardsFromStorage() {
+    localStorage.removeItem("accountCards");
+  }
+  function restoreCardsFromStorage() {
+    const state = localStorage.getItem("accountCards");
+    if (!state) return;
+    try {
+      const cards = JSON.parse(state);
+      if (!Array.isArray(cards)) return;
+      cards.forEach((cardData) => addAccountCard(cardData));
+    } catch (e) {
+      /* ignore */
+    }
+  }
+
+  // --- Card creation logic ---
+  function addAccountCard(cardData, prepend=false) {
+    const clone = template.content.cloneNode(true);
+    // Remove handler (both in header and in form)
+    clone.querySelectorAll(".remove-account-card").forEach((btn) => {
+      btn.onclick = function () {
+        this.closest(".account-card").remove();
+        saveCardsToStorage();
+        updateCreateBtnVisibility();
+      };
+    });
+    // Collapsible logic: expand/collapse on header click (except remove button)
+    const card = clone.querySelector(".card");
+    const cardHeader = clone.querySelector(".clickable-card-header");
+    const cardBody = clone.querySelector(".card-body-collapsible");
+    // Default to collapsed for new cards unless restoring from storage
+    let expanded =
+      cardData && typeof cardData.expanded === "boolean"
+        ? cardData.expanded
+        : false;
+    function setExpanded(state) {
+      expanded = state;
+      if (expanded) {
+        cardBody.style.display = "";
+        cardHeader.style.borderBottomLeftRadius = "";
+        cardHeader.style.borderBottomRightRadius = "";
+      } else {
+        cardBody.style.display = "none";
+        cardHeader.style.borderBottomLeftRadius = "0.5rem";
+        cardHeader.style.borderBottomRightRadius = "0.5rem";
+      }
+      saveCardsToStorage();
+    }
+    cardHeader.addEventListener("click", function (e) {
+      if (e.target.classList.contains("remove-account-card")) return;
+      setExpanded(!expanded);
+    });
+    // Dynamic card header update (name and role)
+    const cardHeaderStudentNumber = clone.querySelector(
+      ".account-header-studentnumber"
+    );
+    const cardHeaderName = clone.querySelector(".account-header-name");
+    const cardHeaderRole = clone.querySelector(".account-header-role");
+    const firstNameInput = clone.querySelector('input[name="first_name"]');
+    const lastNameInput = clone.querySelector('input[name="last_name"]');
+    const roleSelect = clone.querySelector(".role-select");
+    function updateHeader() {
+      const first = firstNameInput.value.trim();
+      const last = lastNameInput.value.trim();
+      cardHeaderName.textContent =
+        first || last ? `${first} ${last}`.trim() : "New Account";
+      const role = roleSelect.value;
+      cardHeaderRole.innerHTML = "";
+      // Student number logic
+      const studentNumber = studentNumberField.value.trim();
+      if (role === "student" && studentNumber) {
+        cardHeaderStudentNumber.style.display = "";
+        cardHeaderStudentNumber.textContent = studentNumber;
+      } else {
+        cardHeaderStudentNumber.style.display = "none";
+        cardHeaderStudentNumber.textContent = "";
+      }
+      if (role) {
+        let badgeClass = "";
+        if (role === "admin")
+          badgeClass = "account-role-badge account-role-admin";
+        else if (role === "teacher")
+          badgeClass = "account-role-badge account-role-teacher";
+        else if (role === "student")
+          badgeClass = "account-role-badge account-role-student";
+        if (badgeClass) {
+          const badge = document.createElement("span");
+          badge.className = badgeClass;
+          badge.textContent = role;
+          cardHeaderRole.appendChild(badge);
+        }
+      }
+      saveCardsToStorage();
+    }
+    firstNameInput.addEventListener("input", updateHeader);
+    lastNameInput.addEventListener("input", updateHeader);
+    roleSelect.addEventListener("change", updateHeader);
+
+    // Student number toggle logic
+    const studentNumberField = clone.querySelector(".studentnumber-field");
+    function toggleStudentNumberField() {
+      if (roleSelect.value === "student") {
+        studentNumberField.disabled = false;
+        studentNumberField.required = true;
+        studentNumberField.style.backgroundColor = "";
+        studentNumberField.style.color = "";
+      } else {
+        studentNumberField.disabled = true;
+        studentNumberField.required = false;
+        studentNumberField.value = "";
+        studentNumberField.style.backgroundColor = "#f5f5f5";
+        studentNumberField.style.color = "#999";
+      }
+      saveCardsToStorage();
+    }
+    roleSelect.addEventListener("change", toggleStudentNumberField);
+    setExpanded(expanded);
+    let newCard;
+    if (prepend) {
+        container.prepend(clone);
+        newCard = container.firstElementChild;
+    } else {
+        container.appendChild(clone);
+        newCard = container.lastElementChild;
+    }
+    
+    // Attach event listeners to all input/select fields in the newly added card (now in DOM)
+    newCard.querySelectorAll("input,select").forEach((input) => {
+      input.addEventListener("input", saveCardsToStorage);
+      input.addEventListener("change", saveCardsToStorage);
+    });
+    // --- Restore card data if provided (after DOM insert and listeners) ---
+    const roleSelectNew = newCard.querySelector(".role-select");
+    const studentNumberFieldNew = newCard.querySelector(".studentnumber-field");
+    const firstNameInputNew = newCard.querySelector('input[name="first_name"]');
+    const lastNameInputNew = newCard.querySelector('input[name="last_name"]');
+    const emailInputNew = newCard.querySelector('input[name="email"]');
+    const passwordInputNew = newCard.querySelector('input[name="password"]');
+    if (cardData) {
+      if (roleSelectNew) roleSelectNew.value = cardData.role || "";
+      if (studentNumberFieldNew)
+        studentNumberFieldNew.value = cardData.studentnumber || "";
+      if (firstNameInputNew)
+        firstNameInputNew.value = cardData.first_name || "";
+      if (lastNameInputNew) lastNameInputNew.value = cardData.last_name || "";
+      if (emailInputNew) emailInputNew.value = cardData.email || "";
+      if (passwordInputNew)
+        passwordInputNew.value = cardData.password || generatePassword();
+    } else {
+      if (passwordInputNew) passwordInputNew.value = generatePassword();
+    }
+    // After setting values, update UI logic
+    if (typeof toggleStudentNumberField === "function")
+      toggleStudentNumberField.call(roleSelectNew);
+    if (typeof updateHeader === "function")
+      updateHeader.call(firstNameInputNew);
+    updateCreateBtnVisibility();
+  }
+  addBtn.onclick = function () {
+    addAccountCard(undefined, true);
+    saveCardsToStorage();
+  };
+
+  // Restore cards on load
+  restoreCardsFromStorage();
+  updateCreateBtnVisibility();
+
+  // Save state on page unload
+  window.addEventListener("beforeunload", saveCardsToStorage);
+
+  // Batch create accounts button logic
+  createBtn.onclick = function () {
+    const cards = Array.from(container.querySelectorAll(".account-card"));
+    let validAccounts = [];
+    let invalidCards = [];
+    cards.forEach((card) => {
+      const form = card.querySelector("form");
+      const role = form.querySelector(".role-select").value.trim();
+      const first = form.querySelector('input[name="first_name"]').value.trim();
+      const last = form.querySelector('input[name="last_name"]').value.trim();
+      const email = form.querySelector('input[name="email"]').value.trim();
+      const password = form
+        .querySelector('input[name="password"]')
+        .value.trim();
+      let valid = role && first && last && email && password;
+      let studentnumber = "";
+      if (role === "student") {
+        studentnumber = form.querySelector(".studentnumber-field").value.trim();
+        valid = valid && studentnumber;
+      }
+      // For admin/teacher, studentnumber is not required
+      if (valid) {
+        validAccounts.push({
+          role,
+          first_name: first,
+          last_name: last,
+          email,
+          password,
+          studentnumber,
         });
-    };
+      } else {
+        invalidCards.push(card);
+      }
+    });
+    // Highlight invalid cards
+    invalidCards.forEach((card) => {
+      card.classList.add("border-danger");
+      setTimeout(() => card.classList.remove("border-danger"), 1500);
+    });
+    if (validAccounts.length === 0) {
+      alert("Please fill all required fields in at least one account card.");
+      return;
+    }
+    // Send AJAX request to batch endpoint
+    fetch("/admin/batch_create_accounts", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": document.querySelector('input[name="csrf_token"]').value,
+      },
+      body: JSON.stringify({ accounts: validAccounts }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        const feedback = document.getElementById("batch-create-feedback");
+        if (!data.success) {
+          feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+          return;
+        }
+
+        // Remove cards for successful accounts
+        cards.forEach((card) => {
+        const form = card.querySelector("form");
+        const email = form
+            .querySelector('input[name="email"]')
+            .value.trim();
+        if (data.created_emails.includes(email)) {
+            card.remove();
+        }
+        });
+        saveCardsToStorage();
+        updateCreateBtnVisibility();
+        feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+
+        // Ask user if they want to download the CSV
+        if (confirm("Accounts created successfully. Would you like to download the account data (with added passwords, if they were added automatically)?")) {
+            // Trigger download via a temporary endpoint
+            // Server should provide a URL to the CSV
+            window.open("/admin/download_last_created_accounts_csv", "_blank");
+        }
+      })
+      .catch(() => {
+        document.getElementById("batch-create-feedback").innerHTML =
+          '<div class="alert alert-danger">Error creating accounts. Please try again.</div>';
+      });
+  };
 });
 </script>
 {% endblock %}
