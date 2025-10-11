@@ -200,12 +200,13 @@ function assignSelectedStudents() {
         return false;
     }
     
-    // Get the scenario ID from the URL or form
-    const formAction = document.getElementById('assignForm').action;
-    const scenarioIdMatch = formAction.match(/\/scenarios\/(\d+)\//);
+    // Get scenario ID from the URL (e.g., /scenarios/123/assign)
+    const urlPath = window.location.pathname;
+    const scenarioIdMatch = urlPath.match(/\/scenarios\/(\d+)/);
     
     if (!scenarioIdMatch) {
-        alert('Error: Could not determine scenario ID');
+        alert('Error: Could not determine scenario ID from URL');
+        console.error('Current URL:', urlPath);
         return false;
     }
     
