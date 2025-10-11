@@ -24,6 +24,12 @@
          </nav><!-- TEACHER_ONLY_END -->
          <a class="nav-link mb-1" href="#usage">Usage</a>
          <nav class="nav nav-pills flex-column"><!-- TEACHER_ONLY_START -->
+            <a class="nav-link ms-3 mb-1" href="#usage-admin">For Administrators</a>
+            <nav class="nav nav-pills flex-column">
+               <a class="nav-link ms-5 mb-1" href="#profiles">Profiles</a>
+               <a class="nav-link ms-5 mb-1" href="#create-account">Create Account</a>
+               <a class="nav-link ms-5 mb-1" href="#csv">CSV</a>
+            </nav>
             <a class="nav-link ms-3 mb-1" href="#usage-teacher">For Teachers</a>
             <nav class="nav nav-pills flex-column">
                <a class="nav-link ms-5 mb-1" href="#create-scenario">Create Scenarios</a>
@@ -140,6 +146,41 @@ We will require the simulation program to be editable by the Pharmacy Department
 
 ### Usage
 <!-- TEACHER_ONLY_START -->
+<div id="usage-admin">
+
+#### I am an *Administrator*:
+When you log in as a teacher, you'll be greeted by the Admin Dashboard:
+![Screenshot of Admin Dashboard](static/images/screenshots/ss-40-profiles.png)
+
+<div id="profiles">
+
+Here you can delete accounts, or click to edit them.
+
+</div><div id="create-account">
+
+You can also navigate to the Create Accounts tab where you can make new tabs.  
+
+![Screenshot of Admin Dashboard](static/images/screenshots/ss-42-create-account.png)
+
+Click the green button to add individual accounts or upload a `.csv` files to bulk import files.
+When uploading a file, make sure the format is as follows:
+| studentnumber | first_name | last_name | email |
+|:--------------|:-----------|:----------|:------|
+
+An example is shown below:  
+| studentnumber | first_name | last_name | email |
+|:--------------|:-----------|:----------|:------|
+| 20250123      | Emily      | Stone     | student20@test.com |
+| 20250147      | Lucas      | Nguyen    | student21@test.com |
+| 20250189      | Sophia     | Martins   | student22@test.com |
+
+
+</div><div id="csv">
+
+// TODO Fill
+
+</div>
+
 <div id="usage-teacher">
 
 #### I am a *Teacher*:

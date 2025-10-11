@@ -28,3 +28,18 @@ body > .container {
 .mw-50 {
   max-width: 50%;
 }
+
+.options-menu-gear {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  z-index: 1101 !important;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+#options-menu.modal {
+  z-index: 1200 !important;
+}

@@ -77,6 +77,7 @@ def teacher_required(f):
     return decorated_function
 
 
+
 @views.route("/scenarios/<int:scenario_id>")
 @login_required
 def scenario_dashboard(scenario_id):
@@ -584,7 +585,6 @@ def teacher_dashboard():
 
 
 @views.route("/student/dashboard")
-@login_required
 def student_dashboard():
     """Student dashboard showing assigned scenarios"""
     if current_user.is_teacher():
@@ -642,8 +642,8 @@ def student_dashboard():
 def student_management():
     """Student management dashboard for teachers"""
     try:
-        # Get all students
-        students = User.query.filter_by(role="student").all()
+        # Show only students assigned to the current teacher
+        students = current_user.students.filter_by(role="student", is_active=True).all()
         active_students = []
 
         # Calculate stats
@@ -651,7 +651,6 @@ def student_management():
         total_assignments = 0
 
         for student in students:
-            # Check if student has assigned_scenarios attribute
             if not student.is_active:
                 continue
             active_students.append(student)
@@ -680,7 +679,6 @@ def student_management():
     except Exception as e:
         print(f"Error in student_management: {str(e)}")
         import traceback
-
         traceback.print_exc()
         flash(f"Error loading student management: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))

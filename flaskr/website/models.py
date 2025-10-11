@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -5,13 +6,11 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from enum import Enum
-import enum
 
-db = SQLAlchemy()
-
-
-# Enums stored as integers (0,1,2,3), we can add more in the future if needed
-class PrescriptionStatus(Enum):
+db = SQLAlchemy() 
+ 
+# Enums stored as integers (0,1,2,3), we can add more in the future if needed 
+class PrescriptionStatus(Enum): 
     PENDING = 0
     AVAILABLE = 1
     DISPENSED = 2
@@ -30,6 +29,8 @@ class ASLStatus(Enum):
 class UserRole(Enum):
     TEACHER = "teacher"
     STUDENT = "student"
+    ADMIN   = "admin" 
+
 
 
 class User(db.Model, UserMixin):
@@ -38,6 +39,7 @@ class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
+    studentnumber = db.Column(db.Integer, unique=True, nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'teacher' or 'student'
@@ -48,6 +50,20 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
+    # Association table for many-to-many teacher-student relationship
+    teacher_students = db.Table(
+        'teacher_students',
+        db.Column('teacher_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+        db.Column('student_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+        db.Column('assigned_at', db.DateTime, default=datetime.now)
+    )
+    students = db.relationship(
+        'User', secondary=teacher_students,
+        primaryjoin='User.id==teacher_students.c.teacher_id',
+        secondaryjoin='User.id==teacher_students.c.student_id',
+        backref=db.backref('teachers', lazy='dynamic'),
+        lazy='dynamic')
+    
     created_scenarios = db.relationship(
         "Scenario", backref="creator", lazy=True, foreign_keys="Scenario.teacher_id"
     )

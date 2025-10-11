@@ -7,3 +7,4 @@ WTForms==3.0.1
 SQLAlchemy==2.0.20
 markdown-it-py==4.0.0
 Flask-Minify==0.50
+pyzipper>=0.4.4
