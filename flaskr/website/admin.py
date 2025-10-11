@@ -479,48 +479,48 @@ def create_account():
                 email = f"{original_email.split('@')[0]}.{counter}@student.edu"
                 counter += 1
         
-    import time
-    try:
-            # Export account info with plaintext password to CSV before hashing
-            export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
-            os.makedirs(export_dir, exist_ok=True)
-            timestamp = time.strftime('%Y%m%d')
-            export_filename = f'created_accounts_{timestamp}.csv'
-            export_path = os.path.join(export_dir, export_filename)
-            write_header = not os.path.exists(export_path)
-            with open(export_path, 'a', newline='', encoding='utf-8') as csvfile:
-                import csv
-                writer = csv.writer(csvfile)
-                if write_header:
-                    writer.writerow(['studentnumber', 'first_name', 'last_name', 'email', 'password', 'role'])
-                writer.writerow([
-                    form.studentnumber.data or '',
-                    form.first_name.data,
-                    form.last_name.data,
-                    email,
-                    form.password.data,
-                    form.role.data
-                ])
-            # Create new user
-            new_user = User(
-                studentnumber=form.studentnumber.data,
-                email=email,
-                role=form.role.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                created_at=datetime.now(),
-                is_active=True
-            )
-            new_user.set_password(form.password.data)
-            db.session.add(new_user)
-            db.session.commit()
-            flash(f'Account created successfully for {new_user.get_full_name()} ({email}) - Role: {new_user.role.title()}', 'success')
-            return redirect(url_for('admin.admin_dashboard'))
-    
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error creating account: {str(e)}', 'error')
-        return render_template('admin/account_create.html', form=form)
+        import time
+        try:
+                # Export account info with plaintext password to CSV before hashing
+                export_dir = os.path.join(os.path.dirname(__file__), '..', 'exports')
+                os.makedirs(export_dir, exist_ok=True)
+                timestamp = time.strftime('%Y%m%d')
+                export_filename = f'created_accounts_{timestamp}.csv'
+                export_path = os.path.join(export_dir, export_filename)
+                write_header = not os.path.exists(export_path)
+                with open(export_path, 'a', newline='', encoding='utf-8') as csvfile:
+                    import csv
+                    writer = csv.writer(csvfile)
+                    if write_header:
+                        writer.writerow(['studentnumber', 'first_name', 'last_name', 'email', 'password', 'role'])
+                    writer.writerow([
+                        form.studentnumber.data or '',
+                        form.first_name.data,
+                        form.last_name.data,
+                        email,
+                        form.password.data,
+                        form.role.data
+                    ])
+                # Create new user
+                new_user = User(
+                    studentnumber=form.studentnumber.data,
+                    email=email,
+                    role=form.role.data,
+                    first_name=form.first_name.data,
+                    last_name=form.last_name.data,
+                    created_at=datetime.now(),
+                    is_active=True
+                )
+                new_user.set_password(form.password.data)
+                db.session.add(new_user)
+                db.session.commit()
+                # flash(f'Account created successfully for {new_user.get_full_name()} ({email}) - Role: {new_user.role.title()}', 'success')
+                return redirect(url_for('admin.admin_dashboard'))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating account: {str(e)}', 'error')
+            return render_template('admin/account_create.html', form=form)
     return render_template('admin/account_create.html', form=form)
 # Batch account creation endpoint
 @admin.route('/admin/batch_create_accounts', methods=['POST'])
