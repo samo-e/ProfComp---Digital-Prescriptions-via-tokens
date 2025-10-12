@@ -1929,6 +1929,9 @@ def asl(patient_id: int):
                 .filter(
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "asl",  # filter by DSPID
+                    # exclude fully dispensed / zero-repeat items
+                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
+                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -1941,6 +1944,9 @@ def asl(patient_id: int):
                 .filter(
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "alr",  # filter by DSPID
+                    # exclude fully dispensed / zero-repeat items
+                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
+                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -2381,20 +2387,69 @@ def dispense_prescriptions(patient_id):
                 continue
 
             # Update prescription status
+            # Ensure dose_rpt and remaining_repeats are integers (safe coercion)
+            try:
+                dose_rpt = int(prescription.dose_rpt) if prescription.dose_rpt is not None else 0
+            except (ValueError, TypeError):
+                dose_rpt = 0
+
             if prescription.remaining_repeats is None:
-                prescription.remaining_repeats = prescription.dose_rpt
-            
+                prescription.remaining_repeats = dose_rpt
 
-            if prescription.remaining_repeats > 0:
-                prescription.remaining_repeats -= 1
+            try:
+                prescription.remaining_repeats = int(prescription.remaining_repeats)
+            except (ValueError, TypeError):
+                prescription.remaining_repeats = 0
 
-            # If repeats remain → move to ALR
+            # Decrement remaining repeats safely (never go below zero)
             if prescription.remaining_repeats > 0:
-                prescription.prescriber_id = alr_prescriber.id
-                prescription.status = PrescriptionStatus.DISPENSED.value
-                
-            else:
-                # No repeats left → mark as fully dispensed
+                prescription.remaining_repeats = max(0, prescription.remaining_repeats - 1)
+
+            # Preserve ALR as an immutable record: if an ALR copy doesn't already exist,
+            # create one now that preserves the original issue info (dose_rpt etc).
+            try:
+                original_dose_rpt = int(prescription.dose_rpt) if prescription.dose_rpt is not None else 0
+            except (ValueError, TypeError):
+                original_dose_rpt = 0
+
+            if original_dose_rpt > 0:
+                # Check whether an ALR copy already exists for this prescription (best-effort)
+                existing_alr = (
+                    Prescription.query.filter_by(
+                        patient_id=prescription.patient_id,
+                        drug_name=prescription.drug_name,
+                        DSPID="alr",
+                    )
+                    .first()
+                )
+
+                if not existing_alr:
+                    # Create ALR copy preserving original dose_rpt and prescriber
+                    alr_copy = Prescription(
+                        patient_id=prescription.patient_id,
+                        prescriber_id=prescription.prescriber_id,
+                        DSPID="alr",
+                        status=PrescriptionStatus.DISPENSED.value,
+                        brand_sub_not_prmt=prescription.brand_sub_not_prmt,
+                        drug_name=prescription.drug_name,
+                        drug_code=prescription.drug_code,
+                        dose_instr=prescription.dose_instr,
+                        dose_qty=prescription.dose_qty,
+                        dose_rpt=original_dose_rpt,
+                        prescribed_date=prescription.prescribed_date,
+                        dispensed_date=prescription.dispensed_date,
+                        paperless=prescription.paperless,
+                        remaining_repeats=original_dose_rpt,
+                        dispensed_at_this_pharmacy=prescription.dispensed_at_this_pharmacy,
+                    )
+                    db.session.add(alr_copy)
+
+            # Also decrement the stored dose_rpt (the value shown in ASL) so UI updates
+            if original_dose_rpt > 0:
+                prescription.dose_rpt = max(0, original_dose_rpt - 1)
+
+            # If no repeats remain → mark as fully dispensed
+            if prescription.remaining_repeats <= 0:
                 prescription.status = PrescriptionStatus.DISPENSED.value
             
             prescription.dispensed_date = dispensed_date
