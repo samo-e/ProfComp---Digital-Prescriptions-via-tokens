@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Marked Scenarios{% endblock %}
+
+{% block body %}
+<div class="container">
+
+    <div class="dashboard-header mb-4">
+        <h2><i class="bi bi-award me-2"></i>Marked Scenarios</h2>
+        <p class="mb-0">Published marks and feedback for your submissions.</p>
+    </div>
+
+    <div class="mb-3">
+        <a class="btn btn-secondary" href="{{ url_for('views.student_dashboard') }}">← Back</a>
+    </div>
+
+    {% if not results or results|length == 0 %}
+        <div class="card shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-check2-circle fs-1 text-muted mb-3"></i>
+                <p class="mb-0 text-muted">No published marks yet.</p>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-3">
+            {% for r in results %}
+            <div class="col-12">
+                <div class="card scenario-card border-0 shadow-sm">
+                    <div class="card-body d-flex">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1 fw-bold">{{ r.scenario.name }}</h5>
+                            <div class="text-muted small mb-2">
+                                Graded: {{ r.student_scenario.completed_at.strftime('%d/%m/%Y %H:%M') if r.student_scenario.completed_at else 'Unknown' }}
+                            </div>
+                            {% if r.latest %}
+                            <div class="small text-muted mb-2">Latest submission: {{ r.latest.submitted_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                            {% endif %}
+
+                            <p class="mb-2"><strong>Feedback</strong><br>{{ r.student_scenario.feedback or '-' }}</p>
+
+                            <div class="mt-2">
+                                {% if r.latest %}
+                                    <a href="{{ url_for('views.view_submission', submission_id=r.latest.id) }}" class="btn btn-outline-info btn-sm" target="_blank">View ASL</a>
+                                {% endif %}
+                            </div>
+                            {% if r.latest and r.latest.submission_data and r.latest.submission_data.get('uploaded_files') %}
+                            <div class="uploaded-files mt-3">
+                                <h6 class="mb-2">Uploaded files</h6>
+                                <div class="list-group list-group-flush">
+                                    {% for file_info in r.latest.submission_data.uploaded_files %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center p-2">
+                                        <div>
+                                            <i class="bi bi-file-earmark me-2"></i>
+                                            <strong>{{ file_info.original_name }}</strong>
+                                            <br>
+                                            <small class="text-muted">Size: {{ "%.2f"|format((file_info.file_size or file_info.get('file_size',0)) / 1024 / 1024) }} MB</small>
+                                        </div>
+                                        <div>
+                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name or file_info.get('stored_name')) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <i class="bi bi-download"></i> Download
+                                            </a>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="text-end ms-3">
+                            <div class="h4 text-success">{{ '%.1f'|format(r.student_scenario.score or 0) }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+</div>
+{% endblock %}

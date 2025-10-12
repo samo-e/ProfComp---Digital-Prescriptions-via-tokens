@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Submitted ASL Snapshot{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/asl.css') }}">
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-3">
+        <div class="col">
+            <a href="{{ url_for('views.student_dashboard') if current_user.is_student() else url_for('views.teacher_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i>
+                Back
+            </a>
+        </div>
+    </div>
+    <h2>Submitted ASL Snapshot</h2>
+
+    {% set pt_data = submission.submission_data.patient_data if submission.submission_data and submission.submission_data.patient_data else {} %}
+    {% set asl_record = submission.submission_data.asl_record if submission.submission_data and submission.submission_data.asl_record else {} %}
+
+    <div class="row">
+        <div id="customer-details" class="col">
+            <div class="card card-body customer-card">
+                <div class="row">
+                    <h3>Customer Details (ASL)</h3>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <h4>Name</h4>
+                        <p>{{ pt_data.name or pt_data.get('name') or '(unknown)' }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Date of Birth</h4>
+                        <p>{{ pt_data.dob or pt_data.get('dob') or '(unknown)' }}</p>
+                    </div>
+                    <div class="col">
+                        <h4>Address</h4>
+                        <p>{{ pt_data.address or pt_data.get('address') or '' }}</p>
+                    </div>
+                </div>
+                <div class="row">
+                    <h4>Preferred Contact</h4>
+                    <p>{{ pt_data.phone or pt_data.get('phone') or '(none)' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="customer-asl-info" class="col">
+            <div class="card card-body customer-card">
+                <div class="row">
+                    <h3>ASL Information</h3>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <h4>Status</h4>
+                        <p id="asl-status">Submitted Snapshot</p>
+                    </div>
+                    <div class="col text-end small text-muted">
+                        Submission ID: {{ submission.id }}<br>
+                        Submitted: {{ submission.submitted_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <h4 class="col-12">Snapshot Details</h4>
+                    <p class="d-flex justify-content-between align-items-center">
+                        <span>
+                            <strong>Carer:</strong> {{ asl_record.carer_name or asl_record.get('carer_name') or '(none)' }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <br>
+
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <p>ASL Scripts ({{ submission.submission_data.prescriptions|length if submission.submission_data and submission.submission_data.prescriptions else 0 }} captured)</p>
+            </div>
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Instructions</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if submission.submission_data and submission.submission_data.prescriptions %}
+                    {% for p in submission.submission_data.prescriptions %}
+                    <tr>
+                        <td>{{ p.drug_name }}</td>
+                        <td>{{ p.dose_qty }}</td>
+                        <td>{{ p.dose_instr }}</td>
+                        <td>{{ p.status }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr><td colspan="4" class="text-muted">No prescriptions captured.</td></tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    {# Attachments intentionally not shown on this snapshot route #}
+
+</div>
+{% endblock %}

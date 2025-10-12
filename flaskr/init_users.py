@@ -46,33 +46,117 @@ def init_users():
                 "first_name": "Michael",
                 "last_name": "Brown",
             },
+
             # Students
             {
-                "email": "student1@test.com",
-                "password": "student123",
-                "role": "student",
-                "first_name": "Emily",
-                "last_name": "Davis",
+                'studentnumber': 24219288,
+                'email': 'student1@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Emily',
+                'last_name': 'Davis'
             },
             {
-                "email": "student2@test.com",
-                "password": "student123",
-                "role": "student",
-                "first_name": "James",
-                "last_name": "Wilson",
+                'studentnumber': 21882973,
+                'email': 'student2@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'James',
+                'last_name': 'Wilson'
             },
             {
-                "email": "student3@test.com",
-                "password": "student123",
-                "role": "student",
-                "first_name": "Olivia",
-                "last_name": "Martinez",
+                'studentnumber': 27842373,
+                'email': 'student3@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Olivia',
+                'last_name': 'Martinez'
+            },
+            {
+                'studentnumber': 23456789,
+                'email': 'student4@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Alexander',
+                'last_name': 'Thompson'
+            },
+            {
+                'studentnumber': 29871234,
+                'email': 'student5@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Sophia',
+                'last_name': 'Anderson'
+            },
+            {
+                'studentnumber': 26543210,
+                'email': 'student6@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Benjamin',
+                'last_name': 'Garcia'
+            },
+            {
+                'studentnumber': 28765432,
+                'email': 'student7@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Isabella',
+                'last_name': 'Rodriguez'
+            },
+            {
+                'studentnumber': 22345678,
+                'email': 'student8@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Ethan',
+                'last_name': 'Lee'
+            },
+            {
+                'studentnumber': 27654321,
+                'email': 'student9@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Mia',
+                'last_name': 'Taylor'
+            },
+            {
+                'studentnumber': 25432167,
+                'email': 'student10@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Noah',
+                'last_name': 'White'
+            },
+            {
+                'studentnumber': 29876543,
+                'email': 'student11@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Charlotte',
+                'last_name': 'Harris'
+            },
+            {
+                'studentnumber': 26789012,
+                'email': 'student12@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Liam',
+                'last_name': 'Clark'
+            },
+            {
+                'studentnumber': 28901234,
+                'email': 'student13@test.com',
+                'password': 'student123',
+                'role': 'student',
+                'first_name': 'Amelia',
+                'last_name': 'Lewis'
             },
             # Admin teacher
             {
                 "email": "admin@test.com",
                 "password": "admin123",
-                "role": "teacher",
+                "role": "admin",
                 "first_name": "Admin",
                 "last_name": "User",
             },
@@ -89,6 +173,35 @@ def init_users():
             user.set_password(user_data["password"])
             db.session.add(user)
             created_users.append(user)
+            print(f"Created {user_data['role']}: {user_data['email']} (password: {user_data['password']})")
+            if 'studentnumber' in user_data:
+                print(f"  Student Number: {user_data['studentnumber']}")
+        
+        db.session.commit()
+        
+        print("\n" + "="*50)
+        print("Test users created successfully!")
+        print("="*50)
+        print("\nTeacher accounts:")
+        print("  - teacher1@test.com / teacher123")
+        print("  - teacher2@test.com / teacher123")
+        print("  - admin@test.com / admin123 (admin teacher)")
+        print("\nStudent accounts:")
+        print("  - student1@test.com / student123")
+        print("  - student2@test.com / student123")
+        print("  - student3@test.com / student123")
+        print("  - student4@test.com / student123")
+        print("  - student5@test.com / student123")
+        print("  - student6@test.com / student123")
+        print("  - student7@test.com / student123")
+        print("  - student8@test.com / student123")
+        print("  - student9@test.com / student123")
+        print("  - student10@test.com / student123")
+        print("  - student11@test.com / student123")
+        print("  - student12@test.com / student123")
+        print("  - student13@test.com / student123")
+        print("\nYou can now login with any of these accounts.")
+        print("="*50)
             # print(
             #     f"Created {user_data['role']}: {user_data['email']} (password: {user_data['password']})"
             # )

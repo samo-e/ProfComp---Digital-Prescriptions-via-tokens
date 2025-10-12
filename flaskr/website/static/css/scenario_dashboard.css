@@ -255,6 +255,33 @@
   color: #212529;
 }
 
+/* chooser removed from scenario dashboard; styles kept in assign page CSS if needed */
+/* Small chooser/controls when present on scenario dashboard */
+.condition-chooser .btn-group {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: #fff;
+}
+
+.condition-chooser .condition-choice {
+  padding: 0.45rem 0.9rem;
+  border-radius: 0; /* handled by container */
+  color: #495057;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+}
+
+.condition-chooser .condition-choice.active {
+  background: #6c757d; /* dark grey */
+  color: #fff;
+}
+
+#smallExamControls input[type=datetime-local] {
+  min-width: 180px;
+}
+
 .btn-edit {
   background-color: #17a2b8;
   color: white;

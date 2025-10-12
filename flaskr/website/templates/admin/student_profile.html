@@ -1,0 +1,134 @@
+{% extends "admin/adminbase.html" %}
+
+{% block title %}Student Profile{% endblock %}
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_student_profile.js') }}"></script>
+{% endblock %}
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_student_profile.css') }}">
+{% endblock %}
+
+{% block admin_content %}
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h2 class="card-title mb-0">Student Information</h2>
+                        <div class="d-flex align-items-center">
+                            <form method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" id="edit-student-form" style="display: inline; margin-right: 1rem;">
+                                {{ edit_form.hidden_tag() if edit_form is defined }}
+                                <button type="submit" class="btn btn-success btn-sm">Confirm Changes</button>
+                            </form>
+                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm" title="Delete Account">
+                                    Delete
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="first_name" class="form-label">First Name</label>
+                            <input type="text" class="form-control" id="first_name" name="first_name" value="{{ user.first_name or 'First Name' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="last_name" class="form-label">Last Name</label>
+                            <input type="text" class="form-control" id="last_name" name="last_name" value="{{ user.last_name or 'Last Name' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" value="{{ user.email or 'Email' }}" form="edit-student-form">
+                        </div>
+                        <div class="mb-3">
+                            <label for="studentnumber" class="form-label">Student Number</label>
+                            <input type="text" class="form-control" id="studentnumber" name="studentnumber" value="{{ user.studentnumber or '' }}" form="edit-student-form">
+                        </div>
+                        <form method="post" action="{{ url_for('admin.change_password', user_id=user.id) }}" id="change-password-form" class="mt-4">
+                            {{ password_form.hidden_tag() }}
+                            <div class="password-wrapper mb-3">
+                                {{ password_form.new_password.label(class="form-label") }}
+                                <div class="password-wrapper position-relative" id="password-wrapper">
+                                    {{ password_form.new_password(class="form-control password-wrapper", disabled=True) }}
+                                    <i class="bi bi-lock position-absolute top-50 start-50 translate-middle"></i>
+                                </div>
+                                {% if password_form.new_password.errors %}
+                                    {% for error in password_form.new_password.errors %}
+                                        <div class="text-danger small">{{ error }}</div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                            <button type="submit" class="btn btn-primary invisible" id="change-password-btn">Change Password</button>
+                        </form>
+                    </div>
+                </div>
+
+
+
+                {% if current_user.is_authenticated and current_user.role == 'admin' and user.is_student() %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h2 class="card-title mb-0">Assigned Teachers</h2>
+                    </div>
+                    <div class="card-body">
+                        <ul id="assigned-teachers-list" class="list-group list-group-flush">
+                        {% for teacher in assigned_teachers %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ teacher.get_full_name() }} ({{ teacher.email }})</span>
+                                <form class="unassign-teacher-form" method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
+                                    {{ password_form.csrf_token }}
+                                    <input type="hidden" name="student_id" value="{{ user.id }}">
+                                    <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Unassign</button>
+                                </form>
+                            </li>
+                        {% else %}
+                            <li class="list-group-item text-muted"><span>No teachers assigned.</span></li>
+                        {% endfor %}
+                        </ul>
+
+                        <div class="mt-3">
+                            <button id="assign-teachers-btn" class="btn btn-primary">Assign Teachers</button>
+                        </div>
+
+                        <!-- Modal -->
+                        <div id="assignTeacherModal" class="modal" style="display:none;">
+                            <div class="modal-content">
+                                <span class="close" id="closeTeacherModal">&times;</span>
+                                <h2>Assign Teachers</h2>
+                                <!-- Search bar -->
+                                <input type="text" id="teacher-search" placeholder="Search teachers..." class="form-control mb-3">
+                                <ul id="teachers-list" class="list-group">
+                                {% if all_teachers is defined %}
+                                    {% for teacher in all_teachers %}
+                                        {% set is_assigned = teacher in assigned_teachers %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span class="teacher-name">{{ teacher.get_full_name() }} ({{ teacher.email }})</span>
+                                            <form class="assign-teacher-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                                                {{ password_form.csrf_token }}
+                                                <input type="hidden" name="student_id" value="{{ user.id }}">
+                                                <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary" {% if is_assigned %}disabled{% endif %}>
+                                                    {% if is_assigned %}Already Assigned{% else %}Assign{% endif %}
+                                                </button>
+                                            </form>
+                                        </li>
+                                    {% else %}
+                                        <li class="list-group-item text-muted">No teachers found.</li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="list-group-item text-muted">No teachers found.</li>
+                                {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

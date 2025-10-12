@@ -44,7 +44,28 @@
                                                 <span class="text-muted">Not submitted</span>
                                             {% endif %}
                                         </dd>
-                                        
+                                        <dt class="col-sm-4">Start:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if student_scenario.exam_start %}
+                                                {{ student_scenario.exam_start.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                        </dd>
+
+                                        <dt class="col-sm-4">Due:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if student_scenario.exam_end %}
+                                                {{ student_scenario.exam_end.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                            {% if submission.submitted_at and student_scenario.exam_end and submission.submitted_at > student_scenario.exam_end %}
+                                            <div class="mt-2">
+                                                <span class="badge bg-danger">Late Submitted</span>
+                                            </div>
+                                            {% endif %}
+                                        </dd>
                                         <dt class="col-sm-4">Status:</dt>
                                         <dd class="col-sm-8">
                                             {% if student_scenario.status == 'submitted' %}

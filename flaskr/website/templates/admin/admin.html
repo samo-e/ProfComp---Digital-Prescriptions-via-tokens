@@ -1,0 +1,348 @@
+
+{% extends "admin/adminbase.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block head %}
+{{ super() }}
+<style>
+	.container {
+		display: grid;
+		grid-template-columns: 1fr 1fr 1fr;
+		gap: 20px;
+		max-width: 1400px;
+		margin: 0 auto;
+	}
+	.column {
+		background: var(--bs-body-bg, #fff);
+		color: var(--bs-body-color, #212529);
+		border-radius: 8px;
+		padding: 20px;
+		box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+		height: 500px; /* Fixed height for consistent columns */
+		display: flex;
+		flex-direction: column;
+	}
+	.column h2 {
+		margin-top: 0;
+		margin-bottom: 20px;
+		color: var(--bs-body-color, #212529);
+		border-bottom: 2px solid #eee;
+		padding-bottom: 10px;
+		flex-shrink: 0; /* Prevent header from shrinking */
+	}
+	.user-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		overflow-y: auto; /* Enable vertical scrolling */
+		flex: 1; /* Take remaining space */
+		max-height: calc(100% - 70px); /* Account for header height */
+		padding-right: 8px; /* Space for scrollbar */
+	}
+	.user-list::-webkit-scrollbar {
+		width: 8px;
+	}
+	.user-list::-webkit-scrollbar-track {
+		background: #f1f1f1;
+		border-radius: 4px;
+	}
+	.user-list::-webkit-scrollbar-thumb {
+		background: #007bff;
+		border-radius: 4px;
+	}
+	.user-list::-webkit-scrollbar-thumb:hover {
+		background: #0056b3;
+	}
+	.user-item {
+		display: block;
+		padding: 12px 16px;
+		margin-bottom: 12px;
+		border: 2px solid #1976d2;
+		border-radius: 14px;
+		color: var(--bs-body-color, #212529);
+		text-decoration: none;
+		background: var(--bs-body-bg, #fff);
+		transition: background 0.2s, box-shadow 0.2s, border-color 0.2s;
+		box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+	}
+	.user-item:hover {
+		background: #f8f9fa;
+		box-shadow: 0 2px 8px rgba(25,118,210,0.13);
+		border-color: #1565c0;
+	}
+	.user-name {
+		font-weight: 500;
+	}
+	.user-email {
+		font-size: 13px;
+		color: #888;
+	}
+	.user-count {
+		background: #007bff;
+		color: white;
+		border-radius: 12px;
+		padding: 2px 10px;
+		font-size: 13px;
+		margin-left: 8px;
+	}
+	.no-users {
+		margin: 10px 0;
+		color: #666;
+		font-size: 14px;
+	}
+	.search-container {
+		margin-bottom: 20px;
+		position: relative;
+		max-width: 400px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.search-bar {
+		width: 100%;
+		padding: 10px 36px 10px 14px;
+		border: 1px solid #ccc;
+		border-radius: 6px;
+		font-size: 16px;
+		outline: none;
+		transition: border-color 0.2s;
+	}
+	.search-bar:focus {
+		border-color: #007bff;
+	}
+	.search-icon {
+		position: absolute;
+		top: 50%;
+		right: 12px;
+		transform: translateY(-50%);
+		font-size: 18px;
+		color: #888;
+		pointer-events: none;
+	}
+	.search-results-count {
+		text-align: center;
+		color: #007bff;
+		font-size: 15px;
+		margin-bottom: 10px;
+	}
+	#refresh-indicator {
+		position: fixed;
+		top: 10px;
+		right: 10px;
+		background: #17a2b8;
+		color: white;
+		padding: 8px 12px;
+		border-radius: 4px;
+		display: none;
+		z-index: 1000;
+	}
+	@media (max-width: 768px) {
+		.container {
+			grid-template-columns: 1fr;
+			gap: 15px;
+		}
+		.column {
+			padding: 15px;
+			height: 400px; /* Slightly smaller height on mobile */
+		}
+		.column {
+			height: 450px; /* Maintain consistent height on tablet */
+		}
+		.column:last-child {
+			grid-column: 1 / -1;
+		}
+	}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Track navigation to prevent unnecessary reloads
+window.addEventListener('beforeunload', function() {
+	window.navigationInProgress = true;
+});
+// Reset navigation flag when page loads
+window.addEventListener('load', function() {
+	window.navigationInProgress = false;
+});
+// Auto-refresh every 60 seconds to keep data current
+setInterval(function() {
+	// Only auto-refresh if user is not actively interacting and page is visible
+	if (!document.hidden && !window.navigationInProgress) {
+		console.log('Auto-refreshing data...');
+		const indicator = document.getElementById('refresh-indicator');
+		if (indicator) {
+			indicator.style.display = 'block';
+			indicator.textContent = 'Auto-updating...';
+		}
+		setTimeout(function() {
+			window.location.reload(true);
+		}, 800);
+	}
+}, 60000);
+// Hide refresh indicator on page load
+window.addEventListener('load', function() {
+	const indicator = document.getElementById('refresh-indicator');
+	if (indicator) {
+		setTimeout(function() {
+			indicator.style.display = 'none';
+		}, 1000);
+	}
+});
+// Search functionality
+function searchUsers() {
+	const searchTerm = document.getElementById('user-search').value.toLowerCase();
+	let totalVisible = 0;
+	// Search in all columns
+	const columns = ['teachers', 'students', 'admins'];
+	columns.forEach(function(columnType) {
+		const userItems = document.querySelectorAll(`.${columnType}-column .user-item`);
+		let columnVisible = 0;
+		userItems.forEach(function(item) {
+			let match = false;
+			const userName = item.querySelector('.user-name').textContent.toLowerCase();
+			if (userName.includes(searchTerm)) {
+				match = true;
+			}
+			// For students, also check student number
+			if (columnType === 'students') {
+				const studentNumberEl = item.querySelector('.user-studentnumber');
+				if (studentNumberEl) {
+					const studentNumber = studentNumberEl.textContent.toLowerCase();
+					if (studentNumber.includes(searchTerm)) {
+						match = true;
+					}
+				}
+			}
+			if (match) {
+				item.style.display = 'block';
+				columnVisible++;
+				totalVisible++;
+			} else {
+				item.style.display = 'none';
+			}
+		});
+		// Show/hide "no users" message
+		const noUsersMsg = document.querySelector(`.${columnType}-column .no-users`);
+		const hasUsers = document.querySelectorAll(`.${columnType}-column .user-item`).length > 0;
+		if (noUsersMsg && hasUsers) {
+			noUsersMsg.style.display = columnVisible === 0 && searchTerm !== '' ? 'block' : 'none';
+		}
+	});
+	// Update search results count
+	const resultsCount = document.getElementById('search-results-count');
+	if (searchTerm === '') {
+		resultsCount.textContent = '';
+	} else {
+		resultsCount.textContent = `Found ${totalVisible} user(s) matching "${searchTerm}"`;
+	}
+}
+// Clear search function
+function clearSearch() {
+	document.getElementById('user-search').value = '';
+	searchUsers();
+}
+</script>
+{% endblock %}
+
+{% block admin_content %}
+<h1>Admin Dashboard</h1>
+
+<!-- Search Bar -->
+<div class="search-container">
+	<input type="text" 
+		   id="user-search" 
+		   class="search-bar" 
+		   placeholder="Search users by name or student number..." 
+		   oninput="searchUsers()"
+		   autocomplete="off">
+	<span class="search-icon">🔍</span>
+</div>
+
+<!-- Search Results Count -->
+<div id="search-results-count" class="search-results-count"></div>
+
+<!-- Auto-refresh indicator -->
+<div id="refresh-indicator" style="position: fixed; top: 10px; right: 10px; background: #17a2b8; color: white; padding: 8px 12px; border-radius: 4px; display: none; z-index: 1000;">
+	Updating data...
+</div>
+
+<div class="container">
+	<!-- Teachers Column -->
+	<div class="column teachers-column">
+		<h2>Teachers <span class="user-count">{{ teachers|length }}</span></h2>
+		<ul class="user-list">
+			{% for teacher in teachers %}
+			   <div class="user-item d-flex justify-content-between align-items-center" style="gap: 8px;">
+				   <a href="{{ url_for('admin.teacher_profile', user_id=teacher.id) }}" style="flex:1; min-width:0; text-decoration:none; color:inherit;">
+					   <div class="user-name">
+						   {{ teacher.get_full_name() if teacher.get_full_name() else teacher.email }}
+					   </div>
+				   </a>
+				   <form method="post" action="{{ url_for('admin.delete_user', user_id=teacher.id) }}" style="margin:0; display:inline;">
+					   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					   <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" title="Delete Teacher" onclick="confirmDeleteUser('{{ teacher.get_full_name()|e }}', 'teacher', this.form)">&times;</button>
+				   </form>
+			   </div>
+			{% else %}
+			<div class="no-users">No teachers found.</div>
+			{% endfor %}
+		</ul>
+	</div>
+
+	<!-- Students Column -->
+	<div class="column students-column">
+		   <h2>Students <span class="user-count">{{ students|length }}</span></h2>
+		   <ul class="user-list">
+			   {% for student in students %}
+			   <div class="user-item d-flex justify-content-between align-items-center" style="gap: 8px;">
+				   <a href="{{ url_for('admin.student_profile', user_id=student.id) }}" style="flex:1; min-width:0; text-decoration:none; color:inherit;">
+					   <div style="display: flex; align-items: center; gap: 8px;">
+						   <span class="user-studentnumber" style="font-size: 16px; font-weight: 500; color: var(--bs-body-color);">{{ student.studentnumber }}</span>
+						   <span class="user-name" style="font-size: 16px; font-weight: 500; color: var(--bs-body-color);">{{ student.get_full_name() if student.get_full_name() else student.email }}</span>
+					   </div>
+				   </a>
+				   <form method="post" action="{{ url_for('admin.delete_user', user_id=student.id) }}" style="margin:0; display:inline;">
+					   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					   <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn" title="Delete Student" onclick="confirmDeleteUser('{{ student.get_full_name()|e }}', 'student', this.form)">&times;</button>
+				   </form>
+			   </div>
+			   {% else %}
+			   <div class="no-users">No students found.</div>
+			   {% endfor %}
+		   </ul>
+	</div>
+
+	<!-- Admins Column -->
+	<div class="column admins-column">
+		<h2>Admins <span class="user-count">{{ admins|length }}</span></h2>
+		<ul class="user-list">
+			{% for admin_user in admins %}
+			   <div class="user-item d-flex justify-content-between align-items-center" style="gap: 8px;">
+				   <a href="{{ url_for('admin.teacher_profile', user_id=admin_user.id) }}" style="flex:1; min-width:0; text-decoration:none; color:inherit;">
+					   <div class="user-name">
+						   {{ admin_user.get_full_name() if admin_user.get_full_name() else admin_user.email }}
+					   </div>
+				   </a>
+				   <form method="post" action="{{ url_for('admin.delete_user', user_id=admin_user.id) }}" style="margin:0; display:inline;">
+					   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+					   
+					   <button type="button" class="btn btn-sm btn-outline-danger user-delete-btn {% if admin_user.id == current_user_id %}invisible{% endif %}" title="Delete Admin" onclick="confirmDeleteUser('{{ admin_user.get_full_name()|e }}', 'admin', this.form)">&times;</button>
+					   {% if admin_user.id == current_user_id %}
+							<span class="badge bg-secondary ms-1">You</span>
+					   {% endif %}
+				   </form>
+			   </div>
+<script>
+function confirmDeleteUser(userName, userRole, form) {
+	if (confirm('Are you sure you want to delete this ' + userRole + ' account?\n\nUser: ' + userName + '\n\nThis action cannot be undone!')) {
+		form.submit();
+	}
+}
+</script>
+			{% else %}
+			<div class="no-users">No admins found.</div>
+			{% endfor %}
+		</ul>
+	</div>
+</div>
+{% endblock %}

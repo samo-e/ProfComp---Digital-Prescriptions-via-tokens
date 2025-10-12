@@ -42,7 +42,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        # role = request.form.get("role")  # 'teacher' or 'student'
+    # ...existing code...
         remember = request.form.get("remember") == "on"
 
         # Validate input
@@ -53,7 +53,7 @@ def login():
         # Find user
         user = User.query.filter_by(email=email).first()
 
-        # Check credentials and role
+        # Check credentials
         if not user:
             flash("Invalid email or password", "error")
             return render_template("auth/login.html")
@@ -61,12 +61,7 @@ def login():
         if not user.check_password(password):
             flash("Invalid email or password", "error")
             return render_template("auth/login.html")
-
-        # Check if role matches
-        # role_value = "teacher" if role == "Teacher" else "student"
-        # if user.role != role_value:
-        #     flash(f"This account is not registered as a {role}", "error")
-        #     return render_template("auth/login.html")
+        # ...existing code...
 
         # Check if account is active
         if not user.is_active:
@@ -94,9 +89,11 @@ def login():
         next_page = request.args.get("next")
         if next_page:
             return redirect(next_page)
-
-        if user.is_teacher():
-            return redirect(url_for("views.teacher_dashboard"))
+        
+        if user.role == 'admin':
+            return redirect(url_for('admin.admin_dashboard'))
+        elif user.is_teacher():
+            return redirect(url_for('views.teacher_dashboard'))
         else:
             return redirect(url_for("views.student_dashboard"))
 
