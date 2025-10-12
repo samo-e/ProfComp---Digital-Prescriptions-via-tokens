@@ -496,7 +496,7 @@
                             </div>
                             {% if is_exam and not can_view_details %}
                                 <div class="alert alert-warning mt-3">
-                                    This exam is scheduled for {{ exam_info.start.strftime('%d/%m/%Y %H:%M') }} — details will be visible from {{ exam_info.viewable_from.strftime('%d/%m/%Y %H:%M') }}.
+                                    This exam is scheduled for {{ exam_info.start.strftime('%d/%m/%Y %H:%M') }} - details will be visible from {{ exam_info.viewable_from.strftime('%d/%m/%Y %H:%M') }}.
                                 </div>
                             {% endif %}
                         </div>
