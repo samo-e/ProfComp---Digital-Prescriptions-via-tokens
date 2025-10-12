@@ -260,7 +260,7 @@
 </div>
 
 <!-- Hidden form for CSRF token -->
-<form id="exportForm" method="POST" style="display: none;">
+<form id="exportForm" method="POST" class="d-none">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="prescription_ids" id="prescriptionIds">
 </form>
