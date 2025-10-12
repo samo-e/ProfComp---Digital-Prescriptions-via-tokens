@@ -40,8 +40,8 @@
 
     <!-- Stats Cards -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card stats-card bg-primary text-white">
+    <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-primary text-white" style="min-height: 100px;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -55,8 +55,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card bg-success text-white">
+    <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-success text-white" style="min-height: 100px;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -70,8 +70,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card bg-warning text-white">
+    <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-warning text-white" style="min-height: 100px;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -85,8 +85,8 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card stats-card bg-info text-white">
+    <div class="col-md-3 mb-3">
+            <div class="card stats-card bg-info text-white" style="min-height: 100px;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <div>
@@ -168,27 +168,27 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    <div class="btn-group btn-group-sm" role="group">
+                                    <div class="d-flex justify-content-center align-items-center gap-1 flex-wrap">
                                         <a href="{{ url_for('views.asl', pt=patient.id) }}" 
-                                           class="btn btn-outline-success" title="View ASL">
+                                           class="btn btn-outline-success btn-sm" title="View ASL">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="{{ url_for('views.asl_form', patient_id=patient.id) }}" 
-                                           class="btn btn-outline-primary" title="Edit ASL">
+                                           class="btn btn-outline-primary btn-sm" title="Edit ASL">
                                             <i class="bi bi-clipboard"></i>
                                         </a>
                                         <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
-                                           class="btn btn-outline-warning" title="Edit Patient">
+                                           class="btn btn-outline-warning btn-sm" title="Edit Patient">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <a href="{{ url_for('views.duplicate_patient', patient_id=patient.id) }}" 
-                                           class="btn btn-outline-info" title="Duplicate Patient">
+                                           class="btn btn-outline-info btn-sm" title="Duplicate Patient">
                                             <i class="bi bi-files"></i>
                                         </a>
                                         <form method="POST" action="{{ url_for('views.delete_patient', patient_id=patient.id) }}" 
                                               class="d-inline" data-patient-name="{{ patient.given_name }} {{ patient.last_name }}">
                                             {{ delete_form.hidden_tag() }}
-                                            <button type="submit" class="btn btn-outline-danger delete-btn" title="Delete Patient">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm delete-btn" title="Delete Patient">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </form>

@@ -2780,7 +2780,7 @@ def duplicate_patient(patient_id):
         db.session.add(new_patient)
         db.session.commit()
         flash(f"Patient '{original.given_name} {original.last_name}' duplicated successfully!", "success")
-        return redirect(url_for("views.edit_pt", patient_id=new_patient.id))
+        return redirect(url_for("views.patient_dashboard"))
     except Exception as e:
         db.session.rollback()
         flash(f"Error duplicating patient: {str(e)}", "error")
