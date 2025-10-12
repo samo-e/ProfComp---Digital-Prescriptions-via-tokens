@@ -173,13 +173,17 @@
                                            class="btn btn-outline-success" title="View ASL">
                                             <i class="bi bi-eye"></i>
                                         </a>
-                                        <a href="{{ url_for('views.asl_form', pt=patient.id) }}" 
+                                        <a href="{{ url_for('views.asl_form', patient_id=patient.id) }}" 
                                            class="btn btn-outline-primary" title="Edit ASL">
                                             <i class="bi bi-clipboard"></i>
                                         </a>
-                                        <a href="{{ url_for('views.edit_patient', patient_id=patient.id) }}" 
+                                        <a href="{{ url_for('views.edit_pt', patient_id=patient.id) }}" 
                                            class="btn btn-outline-warning" title="Edit Patient">
                                             <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{{ url_for('views.duplicate_patient', patient_id=patient.id) }}" 
+                                           class="btn btn-outline-info" title="Duplicate Patient">
+                                            <i class="bi bi-files"></i>
                                         </a>
                                         <form method="POST" action="{{ url_for('views.delete_patient', patient_id=patient.id) }}" 
                                               class="d-inline" data-patient-name="{{ patient.given_name }} {{ patient.last_name }}">

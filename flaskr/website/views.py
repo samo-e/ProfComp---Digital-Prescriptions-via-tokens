@@ -1,3 +1,4 @@
+
 from flask import (
     Blueprint,
     render_template,
@@ -2757,6 +2758,33 @@ def patient_dashboard():
         no_consent_count=no_consent_count,
     )
 
+@views.route("/patients/duplicate/<int:patient_id>", methods=["GET", "POST"])
+@teacher_required
+def duplicate_patient(patient_id):
+    """Duplicate a patient record and redirect to edit page for the new patient."""
+    original = Patient.query.get_or_404(patient_id)
+    try:
+        # Create a new Patient instance with copied fields
+        new_patient = Patient(
+            title=original.title,
+            given_name=original.given_name,
+            last_name=original.last_name,
+            dob=original.dob,
+            medicare=original.medicare,
+            address=original.address,
+            asl_status=original.asl_status,
+            preferred_contact=original.preferred_contact,
+            is_registered=original.is_registered,
+            # Add other fields as needed
+        )
+        db.session.add(new_patient)
+        db.session.commit()
+        flash(f"Patient '{original.given_name} {original.last_name}' duplicated successfully!", "success")
+        return redirect(url_for("views.edit_pt", patient_id=new_patient.id))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error duplicating patient: {str(e)}", "error")
+        return redirect(url_for("views.patient_dashboard"))
 
 @views.route("/patients/delete/<int:patient_id>", methods=["POST"])
 @login_required
