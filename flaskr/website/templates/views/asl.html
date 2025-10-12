@@ -219,30 +219,36 @@
         <table id="alr-table" class="table collapse show">
             <thead>
                 <tr>
-                <th scope="col">Dispensed</th>
-                <th scope="col">Item</th>
-                <th scope="col">Qty</th>
-                <th scope="col">Prescribed</th>
-                <th scope="col">Rpt</th>
-                <th scope="col">Remaining</th>
-                <th scope="col">Paperless</th>
+                    <th scope="col">Dispensed</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Prescribed</th>
+                    <th scope="col">Rpt</th>
+                    <th scope="col">Paperless</th>
                 </tr>
             </thead>
             <tbody>
-               
                 {% for alr in pt_data['alr-data'] %}
                 <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
                     <td class="alr-date">{{ alr['dispensed-date'] or "" }}</td>
-                    <td class="alr-item">{{ alr['drug-name'] }}<p>{{ alr['dose-instr'] }}</p></td>
+                    <td class="alr-item">
+                        {{ alr['drug-name'] }}
+                        <p>{{ alr['dose-instr'] }}</p>
+                    </td>
                     <td class="alr-qty">{{ alr['dose-qty'] }}</td>
-                    <td class="alr-prescriber">{{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>{{ alr['prescribed-date'] }}</td>
-                    <td class="alr-rpt">{{ alr['dose-rpt'] }}</td>
-                    <td class="alr-remaining">{{ alr.get('remaining-repeats', 'N/A') }}</td>
-                    <td class="alr-cloud-prescription"><img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/></td>
+                    <td class="alr-prescriber">
+                        {{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>
+                        {{ alr['prescribed-date'] }}
+                    </td>
+                    <td class="alr-rpt">{{ alr.get('remaining-repeats', 'N/A') }}</td>
+                    <td class="alr-cloud-prescription">
+                        <img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+        
     </div>
     
     {% else %}

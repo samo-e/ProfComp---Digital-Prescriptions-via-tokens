@@ -169,7 +169,7 @@ def init_asl_database():
                 prescribed_date="15/06/2021",
                 paperless=True,
                 brand_sub_not_prmt=False,
-                remaining_repeats=0,
+                remaining_repeats=2,
                 dispensed_at_this_pharmacy=False,
             ),
         ]
