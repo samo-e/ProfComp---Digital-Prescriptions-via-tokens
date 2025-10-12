@@ -77,7 +77,6 @@ def teacher_required(f):
     return decorated_function
 
 
-
 @views.route("/scenarios/<int:scenario_id>")
 @login_required
 def scenario_dashboard(scenario_id):
@@ -140,11 +139,12 @@ def scenario_dashboard(scenario_id):
                 assigned_patient = scenario.active_patient
 
             # Compute visibility flags for exam or assignment modes
-            is_exam = student_scenario.assignment_condition == 'exam'
+            is_exam = student_scenario.assignment_condition == "exam"
             can_view_details = True
             submission_open = True
             exam_info = None
             from datetime import timedelta
+
             now = datetime.now()
 
             if is_exam:
@@ -156,15 +156,23 @@ def scenario_dashboard(scenario_id):
 
                 can_view_details = False
                 submission_open = False
-                if viewable_from and now >= viewable_from and (not exam_end or now <= (exam_end + timedelta(minutes=5))):
+                if (
+                    viewable_from
+                    and now >= viewable_from
+                    and (not exam_end or now <= (exam_end + timedelta(minutes=5)))
+                ):
                     can_view_details = True
-                if student_scenario.exam_start and (now >= student_scenario.exam_start) and (not exam_end or now <= (exam_end + timedelta(minutes=5))):
+                if (
+                    student_scenario.exam_start
+                    and (now >= student_scenario.exam_start)
+                    and (not exam_end or now <= (exam_end + timedelta(minutes=5)))
+                ):
                     submission_open = True
 
                 exam_info = {
-                    'start': student_scenario.exam_start,
-                    'end': exam_end,
-                    'viewable_from': viewable_from,
+                    "start": student_scenario.exam_start,
+                    "end": exam_end,
+                    "viewable_from": viewable_from,
                 }
             else:
                 # Assignment behavior: teacher can set a start and due date.
@@ -187,7 +195,9 @@ def scenario_dashboard(scenario_id):
                         submission_deadline = start + timedelta(days=7)
 
                     # submissions are allowed from start up to and including the submission_deadline
-                    if now >= start and (submission_deadline is None or now <= submission_deadline):
+                    if now >= start and (
+                        submission_deadline is None or now <= submission_deadline
+                    ):
                         submission_open = True
                     else:
                         submission_open = False
@@ -197,9 +207,9 @@ def scenario_dashboard(scenario_id):
                     submission_open = True
 
                 exam_info = {
-                    'start': start,
-                    'end': due,
-                    'submission_deadline': submission_deadline,
+                    "start": start,
+                    "end": due,
+                    "submission_deadline": submission_deadline,
                 }
 
     # If teacher, surface the saved mode/schedule so the dashboard shows what was persisted
@@ -210,41 +220,73 @@ def scenario_dashboard(scenario_id):
 
         # Try to read saved assignment_condition/exam times from any StudentScenario rows
         try:
-            student_rows = StudentScenario.query.filter_by(scenario_id=scenario_id).all()
+            student_rows = StudentScenario.query.filter_by(
+                scenario_id=scenario_id
+            ).all()
             if student_rows and len(student_rows) > 0:
                 # set mode based on the first row (set_mode updates all rows)
                 ss = student_rows[0]
-                is_exam = ss.assignment_condition == 'exam'
+                is_exam = ss.assignment_condition == "exam"
                 teacher_saved = True
                 if is_exam:
                     exam_info = {
-                        'start': ss.exam_start,
-                        'end': ss.exam_end,
+                        "start": ss.exam_start,
+                        "end": ss.exam_end,
                     }
                 else:
                     # For assignments also expose start/end so teacher sees what was saved
                     from datetime import timedelta
+
                     exam_info = {
-                        'start': ss.exam_start,
-                        'end': ss.exam_end,
-                        'submission_deadline': (ss.exam_end + timedelta(days=7)) if ss.exam_end else (ss.exam_start + timedelta(days=7)) if ss.exam_start else None,
+                        "start": ss.exam_start,
+                        "end": ss.exam_end,
+                        "submission_deadline": (
+                            (ss.exam_end + timedelta(days=7))
+                            if ss.exam_end
+                            else (
+                                (ss.exam_start + timedelta(days=7))
+                                if ss.exam_start
+                                else None
+                            )
+                        ),
                     }
             else:
                 # No student rows: fall back to scenario defaults if present
                 try:
-                    is_exam = getattr(scenario, 'default_assignment_condition', None) == 'exam'
-                    teacher_saved = getattr(scenario, 'default_assignment_condition', None) is not None
+                    is_exam = (
+                        getattr(scenario, "default_assignment_condition", None)
+                        == "exam"
+                    )
+                    teacher_saved = (
+                        getattr(scenario, "default_assignment_condition", None)
+                        is not None
+                    )
                     if is_exam:
                         exam_info = {
-                            'start': getattr(scenario, 'default_exam_start', None),
-                            'end': getattr(scenario, 'default_exam_end', None),
+                            "start": getattr(scenario, "default_exam_start", None),
+                            "end": getattr(scenario, "default_exam_end", None),
                         }
                     else:
                         from datetime import timedelta
+
                         exam_info = {
-                            'start': getattr(scenario, 'default_exam_start', None),
-                            'end': getattr(scenario, 'default_exam_end', None),
-                            'submission_deadline': (getattr(scenario, 'default_exam_end', None) + timedelta(days=7)) if getattr(scenario, 'default_exam_end', None) else ((getattr(scenario, 'default_exam_start', None) + timedelta(days=7)) if getattr(scenario, 'default_exam_start', None) else None),
+                            "start": getattr(scenario, "default_exam_start", None),
+                            "end": getattr(scenario, "default_exam_end", None),
+                            "submission_deadline": (
+                                (
+                                    getattr(scenario, "default_exam_end", None)
+                                    + timedelta(days=7)
+                                )
+                                if getattr(scenario, "default_exam_end", None)
+                                else (
+                                    (
+                                        getattr(scenario, "default_exam_start", None)
+                                        + timedelta(days=7)
+                                    )
+                                    if getattr(scenario, "default_exam_start", None)
+                                    else None
+                                )
+                            ),
                         }
                 except Exception:
                     is_exam = False
@@ -342,9 +384,9 @@ def assign_scenario(scenario_id):
     if request.method == "POST":
         # Check if we're handling individual patient assignments or unassign action
         # Read assignment condition and optional exam schedule from form
-        assignment_condition = request.form.get('assignment_condition', 'assignment')
-        exam_start_raw = request.form.get('exam_start')
-        exam_end_raw = request.form.get('exam_end')
+        assignment_condition = request.form.get("assignment_condition", "assignment")
+        exam_start_raw = request.form.get("exam_start")
+        exam_end_raw = request.form.get("exam_end")
         exam_start = None
         exam_end = None
         # parse ISO-ish formats (datetime-local: 'YYYY-MM-DDTHH:MM')
@@ -358,8 +400,8 @@ def assign_scenario(scenario_id):
             exam_start = None
             exam_end = None
 
-        form_action = request.form.get('form_action', 'assign')
-        if form_action == 'unassign':
+        form_action = request.form.get("form_action", "assign")
+        if form_action == "unassign":
             # Unassign selected students: remove StudentScenario and any ScenarioPatient mapping for them
             student_ids = request.form.getlist("student_ids")
             if student_ids:
@@ -464,7 +506,9 @@ def assign_scenario(scenario_id):
                         else:
                             # update existing assignment's condition and schedule if provided
                             if assignment_condition:
-                                existing_student.assignment_condition = assignment_condition
+                                existing_student.assignment_condition = (
+                                    assignment_condition
+                                )
                             if exam_start:
                                 existing_student.exam_start = exam_start
                             if exam_end:
@@ -565,7 +609,7 @@ def assign_scenario(scenario_id):
     )
 
 
-@views.route('/scenarios/<int:scenario_id>/set_mode', methods=['POST'])
+@views.route("/scenarios/<int:scenario_id>/set_mode", methods=["POST"])
 @teacher_required
 def set_scenario_mode(scenario_id):
     """Persist assignment_condition and optional exam schedule to StudentScenario rows for this scenario."""
@@ -573,12 +617,12 @@ def set_scenario_mode(scenario_id):
 
     # Ensure teacher owns this scenario
     if scenario.teacher_id != current_user.id:
-        flash('You can only modify scenarios you created', 'error')
-        return redirect(url_for('views.scenario_dashboard', scenario_id=scenario.id))
+        flash("You can only modify scenarios you created", "error")
+        return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
 
-    assignment_condition = request.form.get('assignment_condition', 'assignment')
-    exam_start_raw = request.form.get('exam_start')
-    exam_end_raw = request.form.get('exam_end')
+    assignment_condition = request.form.get("assignment_condition", "assignment")
+    exam_start_raw = request.form.get("exam_start")
+    exam_end_raw = request.form.get("exam_end")
     exam_start = None
     exam_end = None
     try:
@@ -601,7 +645,10 @@ def set_scenario_mode(scenario_id):
             scenario.default_exam_start = exam_start
             scenario.default_exam_end = exam_end
             db.session.commit()
-            flash('Scenario mode and schedule saved as defaults for this scenario.', 'success')
+            flash(
+                "Scenario mode and schedule saved as defaults for this scenario.",
+                "success",
+            )
         else:
             for ss in student_rows:
                 ss.assignment_condition = assignment_condition
@@ -609,15 +656,15 @@ def set_scenario_mode(scenario_id):
                 ss.exam_start = exam_start
                 ss.exam_end = exam_end
             db.session.commit()
-            flash('Scenario mode and schedule saved for assigned students.', 'success')
+            flash("Scenario mode and schedule saved for assigned students.", "success")
     except Exception as e:
         db.session.rollback()
-        flash(f'Error saving scenario mode: {e}', 'error')
+        flash(f"Error saving scenario mode: {e}", "error")
 
-    return redirect(url_for('views.scenario_dashboard', scenario_id=scenario.id))
+    return redirect(url_for("views.scenario_dashboard", scenario_id=scenario.id))
 
 
-@views.route('/debug/scenario/<int:scenario_id>/mode')
+@views.route("/debug/scenario/<int:scenario_id>/mode")
 @teacher_required
 def debug_scenario_mode(scenario_id):
     """Debug helper: return the first StudentScenario row for this scenario as JSON (teacher-only)."""
@@ -627,17 +674,21 @@ def debug_scenario_mode(scenario_id):
 
     ss = StudentScenario.query.filter_by(scenario_id=scenario.id).first()
     if not ss:
-        return jsonify({"found": False, "message": "no student_scenario rows for scenario"})
+        return jsonify(
+            {"found": False, "message": "no student_scenario rows for scenario"}
+        )
 
-    return jsonify({
-        "found": True,
-        "student_scenario_id": ss.id,
-        "student_id": ss.student_id,
-        "scenario_id": ss.scenario_id,
-        "assignment_condition": ss.assignment_condition,
-        "exam_start": ss.exam_start.isoformat() if ss.exam_start else None,
-        "exam_end": ss.exam_end.isoformat() if ss.exam_end else None,
-    })
+    return jsonify(
+        {
+            "found": True,
+            "student_scenario_id": ss.id,
+            "student_id": ss.student_id,
+            "scenario_id": ss.scenario_id,
+            "assignment_condition": ss.assignment_condition,
+            "exam_start": ss.exam_start.isoformat() if ss.exam_start else None,
+            "exam_end": ss.exam_end.isoformat() if ss.exam_end else None,
+        }
+    )
 
 
 @views.route("/scenarios/<int:scenario_id>/assign-patient", methods=["GET", "POST"])
@@ -847,13 +898,16 @@ def student_dashboard():
 
         # Get submission status
         submissions = (
-            Submission.query.filter_by(student_scenario_id=ss.id).order_by(Submission.submitted_at.desc()).all()
+            Submission.query.filter_by(student_scenario_id=ss.id)
+            .order_by(Submission.submitted_at.desc())
+            .all()
             if assigned_patient
             else []
         )
 
         # Determine visibility and submission window based on mode
         from datetime import datetime, timedelta
+
         now = datetime.now()
         can_view = True
         can_submit = False
@@ -861,14 +915,16 @@ def student_dashboard():
         include_scenario = True
 
         if assigned_patient:
-            if ss.assignment_condition == 'exam':
+            if ss.assignment_condition == "exam":
                 # exam: visible from 1 hour before start until 5 minutes after end
                 # before start: show card but do not allow viewing details/ASL/submit
                 # between start and end+5min: allow view and submit
                 # after end+5min: do not show on dashboard
                 if ss.exam_start:
                     view_from = ss.exam_start - timedelta(hours=1)
-                    view_until = (ss.exam_end + timedelta(minutes=5)) if ss.exam_end else None
+                    view_until = (
+                        (ss.exam_end + timedelta(minutes=5)) if ss.exam_end else None
+                    )
 
                     # Determine whether the scenario should be included on the dashboard
                     if now < view_from:
@@ -936,25 +992,29 @@ def student_dashboard():
                     is_overdue = False
 
                 scenario_data.append(
-            {
-                "student_scenario": ss,
-                "display_start": ss.exam_start,
-                "display_end": ss.exam_end,
-                "scenario": scenario,
-                "patient": assigned_patient,
-                "submissions": submissions,
-                "can_view": can_view,
-                "can_submit": can_submit,
-                "submission_deadline": submission_deadline,
-                "include_scenario": include_scenario,
-                    "is_overdue": is_overdue,
-                }
-        )
+                    {
+                        "student_scenario": ss,
+                        "display_start": ss.exam_start,
+                        "display_end": ss.exam_end,
+                        "scenario": scenario,
+                        "patient": assigned_patient,
+                        "submissions": submissions,
+                        "can_view": can_view,
+                        "can_submit": can_submit,
+                        "submission_deadline": submission_deadline,
+                        "include_scenario": include_scenario,
+                        "is_overdue": is_overdue,
+                    }
+                )
 
     # compute how many scenarios will be visible on the dashboard
-    visible_count = sum(1 for d in scenario_data if d.get('include_scenario'))
+    visible_count = sum(1 for d in scenario_data if d.get("include_scenario"))
 
-    return render_template("views/student_dash.html", scenario_data=scenario_data, visible_count=visible_count)
+    return render_template(
+        "views/student_dash.html",
+        scenario_data=scenario_data,
+        visible_count=visible_count,
+    )
 
 
 @views.route("/student/submissions")
@@ -979,42 +1039,52 @@ def student_submissions():
         if not ss or ss.id in seen_ss:
             continue
         seen_ss.add(ss.id)
-        submissions_list.append({
-            'student_scenario': ss,
-            'scenario': ss.scenario,
-            'latest_submission': sub,
-        })
+        submissions_list.append(
+            {
+                "student_scenario": ss,
+                "scenario": ss.scenario,
+                "latest_submission": sub,
+            }
+        )
 
     # sort most recent first (already ordered, but ensure stability)
-    submissions_list.sort(key=lambda s: s['latest_submission'].submitted_at, reverse=True)
+    submissions_list.sort(
+        key=lambda s: s["latest_submission"].submitted_at, reverse=True
+    )
 
     # Also surface how many graded submissions the student has
-    graded_count = StudentScenario.query.filter_by(student_id=current_user.id, status='graded').count()
+    graded_count = StudentScenario.query.filter_by(
+        student_id=current_user.id, status="graded"
+    ).count()
 
-    return render_template('views/student_submissions.html', submissions=submissions_list, graded_count=graded_count)
+    return render_template(
+        "views/student_submissions.html",
+        submissions=submissions_list,
+        graded_count=graded_count,
+    )
 
 
-@views.route('/submissions/download/<path:filename>')
+@views.route("/submissions/download/<path:filename>")
 @login_required
 def download_submission_file(filename):
     """Serve uploaded submission files to the student who uploaded them or to teachers."""
     # only allow teachers or the owner of the file to download
     # uploaded files are stored as <studentid>_<scenarioid>_<patientid>_timestamp_filename
-    parts = filename.split('_')
+    parts = filename.split("_")
     try:
         owner_id = int(parts[0])
     except Exception:
         owner_id = None
 
     if not (current_user.is_teacher() or (owner_id and current_user.id == owner_id)):
-        flash('You are not authorised to download this file.', 'error')
-        return redirect(url_for('views.student_submissions'))
+        flash("You are not authorised to download this file.", "error")
+        return redirect(url_for("views.student_submissions"))
 
-    uploads_dir = os.path.join(current_app.root_path, 'uploads', 'submissions')
+    uploads_dir = os.path.join(current_app.root_path, "uploads", "submissions")
     file_path = os.path.join(uploads_dir, filename)
     if not os.path.exists(file_path):
-        flash('File not found.', 'error')
-        return redirect(url_for('views.student_submissions'))
+        flash("File not found.", "error")
+        return redirect(url_for("views.student_submissions"))
 
     # Use send_from_directory for safety
     return send_from_directory(uploads_dir, filename, as_attachment=True)
@@ -1062,6 +1132,7 @@ def student_management():
     except Exception as e:
         print(f"Error in student_management: {str(e)}")
         import traceback
+
         traceback.print_exc()
         flash(f"Error loading student management: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
@@ -1072,16 +1143,16 @@ def student_management():
 def student_marked():
     """Show the logged-in student's graded scenarios that have been published by the teacher."""
     if current_user.is_teacher():
-        return redirect(url_for('views.teacher_dashboard'))
+        return redirect(url_for("views.teacher_dashboard"))
 
     # Find all StudentScenario rows for this student that are graded and either the scenario is published or the student_scenario is published
     sss = (
-        StudentScenario.query
-        .join(Scenario)
+        StudentScenario.query.join(Scenario)
         .filter(StudentScenario.student_id == current_user.id)
-        .filter(StudentScenario.status == 'graded')
+        .filter(StudentScenario.status == "graded")
         .filter(
-            (Scenario.grades_published == True) | (StudentScenario.grade_published == True)
+            (Scenario.grades_published == True)
+            | (StudentScenario.grade_published == True)
         )
         .all()
     )
@@ -1090,10 +1161,14 @@ def student_marked():
     for ss in sss:
         scenario = ss.scenario
         # latest submission for this student_scenario
-        latest = Submission.query.filter_by(student_scenario_id=ss.id).order_by(Submission.submitted_at.desc()).first()
-        results.append({'student_scenario': ss, 'scenario': scenario, 'latest': latest})
+        latest = (
+            Submission.query.filter_by(student_scenario_id=ss.id)
+            .order_by(Submission.submitted_at.desc())
+            .first()
+        )
+        results.append({"student_scenario": ss, "scenario": scenario, "latest": latest})
 
-    return render_template('views/student_marked.html', results=results)
+    return render_template("views/student_marked.html", results=results)
 
 
 @views.route("/students/add", methods=["POST"])
@@ -1569,20 +1644,21 @@ def show_users():
         ]
     )
 
+
 @views.route("/api/export-asl/<int:patient_id>", methods=["GET"])
 @login_required
 def export_asl_csv(patient_id):
     """Export patient's complete ASL and ALR data as CSV"""
     try:
         patient = Patient.query.get_or_404(patient_id)
-        
+
         # Check if user can view this patient's ASL
         can_view_asl = patient.can_view_asl()
-        
+
         if not can_view_asl:
             flash("Cannot export ASL - patient consent not granted", "error")
             return redirect(url_for("views.patient_dashboard"))
-        
+
         # Get ASL prescriptions (available status)
         asl_prescriptions = (
             db.session.query(Prescription, Prescriber)
@@ -1593,7 +1669,7 @@ def export_asl_csv(patient_id):
             )
             .all()
         )
-        
+
         # Get ALR prescriptions (dispensed with remaining repeats)
         alr_prescriptions = (
             db.session.query(Prescription, Prescriber)
@@ -1602,16 +1678,17 @@ def export_asl_csv(patient_id):
                 Prescription.patient_id == patient_id,
                 db.or_(
                     Prescriber.fname == "ALR",  # ALR placeholder prescribers
-                    Prescription.remaining_repeats > 0,  # Or prescriptions with remaining repeats
+                    Prescription.remaining_repeats
+                    > 0,  # Or prescriptions with remaining repeats
                 ),
             )
             .all()
         )
-        
+
         # Create CSV in memory
         output = StringIO()
         writer = csv.writer(output)
-        
+
         # Write patient information header
         writer.writerow(["=" * 80])
         writer.writerow(["PATIENT INFORMATION"])
@@ -1622,85 +1699,254 @@ def export_asl_csv(patient_id):
         writer.writerow(["Address:", patient.address or ""])
         writer.writerow(["Preferred Contact:", patient.preferred_contact or ""])
         writer.writerow(["Medicare Number:", patient.medicare or ""])
-        writer.writerow(["Pharmaceutical Benefit Entitlement No:", patient.pharmaceut_ben_entitlement_no or ""])
-        writer.writerow(["Safety Net Entitlement:", "Yes" if patient.sfty_net_entitlement_cardholder else "No"])
-        writer.writerow(["RPBS Beneficiary:", "Yes" if patient.rpbs_ben_entitlement_cardholder else "No"])
-        writer.writerow(["ASL Registration Status:", "Registered" if patient.is_registered else "Not Registered"])
-        writer.writerow(["ASL Consent Status:", patient.get_asl_status().name.replace("_", " ").title()])
-        writer.writerow(["Consent Last Updated:", patient.consent_last_updated or "N/A"])
+        writer.writerow(
+            [
+                "Pharmaceutical Benefit Entitlement No:",
+                patient.pharmaceut_ben_entitlement_no or "",
+            ]
+        )
+        writer.writerow(
+            [
+                "Safety Net Entitlement:",
+                "Yes" if patient.sfty_net_entitlement_cardholder else "No",
+            ]
+        )
+        writer.writerow(
+            [
+                "RPBS Beneficiary:",
+                "Yes" if patient.rpbs_ben_entitlement_cardholder else "No",
+            ]
+        )
+        writer.writerow(
+            [
+                "ASL Registration Status:",
+                "Registered" if patient.is_registered else "Not Registered",
+            ]
+        )
+        writer.writerow(
+            [
+                "ASL Consent Status:",
+                patient.get_asl_status().name.replace("_", " ").title(),
+            ]
+        )
+        writer.writerow(
+            ["Consent Last Updated:", patient.consent_last_updated or "N/A"]
+        )
         writer.writerow(["Script Date:", patient.script_date or ""])
         writer.writerow(["PBS:", patient.pbs or ""])
         writer.writerow(["RPBS:", patient.rpbs or ""])
         writer.writerow([])
         writer.writerow([])
-        
+
         # Write ASL Scripts section
         writer.writerow(["=" * 80])
         writer.writerow(["ACTIVE SCRIPT LIST (ASL)"])
         writer.writerow(["=" * 80])
         writer.writerow([])
-        
+
         if asl_prescriptions:
-            writer.writerow([
-                "Prescription ID",
-                "DSPID",
-                "Status",
-                "Drug Name",
-                "Drug Code",
-                "Dosage Instructions",
-                "Quantity",
-                "Repeats",
-                "Prescribed Date",
-                "Paperless",
-                "Brand Substitution Not Permitted",
-                "Prescriber Name",
-                "Prescriber Title",
-                "Prescriber ID",
-                "Prescriber Address Line 1",
-                "Prescriber Address Line 2",
-                "Prescriber HPII",
-                "Prescriber HPIO",
-                "Prescriber Phone",
-                "Prescriber Fax"
-            ])
-            
+            writer.writerow(
+                [
+                    "Prescription ID",
+                    "DSPID",
+                    "Status",
+                    "Drug Name",
+                    "Drug Code",
+                    "Dosage Instructions",
+                    "Quantity",
+                    "Repeats",
+                    "Prescribed Date",
+                    "Paperless",
+                    "Brand Substitution Not Permitted",
+                    "Prescriber Name",
+                    "Prescriber Title",
+                    "Prescriber ID",
+                    "Prescriber Address Line 1",
+                    "Prescriber Address Line 2",
+                    "Prescriber HPII",
+                    "Prescriber HPIO",
+                    "Prescriber Phone",
+                    "Prescriber Fax",
+                ]
+            )
+
             for prescription, prescriber in asl_prescriptions:
-                writer.writerow([
-                    prescription.id,
-                    prescription.DSPID or "",
-                    prescription.get_status().name.title(),
-                    prescription.drug_name or "",
-                    prescription.drug_code or "",
-                    prescription.dose_instr or "",
-                    prescription.dose_qty or "",
-                    prescription.dose_rpt or "",
-                    prescription.prescribed_date or "",
-                    "Yes" if prescription.paperless else "No",
-                    "Yes" if prescription.brand_sub_not_prmt else "No",
-                    f"{prescriber.fname} {prescriber.lname}",
-                    prescriber.title or "",
-                    prescriber.prescriber_id or "",
-                    prescriber.address_1 or "",
-                    prescriber.address_2 or "",
-                    prescriber.hpii or "",
-                    prescriber.hpio or "",
-                    prescriber.phone or "",
-                    prescriber.fax or ""
-                ])
+                writer.writerow(
+                    [
+                        prescription.id,
+                        prescription.DSPID or "",
+                        prescription.get_status().name.title(),
+                        prescription.drug_name or "",
+                        prescription.drug_code or "",
+                        prescription.dose_instr or "",
+                        prescription.dose_qty or "",
+                        prescription.dose_rpt or "",
+                        prescription.prescribed_date or "",
+                        "Yes" if prescription.paperless else "No",
+                        "Yes" if prescription.brand_sub_not_prmt else "No",
+                        f"{prescriber.fname} {prescriber.lname}",
+                        prescriber.title or "",
+                        prescriber.prescriber_id or "",
+                        prescriber.address_1 or "",
+                        prescriber.address_2 or "",
+                        prescriber.hpii or "",
+                        prescriber.hpio or "",
+                        prescriber.phone or "",
+                        prescriber.fax or "",
+                    ]
+                )
         else:
             writer.writerow(["No active prescriptions found"])
-        
+
         writer.writerow([])
         writer.writerow([])
-        
+
         # Write ALR section
         writer.writerow(["=" * 80])
         writer.writerow(["AVAILABLE LOCAL REPEATS (ALR)"])
         writer.writerow(["=" * 80])
         writer.writerow([])
-        
+
         if alr_prescriptions:
-            writer.writerow([
+            writer.writerow(
+                [
+                    "Prescription ID",
+                    "DSPID",
+                    "Status",
+                    "Drug Name",
+                    "Drug Code",
+                    "Dosage Instructions",
+                    "Quantity",
+                    "Total Repeats",
+                    "Remaining Repeats",
+                    "Prescribed Date",
+                    "Dispensed Date",
+                    "Paperless",
+                    "Brand Substitution Not Permitted",
+                    "Dispensed at This Pharmacy",
+                    "Prescriber Name",
+                    "Prescriber Title",
+                    "Prescriber ID",
+                    "Prescriber Address Line 1",
+                    "Prescriber Address Line 2",
+                    "Prescriber HPII",
+                    "Prescriber HPIO",
+                    "Prescriber Phone",
+                    "Prescriber Fax",
+                ]
+            )
+
+            for prescription, prescriber in alr_prescriptions:
+                writer.writerow(
+                    [
+                        prescription.id,
+                        prescription.DSPID or "",
+                        prescription.get_status().name.title(),
+                        prescription.drug_name or "",
+                        prescription.drug_code or "",
+                        prescription.dose_instr or "",
+                        prescription.dose_qty or "",
+                        prescription.dose_rpt or "",
+                        prescription.remaining_repeats or "",
+                        prescription.prescribed_date or "",
+                        prescription.dispensed_date or "",
+                        "Yes" if prescription.paperless else "No",
+                        "Yes" if prescription.brand_sub_not_prmt else "No",
+                        "Yes" if prescription.dispensed_at_this_pharmacy else "No",
+                        f"{prescriber.fname} {prescriber.lname}",
+                        prescriber.title or "",
+                        prescriber.prescriber_id or "",
+                        prescriber.address_1 or "",
+                        prescriber.address_2 or "",
+                        prescriber.hpii or "",
+                        prescriber.hpio or "",
+                        prescriber.phone or "",
+                        prescriber.fax or "",
+                    ]
+                )
+        else:
+            writer.writerow(["No available local repeats found"])
+
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow(
+            [f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
+        )
+        writer.writerow(["=" * 80])
+
+        # Create response
+        output.seek(0)
+        response = make_response(output.getvalue())
+
+        # Create safe filename
+        safe_patient_name = "".join(
+            c if c.isalnum() or c in (" ", "_") else "_" for c in patient.name
+        )
+        safe_patient_name = safe_patient_name.replace(" ", "_")
+        filename = f"ASL_{safe_patient_name}_{patient.dob.replace('/', '-')}.csv"
+
+        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
+        response.headers["Content-Type"] = "text/csv; charset=utf-8"
+
+        return response
+
+    except Exception as e:
+        flash(f"Error exporting ASL: {str(e)}", "error")
+        return redirect(url_for("views.patient_dashboard"))
+
+
+@views.route("/api/export-asl-selected/<int:patient_id>", methods=["POST"])
+@login_required
+def export_selected_asl_csv(patient_id):
+    """Export selected prescriptions as CSV"""
+    try:
+        patient = Patient.query.get_or_404(patient_id)
+        prescription_ids = request.form.get("prescription_ids", "").split(",")
+
+        if not prescription_ids or not prescription_ids[0]:
+            flash("No prescriptions selected for export", "warning")
+            return redirect(url_for("views.asl", pt=patient_id))
+
+        # Get selected prescriptions with prescriber info
+        prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
+        prescriptions = (
+            db.session.query(Prescription, Prescriber)
+            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
+            .filter(
+                Prescription.id.in_(prescription_id_list),
+                Prescription.patient_id == patient_id,
+            )
+            .all()
+        )
+
+        if not prescriptions:
+            flash("No valid prescriptions found to export", "error")
+            return redirect(url_for("views.asl", pt=patient_id))
+
+        # Create CSV
+        output = StringIO()
+        writer = csv.writer(output)
+
+        # Patient header
+        writer.writerow(["=" * 80])
+        writer.writerow(["PATIENT INFORMATION"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(["Patient Name:", patient.name or ""])
+        writer.writerow(["Date of Birth:", patient.dob or ""])
+        writer.writerow(["Address:", patient.address or ""])
+        writer.writerow([])
+        writer.writerow([])
+
+        # Selected prescriptions
+        writer.writerow(["=" * 80])
+        writer.writerow(["SELECTED PRESCRIPTIONS"])
+        writer.writerow(["=" * 80])
+        writer.writerow([])
+        writer.writerow(
+            [
+                "Type",
                 "Prescription ID",
                 "DSPID",
                 "Status",
@@ -1718,16 +1964,25 @@ def export_asl_csv(patient_id):
                 "Prescriber Name",
                 "Prescriber Title",
                 "Prescriber ID",
-                "Prescriber Address Line 1",
-                "Prescriber Address Line 2",
-                "Prescriber HPII",
-                "Prescriber HPIO",
                 "Prescriber Phone",
-                "Prescriber Fax"
-            ])
-            
-            for prescription, prescriber in alr_prescriptions:
-                writer.writerow([
+                "Prescriber Fax",
+            ]
+        )
+
+        for prescription, prescriber in prescriptions:
+            # Determine type based on status and remaining repeats
+            if (
+                prescription.status == PrescriptionStatus.DISPENSED.value
+                and prescription.remaining_repeats
+                and prescription.remaining_repeats > 0
+            ):
+                script_type = "ALR"
+            else:
+                script_type = "ASL"
+
+            writer.writerow(
+                [
+                    script_type,
                     prescription.id,
                     prescription.DSPID or "",
                     prescription.get_status().name.title(),
@@ -1745,165 +2000,39 @@ def export_asl_csv(patient_id):
                     f"{prescriber.fname} {prescriber.lname}",
                     prescriber.title or "",
                     prescriber.prescriber_id or "",
-                    prescriber.address_1 or "",
-                    prescriber.address_2 or "",
-                    prescriber.hpii or "",
-                    prescriber.hpio or "",
                     prescriber.phone or "",
-                    prescriber.fax or ""
-                ])
-        else:
-            writer.writerow(["No available local repeats found"])
-        
-        writer.writerow([])
-        writer.writerow([])
-        writer.writerow(["=" * 80])
-        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
-        writer.writerow(["=" * 80])
-        
-        # Create response
-        output.seek(0)
-        response = make_response(output.getvalue())
-        
-        # Create safe filename
-        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
-        safe_patient_name = safe_patient_name.replace(' ', '_')
-        filename = f"ASL_{safe_patient_name}_{patient.dob.replace('/', '-')}.csv"
-        
-        response.headers["Content-Disposition"] = f"attachment; filename={filename}"
-        response.headers["Content-Type"] = "text/csv; charset=utf-8"
-        
-        return response
-        
-    except Exception as e:
-        flash(f"Error exporting ASL: {str(e)}", "error")
-        return redirect(url_for("views.patient_dashboard"))
-
-
-@views.route("/api/export-asl-selected/<int:patient_id>", methods=["POST"])
-@login_required
-def export_selected_asl_csv(patient_id):
-    """Export selected prescriptions as CSV"""
-    try:
-        patient = Patient.query.get_or_404(patient_id)
-        prescription_ids = request.form.get("prescription_ids", "").split(",")
-        
-        if not prescription_ids or not prescription_ids[0]:
-            flash("No prescriptions selected for export", "warning")
-            return redirect(url_for("views.asl", pt=patient_id))
-        
-        # Get selected prescriptions with prescriber info
-        prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
-        prescriptions = (
-            db.session.query(Prescription, Prescriber)
-            .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
-            .filter(
-                Prescription.id.in_(prescription_id_list),
-                Prescription.patient_id == patient_id
+                    prescriber.fax or "",
+                ]
             )
-            .all()
+
+        writer.writerow([])
+        writer.writerow([])
+        writer.writerow(["=" * 80])
+        writer.writerow(
+            [f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
         )
-        
-        if not prescriptions:
-            flash("No valid prescriptions found to export", "error")
-            return redirect(url_for("views.asl", pt=patient_id))
-        
-        # Create CSV
-        output = StringIO()
-        writer = csv.writer(output)
-        
-        # Patient header
-        writer.writerow(["=" * 80])
-        writer.writerow(["PATIENT INFORMATION"])
-        writer.writerow(["=" * 80])
-        writer.writerow([])
-        writer.writerow(["Patient Name:", patient.name or ""])
-        writer.writerow(["Date of Birth:", patient.dob or ""])
-        writer.writerow(["Address:", patient.address or ""])
-        writer.writerow([])
-        writer.writerow([])
-        
-        # Selected prescriptions
-        writer.writerow(["=" * 80])
-        writer.writerow(["SELECTED PRESCRIPTIONS"])
-        writer.writerow(["=" * 80])
-        writer.writerow([])
-        writer.writerow([
-            "Type",
-            "Prescription ID",
-            "DSPID",
-            "Status",
-            "Drug Name",
-            "Drug Code",
-            "Dosage Instructions",
-            "Quantity",
-            "Total Repeats",
-            "Remaining Repeats",
-            "Prescribed Date",
-            "Dispensed Date",
-            "Paperless",
-            "Brand Substitution Not Permitted",
-            "Dispensed at This Pharmacy",
-            "Prescriber Name",
-            "Prescriber Title",
-            "Prescriber ID",
-            "Prescriber Phone",
-            "Prescriber Fax"
-        ])
-        
-        for prescription, prescriber in prescriptions:
-            # Determine type based on status and remaining repeats
-            if prescription.status == PrescriptionStatus.DISPENSED.value and prescription.remaining_repeats and prescription.remaining_repeats > 0:
-                script_type = "ALR"
-            else:
-                script_type = "ASL"
-                
-            writer.writerow([
-                script_type,
-                prescription.id,
-                prescription.DSPID or "",
-                prescription.get_status().name.title(),
-                prescription.drug_name or "",
-                prescription.drug_code or "",
-                prescription.dose_instr or "",
-                prescription.dose_qty or "",
-                prescription.dose_rpt or "",
-                prescription.remaining_repeats or "",
-                prescription.prescribed_date or "",
-                prescription.dispensed_date or "",
-                "Yes" if prescription.paperless else "No",
-                "Yes" if prescription.brand_sub_not_prmt else "No",
-                "Yes" if prescription.dispensed_at_this_pharmacy else "No",
-                f"{prescriber.fname} {prescriber.lname}",
-                prescriber.title or "",
-                prescriber.prescriber_id or "",
-                prescriber.phone or "",
-                prescriber.fax or ""
-            ])
-        
-        writer.writerow([])
-        writer.writerow([])
-        writer.writerow(["=" * 80])
-        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
         writer.writerow([f"Total Prescriptions Exported: {len(prescriptions)}"])
         writer.writerow(["=" * 80])
-        
+
         output.seek(0)
         response = make_response(output.getvalue())
-        
+
         # Create safe filename
-        safe_patient_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in patient.name)
-        safe_patient_name = safe_patient_name.replace(' ', '_')
+        safe_patient_name = "".join(
+            c if c.isalnum() or c in (" ", "_") else "_" for c in patient.name
+        )
+        safe_patient_name = safe_patient_name.replace(" ", "_")
         filename = f"ASL_Selected_{safe_patient_name}_{len(prescriptions)}_items.csv"
-        
+
         response.headers["Content-Disposition"] = f"attachment; filename={filename}"
         response.headers["Content-Type"] = "text/csv; charset=utf-8"
-        
+
         return response
-        
+
     except Exception as e:
         flash(f"Error exporting selected prescriptions: {str(e)}", "error")
         return redirect(url_for("views.asl", pt=patient_id))
+
 
 @views.route("/asl/<int:pt>")
 def asl(pt: int):
@@ -2565,18 +2694,18 @@ def assign_students_to_scenario(scenario_id):
             # Create the assignments
             assignments_created = 0
             errors = []
-            
+
             for assignment_data in assignments_data:
                 student_id = assignment_data["student_id"]
                 patient_id = assignment_data["patient_id"]
-                
+
                 # Validate student and patient exist
                 student = User.query.filter_by(id=student_id, role="student").first()
                 patient = Patient.query.get(patient_id)
-                
+
                 if not student or not patient:
                     continue
-                
+
                 # Check if patient is already assigned to another student in this scenario
                 existing_patient_assignment = (
                     ScenarioPatient.query.filter_by(
@@ -2585,13 +2714,20 @@ def assign_students_to_scenario(scenario_id):
                     .filter(ScenarioPatient.student_id != student_id)
                     .first()
                 )
-                
+
                 if existing_patient_assignment:
-                    assigned_student = User.query.get(existing_patient_assignment.student_id)
-                    patient_name = f"{patient.given_name or ''} {patient.last_name or ''}".strip() or f"Patient {patient.id}"
-                    errors.append(f"{patient_name} is already assigned to {assigned_student.get_full_name()}")
+                    assigned_student = User.query.get(
+                        existing_patient_assignment.student_id
+                    )
+                    patient_name = (
+                        f"{patient.given_name or ''} {patient.last_name or ''}".strip()
+                        or f"Patient {patient.id}"
+                    )
+                    errors.append(
+                        f"{patient_name} is already assigned to {assigned_student.get_full_name()}"
+                    )
                     continue
-                
+
                 # Create or get StudentScenario record
                 existing_student_scenario = StudentScenario.query.filter_by(
                     scenario_id=scenario_id, student_id=student_id
@@ -2601,16 +2737,15 @@ def assign_students_to_scenario(scenario_id):
                     student_scenario = StudentScenario(
                         scenario_id=scenario_id,
                         student_id=student_id,
-                        status="assigned"
+                        status="assigned",
                     )
                     db.session.add(student_scenario)
-                
+
                 # Create or update ScenarioPatient record (THIS WAS MISSING!)
                 existing_patient_assignment = ScenarioPatient.query.filter_by(
-                    scenario_id=scenario.id,
-                    student_id=student_id
+                    scenario_id=scenario.id, student_id=student_id
                 ).first()
-                
+
                 if existing_patient_assignment:
                     # Update existing assignment
                     existing_patient_assignment.patient_id = patient_id
@@ -2620,14 +2755,14 @@ def assign_students_to_scenario(scenario_id):
                     patient_assignment = ScenarioPatient(
                         scenario_id=scenario.id,
                         student_id=student_id,
-                        patient_id=patient_id
+                        patient_id=patient_id,
                     )
                     db.session.add(patient_assignment)
-                
+
                 assignments_created += 1
 
             db.session.commit()
-            
+
             if errors:
                 return jsonify(
                     {
@@ -2648,7 +2783,10 @@ def assign_students_to_scenario(scenario_id):
         except Exception as e:
             db.session.rollback()
             return jsonify(
-                {"success": False, "message": f"Error creating student assignments: {str(e)}"}
+                {
+                    "success": False,
+                    "message": f"Error creating student assignments: {str(e)}",
+                }
             )
 
     return jsonify({"success": False, "message": "Invalid form submission."})
@@ -3207,8 +3345,8 @@ def asl_form(patient_id):
             Prescription.query.filter_by(patient_id=patient_id).delete()
 
             for subform, presc_type in (
-                *( (sf, "asl") for sf in form.asl_creations.entries ),
-                *( (sf, "alr") for sf in form.alr_creations.entries )
+                *((sf, "asl") for sf in form.asl_creations.entries),
+                *((sf, "alr") for sf in form.alr_creations.entries),
             ):
                 presc_data = dict(subform.data)
                 prescriber_data = presc_data.pop("prescriber", {})
@@ -3234,12 +3372,11 @@ def asl_form(patient_id):
                     patient_id=patient_id,
                     prescriber_id=prescriber.id,
                     DSPID=presc_type,
-                    **presc_data
+                    **presc_data,
                 )
                 db.session.add(prescription)
-                print("added prescription to session",prescription)
+                print("added prescription to session", prescription)
 
-            
             db.session.commit()
             flash("ASL/ALR data saved successfully.", "success")
 
@@ -3314,9 +3451,10 @@ def submit_work(scenario_id, patient_id):
     if request.method == "POST":
         # Check submission window
         from datetime import timedelta
+
         now = datetime.now()
         deadline = None
-        if student_scenario.assignment_condition == 'exam':
+        if student_scenario.assignment_condition == "exam":
             if student_scenario.exam_end:
                 deadline = student_scenario.exam_end + timedelta(minutes=5)
         else:
@@ -3327,8 +3465,8 @@ def submit_work(scenario_id, patient_id):
                 deadline = student_scenario.exam_start + timedelta(days=7)
 
         if deadline and now > deadline:
-            flash('Submission window has closed for this assignment.', 'error')
-            return redirect(url_for('views.student_dashboard'))
+            flash("Submission window has closed for this assignment.", "error")
+            return redirect(url_for("views.student_dashboard"))
 
         # Handle file uploads
         uploaded_files = []
@@ -3385,7 +3523,7 @@ def submit_work(scenario_id, patient_id):
                     except Exception as e:
                         flash(f"Error uploading {file.filename}: {str(e)}", "error")
 
-    # Create submission
+        # Create submission
 
         # Get current ASL data for this patient
         asl_record = ASL.query.filter_by(patient_id=patient_id).first()
@@ -3448,14 +3586,19 @@ def submit_work(scenario_id, patient_id):
         return redirect(url_for("views.student_dashboard"))
 
     # GET request - show submission form
-    previous_submissions = Submission.query.filter_by(
-        student_scenario_id=student_scenario.id, patient_id=patient_id
-    ).order_by(Submission.submitted_at.desc()).all()
+    previous_submissions = (
+        Submission.query.filter_by(
+            student_scenario_id=student_scenario.id, patient_id=patient_id
+        )
+        .order_by(Submission.submitted_at.desc())
+        .all()
+    )
     # compute submission_deadline for template
     from datetime import timedelta
+
     submission_deadline = None
     now = datetime.now()
-    if student_scenario.assignment_condition == 'exam':
+    if student_scenario.assignment_condition == "exam":
         if student_scenario.exam_end:
             submission_deadline = student_scenario.exam_end + timedelta(minutes=5)
     else:
@@ -3487,28 +3630,34 @@ def view_submissions(scenario_id):
         return redirect(url_for("views.teacher_dash"))
 
     # Optional status filter from query string (all, graded, ungraded, launched, unlaunched)
-    status_filter = request.args.get('status')
+    status_filter = request.args.get("status")
     # Optional submission presence filter (submitted, unsubmitted, all)
-    submission_filter = request.args.get('submitted')
+    submission_filter = request.args.get("submitted")
 
     # Get all student scenarios with submissions
     student_scenarios_q = StudentScenario.query.filter_by(scenario_id=scenario_id)
 
-    if status_filter and status_filter != 'all':
-        if status_filter == 'graded':
-            student_scenarios_q = student_scenarios_q.filter(StudentScenario.status == 'graded')
-        elif status_filter == 'ungraded':
+    if status_filter and status_filter != "all":
+        if status_filter == "graded":
+            student_scenarios_q = student_scenarios_q.filter(
+                StudentScenario.status == "graded"
+            )
+        elif status_filter == "ungraded":
             # not graded -> any status except 'graded'
-            student_scenarios_q = student_scenarios_q.filter(StudentScenario.status != 'graded')
-        elif status_filter == 'launched':
+            student_scenarios_q = student_scenarios_q.filter(
+                StudentScenario.status != "graded"
+            )
+        elif status_filter == "launched":
             # If the scenario itself has grades_published=True then all are launched;
             # otherwise filter student_scenario.grade_published == True
             if scenario.grades_published:
                 # no additional filter (all student_scenarios are effectively launched)
                 pass
             else:
-                student_scenarios_q = student_scenarios_q.filter(StudentScenario.grade_published == True)
-        elif status_filter == 'unlaunched':
+                student_scenarios_q = student_scenarios_q.filter(
+                    StudentScenario.grade_published == True
+                )
+        elif status_filter == "unlaunched":
             # If the scenario has grades_published=True then none are unlaunched;
             # otherwise include student_scenarios where grade_published is False or NULL
             if scenario.grades_published:
@@ -3516,7 +3665,8 @@ def view_submissions(scenario_id):
                 student_scenarios_q = student_scenarios_q.filter(False)
             else:
                 student_scenarios_q = student_scenarios_q.filter(
-                    (StudentScenario.grade_published == False) | (StudentScenario.grade_published == None)
+                    (StudentScenario.grade_published == False)
+                    | (StudentScenario.grade_published == None)
                 )
 
     # Evaluate the query
@@ -3534,10 +3684,10 @@ def view_submissions(scenario_id):
         submissions = [latest] if latest else []
 
         # Apply submission presence filter if provided
-        if submission_filter and submission_filter != 'all':
-            if submission_filter == 'submitted' and not latest:
+        if submission_filter and submission_filter != "all":
+            if submission_filter == "submitted" and not latest:
                 continue
-            if submission_filter == 'unsubmitted' and latest:
+            if submission_filter == "unsubmitted" and latest:
                 continue
 
         submissions_data.append(
@@ -3560,13 +3710,13 @@ def publish_grades(scenario_id):
     scenario = Scenario.query.get_or_404(scenario_id)
     if scenario.teacher_id != current_user.id:
         flash("You can only publish grades for your own scenarios.", "error")
-        return redirect(url_for('views.teacher_dashboard'))
+        return redirect(url_for("views.teacher_dashboard"))
 
     # set the flag and commit
     scenario.grades_published = True
     db.session.commit()
     flash("Grades published: students can now see their grades.", "success")
-    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+    return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
 
 @views.route("/scenarios/<int:scenario_id>/publish_selected_grades", methods=["POST"])
@@ -3576,22 +3726,23 @@ def publish_selected_grades(scenario_id):
     scenario = Scenario.query.get_or_404(scenario_id)
     if scenario.teacher_id != current_user.id:
         flash("You can only publish grades for your own scenarios.", "error")
-        return redirect(url_for('views.teacher_dashboard'))
+        return redirect(url_for("views.teacher_dashboard"))
 
     # Expect a comma-separated list of student_scenario ids in the form field 'selected_ids'
-    selected = request.form.get('selected_ids', '')
+    selected = request.form.get("selected_ids", "")
     if not selected:
-        flash('No students selected for publishing.', 'error')
-        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+        flash("No students selected for publishing.", "error")
+        return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
     try:
-        ids = [int(x) for x in selected.split(',') if x.strip()]
+        ids = [int(x) for x in selected.split(",") if x.strip()]
     except Exception:
-        flash('Invalid selection.', 'error')
-        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+        flash("Invalid selection.", "error")
+        return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
     # Update each StudentScenario to mark their grade as published (we'll store flag on StudentScenario)
     from .models import StudentScenario
+
     updated = 0
     for ss_id in ids:
         ss = StudentScenario.query.get(ss_id)
@@ -3602,11 +3753,11 @@ def publish_selected_grades(scenario_id):
     # Optionally: if every graded student was selected, or teacher wants global publish, keep scenario flag
     if updated > 0:
         db.session.commit()
-        flash(f'Published grades for {updated} student(s).', 'success')
+        flash(f"Published grades for {updated} student(s).", "success")
     else:
-        flash('No matching students found to publish.', 'error')
+        flash("No matching students found to publish.", "error")
 
-    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+    return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
 
 @views.route("/scenarios/<int:scenario_id>/unpublish_selected_grades", methods=["POST"])
@@ -3616,20 +3767,21 @@ def unpublish_selected_grades(scenario_id):
     scenario = Scenario.query.get_or_404(scenario_id)
     if scenario.teacher_id != current_user.id:
         flash("You can only unpublish grades for your own scenarios.", "error")
-        return redirect(url_for('views.teacher_dashboard'))
+        return redirect(url_for("views.teacher_dashboard"))
 
-    selected = request.form.get('selected_ids', '')
+    selected = request.form.get("selected_ids", "")
     if not selected:
-        flash('No students selected for unpublishing.', 'error')
-        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+        flash("No students selected for unpublishing.", "error")
+        return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
     try:
-        ids = [int(x) for x in selected.split(',') if x.strip()]
+        ids = [int(x) for x in selected.split(",") if x.strip()]
     except Exception:
-        flash('Invalid selection.', 'error')
-        return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+        flash("Invalid selection.", "error")
+        return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
     from .models import StudentScenario
+
     updated = 0
     for ss_id in ids:
         ss = StudentScenario.query.get(ss_id)
@@ -3639,11 +3791,11 @@ def unpublish_selected_grades(scenario_id):
 
     if updated > 0:
         db.session.commit()
-        flash(f'Unpublished grades for {updated} student(s).', 'success')
+        flash(f"Unpublished grades for {updated} student(s).", "success")
     else:
-        flash('No matching students found to unpublish.', 'error')
+        flash("No matching students found to unpublish.", "error")
 
-    return redirect(url_for('views.view_submissions', scenario_id=scenario.id))
+    return redirect(url_for("views.view_submissions", scenario_id=scenario.id))
 
 
 @views.route("/submissions/<int:submission_id>/grade", methods=["GET", "POST"])
@@ -3673,8 +3825,13 @@ def grade_submission(submission_id):
                 # Determine due date: prefer the student_scenario's exam_end (used as due) or exam_start
                 due = student_scenario.exam_end or student_scenario.exam_start
 
-                if student_scenario.assignment_condition != 'exam' and due and submission.submitted_at:
+                if (
+                    student_scenario.assignment_condition != "exam"
+                    and due
+                    and submission.submitted_at
+                ):
                     from math import ceil
+
                     delta = submission.submitted_at - due
                     # if submitted after due
                     if delta.total_seconds() > 0:
@@ -3684,7 +3841,10 @@ def grade_submission(submission_id):
 
                         # apply deduction, ensure score doesn't go below 0
                         final_score = round(max(0.0, raw_score - penalty_points), 2)
-                        flash(f'Late penalty applied: -{penalty_points} points ({days_late} day(s) late). Final score: {final_score}', 'info')
+                        flash(
+                            f"Late penalty applied: -{penalty_points} points ({days_late} day(s) late). Final score: {final_score}",
+                            "info",
+                        )
             except Exception:
                 final_score = score
 
@@ -3733,7 +3893,10 @@ def view_submission(submission_id):
             return redirect(url_for("views.student_dashboard"))
 
     patient = Patient.query.get(submission.patient_id)
-    return render_template("views/submitted_asl.html", submission=submission, patient=patient)
+    return render_template(
+        "views/submitted_asl.html", submission=submission, patient=patient
+    )
+
 
 @views.route("/download_file/<filename>")
 @login_required
@@ -3760,7 +3923,9 @@ def download_file(filename):
             sss = StudentScenario.query.filter_by(student_id=current_user.id).all()
             for ss in sss:
                 for sub in ss.submissions:
-                    if sub.submission_data and sub.submission_data.get("uploaded_files"):
+                    if sub.submission_data and sub.submission_data.get(
+                        "uploaded_files"
+                    ):
                         for f in sub.submission_data.get("uploaded_files"):
                             if f.get("stored_name") == filename:
                                 allowed = True
@@ -3779,10 +3944,9 @@ def download_file(filename):
 
     try:
         # Verify file exists and is within uploads directory
-        if (
-            not os.path.exists(file_path)
-            or os.path.commonpath([os.path.abspath(uploads_dir), os.path.abspath(file_path)]) != os.path.abspath(uploads_dir)
-        ):
+        if not os.path.exists(file_path) or os.path.commonpath(
+            [os.path.abspath(uploads_dir), os.path.abspath(file_path)]
+        ) != os.path.abspath(uploads_dir):
             flash("File not found.", "error")
             if current_user.is_student():
                 return redirect(url_for("views.student_dashboard"))
@@ -3804,11 +3968,11 @@ def export_scenario_marks(scenario_id):
     """Export all student marks/grades for a specific scenario as CSV"""
     try:
         scenario = Scenario.query.get_or_404(scenario_id)
-        
+
         if scenario.teacher_id != current_user.id:
             flash("You can only export marks for your own scenarios.", "error")
             return redirect(url_for("views.teacher_dashboard"))
-        
+
         student_scenarios = (
             db.session.query(StudentScenario, User)
             .join(User, StudentScenario.student_id == User.id)
@@ -3816,10 +3980,10 @@ def export_scenario_marks(scenario_id):
             .order_by(User.last_name, User.first_name)
             .all()
         )
-        
+
         output = StringIO()
         writer = csv.writer(output)
-        
+
         writer.writerow(["=" * 80])
         writer.writerow(["STUDENT MARKS REPORT"])
         writer.writerow(["=" * 80])
@@ -3827,76 +3991,110 @@ def export_scenario_marks(scenario_id):
         writer.writerow(["Scenario:", scenario.name])
         writer.writerow(["Version:", f"v{scenario.version}"])
         writer.writerow(["Teacher:", current_user.get_full_name()])
-        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Export Date:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
         writer.writerow(["Total Students:", len(student_scenarios)])
         writer.writerow([])
         writer.writerow(["=" * 80])
         writer.writerow([])
-        
-        writer.writerow([
-            "Student ID",
-            "Student Name",
-            "Email",
-            "Assigned Date",
-            "Submitted Date",
-            "Completed Date",
-            "Status",
-            "Score (out of 100)",
-            "Feedback"
-        ])
-        
+
+        writer.writerow(
+            [
+                "Student ID",
+                "Student Name",
+                "Email",
+                "Assigned Date",
+                "Submitted Date",
+                "Completed Date",
+                "Status",
+                "Score (out of 100)",
+                "Feedback",
+            ]
+        )
+
         scores = []
-        
+
         for student_scenario, student in student_scenarios:
-            writer.writerow([
-                student.id,
-                student.get_full_name(),
-                student.email,
-                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
-                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else "",
-                student_scenario.completed_at.strftime('%Y-%m-%d') if student_scenario.completed_at else "",
-                student_scenario.status.capitalize(),
-                student_scenario.score if student_scenario.score is not None else "Not Graded",
-                student_scenario.feedback or ""
-            ])
-            
+            writer.writerow(
+                [
+                    student.id,
+                    student.get_full_name(),
+                    student.email,
+                    (
+                        student_scenario.assigned_at.strftime("%Y-%m-%d")
+                        if student_scenario.assigned_at
+                        else ""
+                    ),
+                    (
+                        student_scenario.submitted_at.strftime("%Y-%m-%d")
+                        if student_scenario.submitted_at
+                        else ""
+                    ),
+                    (
+                        student_scenario.completed_at.strftime("%Y-%m-%d")
+                        if student_scenario.completed_at
+                        else ""
+                    ),
+                    student_scenario.status.capitalize(),
+                    (
+                        student_scenario.score
+                        if student_scenario.score is not None
+                        else "Not Graded"
+                    ),
+                    student_scenario.feedback or "",
+                ]
+            )
+
             if student_scenario.score is not None:
                 scores.append(student_scenario.score)
-        
+
         writer.writerow([])
         writer.writerow(["=" * 80])
         writer.writerow(["STATISTICS"])
         writer.writerow(["=" * 80])
         writer.writerow([])
         writer.writerow(["Total Students Assigned:", len(student_scenarios)])
-        writer.writerow(["Students Submitted:", sum(1 for ss, _ in student_scenarios if ss.submitted_at)])
+        writer.writerow(
+            [
+                "Students Submitted:",
+                sum(1 for ss, _ in student_scenarios if ss.submitted_at),
+            ]
+        )
         writer.writerow(["Students Graded:", len(scores)])
-        writer.writerow(["Pending Grading:", sum(1 for ss, _ in student_scenarios if ss.status == 'submitted')])
+        writer.writerow(
+            [
+                "Pending Grading:",
+                sum(1 for ss, _ in student_scenarios if ss.status == "submitted"),
+            ]
+        )
         writer.writerow([])
-        
+
         if scores:
             writer.writerow(["Average Score:", f"{sum(scores) / len(scores):.2f}"])
             writer.writerow(["Highest Score:", f"{max(scores):.2f}"])
             writer.writerow(["Lowest Score:", f"{min(scores):.2f}"])
             writer.writerow(["Median Score:", f"{sorted(scores)[len(scores)//2]:.2f}"])
-        
+
         writer.writerow([])
         writer.writerow(["=" * 80])
-        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(
+            [f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
+        )
         writer.writerow(["=" * 80])
-        
+
         output.seek(0)
         response = make_response(output.getvalue())
-        
-        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
-        safe_scenario_name = safe_scenario_name.replace(' ', '_')
+
+        safe_scenario_name = "".join(
+            c if c.isalnum() or c in (" ", "_") else "_" for c in scenario.name
+        )
+        safe_scenario_name = safe_scenario_name.replace(" ", "_")
         filename = f"Marks_{safe_scenario_name}_v{scenario.version}_{datetime.now().strftime('%Y%m%d')}.csv"
-        
+
         response.headers["Content-Disposition"] = f"attachment; filename={filename}"
         response.headers["Content-Type"] = "text/csv; charset=utf-8"
-        
+
         return response
-        
+
     except Exception as e:
         flash(f"Error exporting marks: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
@@ -3908,81 +4106,92 @@ def export_student_list():
     """Export complete list of all students in the system as CSV"""
     try:
         students = (
-            User.query
-            .filter_by(role='student')
+            User.query.filter_by(role="student")
             .order_by(User.last_name, User.first_name)
             .all()
         )
-        
+
         output = StringIO()
         writer = csv.writer(output)
-        
+
         writer.writerow(["=" * 80])
         writer.writerow(["STUDENT LIST REPORT"])
         writer.writerow(["=" * 80])
         writer.writerow([])
         writer.writerow(["Teacher:", current_user.get_full_name()])
-        writer.writerow(["Export Date:", datetime.now().strftime('%Y-%m-%d %H:%M:%S')])
+        writer.writerow(["Export Date:", datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
         writer.writerow(["Total Students:", len(students)])
         writer.writerow([])
         writer.writerow(["=" * 80])
         writer.writerow([])
-        
-        writer.writerow([
-            "Student ID",
-            "Username",
-            "First Name",
-            "Last Name",
-            "Full Name",
-            "Email",
-            "Phone",
-            "Date Joined",
-            "Total Scenarios Assigned",
-            "Scenarios Submitted",
-            "Scenarios Graded",
-            "Average Score"
-        ])
-        
+
+        writer.writerow(
+            [
+                "Student ID",
+                "Username",
+                "First Name",
+                "Last Name",
+                "Full Name",
+                "Email",
+                "Phone",
+                "Date Joined",
+                "Total Scenarios Assigned",
+                "Scenarios Submitted",
+                "Scenarios Graded",
+                "Average Score",
+            ]
+        )
+
         for student in students:
-            student_scenarios = StudentScenario.query.filter_by(student_id=student.id).all()
-            
+            student_scenarios = StudentScenario.query.filter_by(
+                student_id=student.id
+            ).all()
+
             total_assigned = len(student_scenarios)
             total_submitted = sum(1 for ss in student_scenarios if ss.submitted_at)
-            total_graded = sum(1 for ss in student_scenarios if ss.status == 'graded')
-            
+            total_graded = sum(1 for ss in student_scenarios if ss.status == "graded")
+
             scores = [ss.score for ss in student_scenarios if ss.score is not None]
             avg_score = sum(scores) / len(scores) if scores else None
-            
-            writer.writerow([
-                student.id,
-                student.username,
-                student.first_name or "",
-                student.last_name or "",
-                student.get_full_name(),
-                student.email,
-                student.phone or "",
-                student.created_at.strftime('%Y-%m-%d') if hasattr(student, 'created_at') and student.created_at else "",
-                total_assigned,
-                total_submitted,
-                total_graded,
-                f"{avg_score:.2f}" if avg_score is not None else "N/A"
-            ])
-        
+
+            writer.writerow(
+                [
+                    student.id,
+                    student.username,
+                    student.first_name or "",
+                    student.last_name or "",
+                    student.get_full_name(),
+                    student.email,
+                    student.phone or "",
+                    (
+                        student.created_at.strftime("%Y-%m-%d")
+                        if hasattr(student, "created_at") and student.created_at
+                        else ""
+                    ),
+                    total_assigned,
+                    total_submitted,
+                    total_graded,
+                    f"{avg_score:.2f}" if avg_score is not None else "N/A",
+                ]
+            )
+
         writer.writerow([])
         writer.writerow(["=" * 80])
-        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(
+            [f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
+        )
         writer.writerow(["=" * 80])
-        
+
         output.seek(0)
         response = make_response(output.getvalue())
-        
+
         filename = f"Student_List_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
+
         response.headers["Content-Disposition"] = f"attachment; filename={filename}"
         response.headers["Content-Type"] = "text/csv; charset=utf-8"
-        
+
         return response
-        
+
     except Exception as e:
         flash(f"Error exporting student list: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
@@ -3994,11 +4203,11 @@ def export_scenario_students(scenario_id):
     """Export list of students assigned to a specific scenario"""
     try:
         scenario = Scenario.query.get_or_404(scenario_id)
-        
+
         if scenario.teacher_id != current_user.id:
             flash("You can only export students for your own scenarios.", "error")
             return redirect(url_for("views.teacher_dashboard"))
-        
+
         student_scenarios = (
             db.session.query(StudentScenario, User)
             .join(User, StudentScenario.student_id == User.id)
@@ -4006,10 +4215,10 @@ def export_scenario_students(scenario_id):
             .order_by(User.last_name, User.first_name)
             .all()
         )
-        
+
         output = StringIO()
         writer = csv.writer(output)
-        
+
         writer.writerow(["=" * 80])
         writer.writerow(["SCENARIO STUDENT LIST"])
         writer.writerow(["=" * 80])
@@ -4021,44 +4230,62 @@ def export_scenario_students(scenario_id):
         writer.writerow([])
         writer.writerow(["=" * 80])
         writer.writerow([])
-        
-        writer.writerow([
-            "Student ID",
-            "Student Name",
-            "Email",
-            "Phone",
-            "Status",
-            "Assigned Date",
-            "Submitted Date"
-        ])
-        
+
+        writer.writerow(
+            [
+                "Student ID",
+                "Student Name",
+                "Email",
+                "Phone",
+                "Status",
+                "Assigned Date",
+                "Submitted Date",
+            ]
+        )
+
         for student_scenario, student in student_scenarios:
-            writer.writerow([
-                student.id,
-                student.get_full_name(),
-                student.email,
-                student.phone or "",
-                student_scenario.status.capitalize(),
-                student_scenario.assigned_at.strftime('%Y-%m-%d') if student_scenario.assigned_at else "",
-                student_scenario.submitted_at.strftime('%Y-%m-%d') if student_scenario.submitted_at else ""
-            ])
-        
+            writer.writerow(
+                [
+                    student.id,
+                    student.get_full_name(),
+                    student.email,
+                    student.phone or "",
+                    student_scenario.status.capitalize(),
+                    (
+                        student_scenario.assigned_at.strftime("%Y-%m-%d")
+                        if student_scenario.assigned_at
+                        else ""
+                    ),
+                    (
+                        student_scenario.submitted_at.strftime("%Y-%m-%d")
+                        if student_scenario.submitted_at
+                        else ""
+                    ),
+                ]
+            )
+
         writer.writerow([])
         writer.writerow(["=" * 80])
-        writer.writerow([f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"])
+        writer.writerow(
+            [f"Report Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"]
+        )
         writer.writerow(["=" * 80])
-        
+
         output.seek(0)
         response = make_response(output.getvalue())
-        
-        safe_scenario_name = "".join(c if c.isalnum() or c in (' ', '_') else '_' for c in scenario.name)
-        filename = f"Students_{safe_scenario_name}_{datetime.now().strftime('%Y%m%d')}.csv"
-        
+
+        safe_scenario_name = "".join(
+            c if c.isalnum() or c in (" ", "_") else "_" for c in scenario.name
+        )
+        filename = (
+            f"Students_{safe_scenario_name}_{datetime.now().strftime('%Y%m%d')}.csv"
+        )
+
         response.headers["Content-Disposition"] = f"attachment; filename={filename}"
         response.headers["Content-Type"] = "text/csv; charset=utf-8"
-        
+
         return response
-        
+
     except Exception as e:
         flash(f"Error exporting student list: {str(e)}", "error")
         return redirect(url_for("views.teacher_dashboard"))
