@@ -1,6 +1,9 @@
 {% extends "admin/adminbase.html" %}
 
 {% block title %}Teacher Profile{% endblock %}
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/teacher_profile.css') }}">
+{% endblock %}
 
 {% block admin_content %}
     <div class="container mt-4">
@@ -11,12 +14,12 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h2 class="card-title mb-0">Teacher Information</h2>
                         <div class="d-flex align-items-center gap-2">
-                            <form id="update-user-form" method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" style="display: inline; margin: 0;">
+                            <form id="update-user-form" method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" class="d-inline m-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-success btn-sm">Confirm Changes</button>
                             </form>
                             {% if not is_curr_user %}
-                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline; margin: 0;">
+                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline m-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 
                                 <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm">
@@ -83,7 +86,7 @@
                         {% for student in user.students %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>{{ student.studentnumber }} {{ student.get_full_name() }}</span>
-                                <form class="unassign-student-form" method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
+                                <form class="unassign-student-form d-inline" method="post" action="{{ url_for('admin.unassign_student') }}">
                                     {{ form.csrf_token }}
                                     <input type="hidden" name="teacher_id" value="{{ user.id }}">
                                     <input type="hidden" name="student_id" value="{{ student.id }}">
@@ -113,7 +116,7 @@
                                         <span class="student-name">
                                             {{ student.studentnumber }} {{ student.get_full_name() }}
                                         </span>
-                                        <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                                        <form class="assign-student-form d-inline" method="post" action="{{ url_for('admin.assign_student') }}">
                                             {{ form.csrf_token }}
                                             <input type="hidden" name="teacher_id" value="{{ user.id }}">
                                             <input type="hidden" name="student_id" value="{{ student.id }}">
@@ -129,7 +132,7 @@
                                         <span class="student-name">
                                             {{ student.studentnumber }} {{ student.get_full_name() }}
                                         </span>
-                                        <form class="assign-student-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                                        <form class="assign-student-form d-inline" method="post" action="{{ url_for('admin.assign_student') }}">
                                             {{ form.csrf_token }}
                                             <input type="hidden" name="teacher_id" value="{{ user.id }}">
                                             <input type="hidden" name="student_id" value="{{ student.id }}">
