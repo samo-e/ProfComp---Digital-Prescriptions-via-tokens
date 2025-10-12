@@ -1,0 +1,32 @@
+/* Inline caret style: text with a small chevron (no rounded square) */
+.status-header-cell {
+  position: relative;
+}
+.inline-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  color: inherit;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  text-decoration: none;
+  vertical-align: middle;
+}
+.inline-caret:focus {
+  outline: none;
+  box-shadow: none;
+}
+.inline-caret .bi {
+  font-size: 0.9rem;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+.status-dropdown-menu {
+  min-width: 8rem;
+}
+.select-student-submission {
+    width: 48px;
+}
