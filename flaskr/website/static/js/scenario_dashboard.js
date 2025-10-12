@@ -140,7 +140,7 @@ $(document).ready(function() {
         $hidden.val('exam');
         // update help text if provided
         try {
-          var help = $controls.data('help-exam');
+          let help = $controls.data('help-exam');
           if (help && $('#modeHelp').length) $('#modeHelp').text(help);
         } catch(e) {}
       } else {
@@ -150,7 +150,7 @@ $(document).ready(function() {
         $controls.removeClass('d-none');
         $hidden.val('assignment');
         try {
-          var help = $controls.data('help-assignment');
+          let help = $controls.data('help-assignment');
           if (help && $('#modeHelp').length) $('#modeHelp').text(help);
         } catch(e) {}
       }
@@ -179,14 +179,14 @@ $(document).ready(function() {
     }
     // If teacher previously saved, apply the persistent Saved UI
     try {
-      var $modeForm = $('#modeForm');
-      var $assignBtn = $('#assignMoreBtn');
+      let $modeForm = $('#modeForm');
+      let $assignBtn = $('#assignMoreBtn');
       // helper to set assign button enabled/disabled (anchor)
       function setAssignEnabled(enabled) {
         try {
           if (!$assignBtn || !$assignBtn.length) return;
           if (enabled) {
-            var href = $assignBtn.data('origHref');
+            let href = $assignBtn.data('origHref');
             if (href) $assignBtn.attr('href', href);
             $assignBtn.removeClass('disabled');
             $assignBtn.data('disabled', false);
@@ -200,7 +200,7 @@ $(document).ready(function() {
         } catch(e) {}
       }
       // Save an explicit "editable snapshot" for the Save button so Edit reliably restores
-      var $saveBtn = $('#modeSaveBtn');
+      let $saveBtn = $('#modeSaveBtn');
       if ($saveBtn && $saveBtn.length) {
         try {
           if (!$saveBtn.data('editableClass')) {
@@ -218,8 +218,8 @@ $(document).ready(function() {
         // if the original Save button has already been transformed into a Saved look by inline script, hide it
         try {
           if ($saveBtn && $saveBtn.length) {
-            var txt = ($saveBtn.html() || '').toString();
-            var cls = ($saveBtn.attr('class') || '').toString();
+            let txt = ($saveBtn.html() || '').toString();
+            let cls = ($saveBtn.attr('class') || '').toString();
             if (txt.indexOf('Saved') !== -1 || cls.indexOf('btn-warning') !== -1) {
               $saveBtn.hide();
             }
@@ -233,12 +233,12 @@ $(document).ready(function() {
         // create a separate Saved indicator button (so Saved and Save are different DOM elements)
         if (!$('#modeSavedBtn').length) {
           try {
-            var $savedBtn = $('<button/>', { type: 'button', id: 'modeSavedBtn', class: 'btn btn-sm btn-warning ms-2' });
+            let $savedBtn = $('<button/>', { type: 'button', id: 'modeSavedBtn', class: 'btn btn-sm btn-warning ms-2' });
             $savedBtn.html('<i class="bi bi-check-lg"></i> Saved');
             // try to preserve the original Save button width and display to avoid layout shifts
             try {
               if ($saveBtn && $saveBtn.length) {
-                var w = $saveBtn.outerWidth();
+                let w = $saveBtn.outerWidth();
                 if (w && w > 0) {
                   $savedBtn.css({'min-width': w + 'px', 'display': 'inline-block'});
                 }
@@ -256,7 +256,7 @@ $(document).ready(function() {
   try { setAssignEnabled(true); } catch(e) {}
   // create inline Edit if not present
         if (!$('#inlineEditBtn').length) {
-          var $edit = $('<button/>', { type: 'button', id: 'inlineEditBtn', class: 'btn btn-sm btn-outline-secondary ms-2', text: 'Edit' });
+          let $edit = $('<button/>', { type: 'button', id: 'inlineEditBtn', class: 'btn btn-sm btn-outline-secondary ms-2', text: 'Edit' });
           // place Edit after the Saved indicator if present
           if ($('#modeSavedBtn').length) $('#modeSavedBtn').after($edit); else if ($saveBtn && $saveBtn.length) $saveBtn.after($edit); else $modeForm.append($edit);
           $edit.on('click', function(e) {
@@ -276,11 +276,11 @@ $(document).ready(function() {
               try { setAssignEnabled(false); } catch(e) {}
               // create a fresh Save button (so we don't reuse the same DOM element)
               try {
-                var editableClass = ($saveBtn && $saveBtn.length && $saveBtn.data('editableClass')) ? $saveBtn.data('editableClass') : 'btn btn-sm btn-success ms-2';
-                var editableHtml = ($saveBtn && $saveBtn.length && $saveBtn.data('editableHtml')) ? $saveBtn.data('editableHtml') : 'Save';
+                let editableClass = ($saveBtn && $saveBtn.length && $saveBtn.data('editableClass')) ? $saveBtn.data('editableClass') : 'btn btn-sm btn-success ms-2';
+                let editableHtml = ($saveBtn && $saveBtn.length && $saveBtn.data('editableHtml')) ? $saveBtn.data('editableHtml') : 'Save';
                 // remove any existing element with that id to avoid duplicates
                 $('#modeSaveBtn').remove();
-                var $newSave = $('<button/>', { type: 'submit', id: 'modeSaveBtn', class: editableClass });
+                let $newSave = $('<button/>', { type: 'submit', id: 'modeSaveBtn', class: editableClass });
                 $newSave.html(editableHtml);
                 // insert the new Save where the Edit button is currently (Edit will be removed below)
                 $edit.before($newSave);
@@ -300,11 +300,11 @@ $(document).ready(function() {
     } catch(e) {}
     // Optimistic UI: when the mode form is submitted, immediately show Saved state and lock inputs
     try {
-      var $modeForm = $('#modeForm');
+      let $modeForm = $('#modeForm');
       if ($modeForm && $modeForm.length) {
         $modeForm.on('submit', function() {
           try {
-            var $saveBtn = $('#modeSaveBtn');
+            let $saveBtn = $('#modeSaveBtn');
             if ($saveBtn && $saveBtn.length) {
               // store original only if not already stored (don't overwrite)
               if (!$saveBtn.data('origClass')) {
@@ -335,5 +335,5 @@ $(document).ready(function() {
  */
 document.addEventListener('DOMContentLoaded', function() {
     // Add any initialization code here if needed
-    console.log('Scenario dashboard loaded');
+    // console.log('Scenario dashboard loaded');
 });

@@ -1,11 +1,11 @@
 // DEBUG: Student profile assign/unassign teacher modal logic
 document.addEventListener("DOMContentLoaded", function () {
   // DEBUG: Modal and button element references
-  var modal = document.getElementById("assignTeacherModal");
-  var btn = document.getElementById("assign-teachers-btn");
-  var closeBtn = document.getElementById("closeTeacherModal");
-  var searchInput = document.getElementById("teacher-search");
-  var teachersList = document.getElementById("teachers-list");
+  let modal = document.getElementById("assignTeacherModal");
+  let btn = document.getElementById("assign-teachers-btn");
+  let closeBtn = document.getElementById("closeTeacherModal");
+  let searchInput = document.getElementById("teacher-search");
+  let teachersList = document.getElementById("teachers-list");
 
   // DEBUG: Modal open/close handlers
   if (btn) {
@@ -32,10 +32,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // DEBUG: Teacher search filter
   if (searchInput && teachersList) {
     searchInput.addEventListener("keyup", function () {
-      var filter = searchInput.value.toLowerCase();
-      var teachers = teachersList.getElementsByTagName("li");
+      let filter = searchInput.value.toLowerCase();
+      let teachers = teachersList.getElementsByTagName("li");
       Array.from(teachers).forEach(function (teacher) {
-        var text = teacher.textContent || teacher.innerText;
+        let text = teacher.textContent || teacher.innerText;
         teacher.style.display =
           text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
       });

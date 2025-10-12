@@ -41,9 +41,9 @@
               }
               // Trigger validation check after setting value
               field.dispatchEvent(new Event('input', { bubbles: true }));
-              console.log(`Pre-populated ${key}:`, value);
+              // console.log(`Pre-populated ${key}:`, value);
             } else {
-              console.log(`Field not found: ${fieldName}`);
+              // console.log(`Field not found: ${fieldName}`);
             }
           }
         });
@@ -58,9 +58,9 @@
                 field.value = value;
                 // Trigger validation check after setting value
                 field.dispatchEvent(new Event('input', { bubbles: true }));
-                console.log(`Pre-populated prescriber ${key}:`, value);
+                // console.log(`Pre-populated prescriber ${key}:`, value);
               } else {
-                console.log(`Prescriber field not found: ${fieldName}`);
+                // console.log(`Prescriber field not found: ${fieldName}`);
               }
             }
           });
@@ -93,27 +93,27 @@
 
   // Pre-populate with existing data if available
   const ptData = window.pt_data || {};
-  console.log('Pre-population data:', ptData);
+  // console.log('Pre-population data:', ptData);
   
   // Populate ASL prescriptions
   if (ptData && ptData['asl-data'] && ptData['asl-data'].length > 0) {
-    console.log('Found existing ASL data, populating', ptData['asl-data'].length, 'items');
+    // console.log('Found existing ASL data, populating', ptData['asl-data'].length, 'items');
     ptData['asl-data'].forEach((aslItem, index) => {
       addItem(aslContainer, aslTemplate, aslItem, index);
     });
   } else {
-    console.log('No existing ASL data found, adding empty form');
+    // console.log('No existing ASL data found, adding empty form');
     addItem(aslContainer, aslTemplate);
   }
   
   // Populate ALR prescriptions
   if (ptData && ptData['alr-data'] && ptData['alr-data'].length > 0) {
-    console.log('Found existing ALR data, populating', ptData['alr-data'].length, 'items');
+    // console.log('Found existing ALR data, populating', ptData['alr-data'].length, 'items');
     ptData['alr-data'].forEach((alrItem, index) => {
       addItem(alrContainer, alrTemplate, alrItem, index);
     });
   } else {
-    console.log('No existing ALR data found, adding empty form');
+    // console.log('No existing ALR data found, adding empty form');
     addItem(alrContainer, alrTemplate);
   }
 })();
@@ -121,7 +121,7 @@
 // Form validation handler
 (function () {
   const form = document.querySelector("form.needs-validation");
-  console.log("form element:", form); 
+  // console.log("form element:", form); 
 
   function assignNested(obj, path, value) {
     let cur = obj;
@@ -150,7 +150,7 @@
 
   if (form) {
     form.addEventListener("submit", function (e) {
-      console.log("submit handler triggered"); 
+      // console.log("submit handler triggered"); 
       
       // Bootstrap validation
       if (!form.checkValidity()) {
@@ -161,7 +161,7 @@
       }
       
       // Allow normal form submission to Flask route
-      console.log("Form is valid, submitting to Flask route");
+      // console.log("Form is valid, submitting to Flask route");
     });
   }
 })();

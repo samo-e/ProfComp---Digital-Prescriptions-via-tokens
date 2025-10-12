@@ -1,6 +1,6 @@
 // --- Assignment logic ---
 (function() {
-  console.log('[DEBUG] Admin.js initializing...');
+  // console.log('[DEBUG] Admin.js initializing...');
   
   function ready(fn) {
     if (document.readyState !== 'loading') { fn(); }
@@ -8,11 +8,11 @@
   }
 
   ready(function() {
-    console.log('[DEBUG] DOM ready, setting up handlers');
+    // console.log('[DEBUG] DOM ready, setting up handlers');
     
     // Clean up any existing handlers first
     if (window.__unassignHandler) {
-      console.log('[DEBUG] Removing existing unassign handler');
+      // console.log('[DEBUG] Removing existing unassign handler');
       document.removeEventListener('submit', window.__unassignHandler);
       window.__unassignHandler = null;
     }
@@ -20,7 +20,7 @@
     // Guard map to prevent duplicate submissions per form
     const submitting = new WeakSet();
 
-    console.log('[DEBUG] Setting up assign form handlers');
+    // console.log('[DEBUG] Setting up assign form handlers');
     document.querySelectorAll('.assign-student-form').forEach(function(form) {
       form.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -118,7 +118,7 @@
     });
 
     // --- Unassign logic using event delegation ---
-    console.log('[DEBUG] Setting up unassign event delegation');
+    // console.log('[DEBUG] Setting up unassign event delegation');
     const unassignSubmitting = new WeakSet();
     
     // Create a single delegated event handler
@@ -126,12 +126,12 @@
       const form = e.target.closest('.unassign-student-form');
       if (!form) return;
       
-      console.log('[DEBUG] Unassign handler triggered for student ID:', form.querySelector('input[name="student_id"]').value);
+      // console.log('[DEBUG] Unassign handler triggered for student ID:', form.querySelector('input[name="student_id"]').value);
       e.preventDefault();
       
       // Prevent multiple submissions
       if (unassignSubmitting.has(form)) {
-        console.log('[DEBUG] Unassign already in progress for this form, ignoring');
+        // console.log('[DEBUG] Unassign already in progress for this form, ignoring');
         return;
       }
       unassignSubmitting.add(form);
@@ -197,24 +197,24 @@
         }
       })
       .finally(() => {
-        console.log('[DEBUG] Unassign request completed, removing from submitting set');
+        // console.log('[DEBUG] Unassign request completed, removing from submitting set');
         unassignSubmitting.delete(form);
       });
     };
     
     // Attach the single delegated listener
-    console.log('[DEBUG] Attaching document-level unassign handler');
+    // console.log('[DEBUG] Attaching document-level unassign handler');
     document.addEventListener('submit', window.__unassignHandler);
 
     // No longer need to attach individual handlers - using event delegation above
 
     // --- Modal search filter ---
-    console.log('[DEBUG] Setting up search filter');
+    // console.log('[DEBUG] Setting up search filter');
     const searchInput = document.getElementById('student-search');
 
     const studentsList = document.getElementById('students-list');
     if (searchInput && studentsList) {
-      console.log('[DEBUG] Search filter elements found, attaching listener');
+      // console.log('[DEBUG] Search filter elements found, attaching listener');
       const filter = () => {
         const q = searchInput.value.trim().toLowerCase();
         studentsList.querySelectorAll('li').forEach(li => {
@@ -224,7 +224,7 @@
         });
       };
       searchInput.addEventListener('input', filter, { passive: true });
-      console.log('[DEBUG] Search input listener attached');
+      // console.log('[DEBUG] Search input listener attached');
       // Prevent Enter key from triggering any default form submission in the modal context
       searchInput.addEventListener('keydown', function(e) {
         if (e.key === 'Enter') {
@@ -234,14 +234,14 @@
       });
     }
     
-    console.log('[DEBUG] Admin.js initialization complete');
+    // console.log('[DEBUG] Admin.js initialization complete');
   });
 })();
 
 $(document).ready(function () {
   $("#password-wrapper").on("click", function (e) {
-    var $icon = $(this).find(".bi-lock");
-    var $input = $(this).find("input");
+    let $icon = $(this).find(".bi-lock");
+    let $input = $(this).find("input");
 
     // Enable input
     $input.prop("disabled", false).focus();
@@ -256,7 +256,7 @@ $(document).ready(function () {
       });
     }, 350);
 
-    // Enable change password buttun
+    // Enable change password button
     $("#change-password-btn").removeClass("invisible");
   });
 });

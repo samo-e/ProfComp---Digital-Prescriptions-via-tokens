@@ -36,7 +36,7 @@ async function get_blank_prescription() {
 }
 
 async function print_scripts() {
-  console.log("Print function called");
+  // console.log("Print function called");
   const checkedBoxes = $("#asl-table .asl-check input:checked");
   let select_all = checkedBoxes.length === 0;
 
@@ -64,7 +64,7 @@ async function print_scripts() {
     }
   });
 
-  console.log(`Total prescriptions to print: ${prescriptionCount}`);
+  // console.log(`Total prescriptions to print: ${prescriptionCount}`);
 
   if (prescriptionCount === 0) {
     alert("No valid prescriptions found to print!");
@@ -115,14 +115,14 @@ const drug_info_ids = [
 function flatten_dict(dict) {
   let new_dict = {};
 
-  for (var key in dict) {
+  for (let key in dict) {
     const value = dict[key];
 
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
         if (typeof item === "object" && item !== null) {
           const flattened = flatten_dict(item);
-          for (var subkey in flattened) {
+          for (let subkey in flattened) {
             new_dict[`${key}-${index}-${subkey}`] = flattened[subkey];
           }
         } else {
@@ -131,7 +131,7 @@ function flatten_dict(dict) {
       });
     } else if (typeof value === "object" && value !== null) {
       const flattened = flatten_dict(value);
-      for (var subkey in flattened) {
+      for (let subkey in flattened) {
         new_dict[`${key}-${subkey}`] = flattened[subkey];
       }
     } else {
@@ -143,7 +143,7 @@ function flatten_dict(dict) {
 }
 
 function insert_prescription_details(el, drug_id) {
-  console.log(`Inserting details for drug_id: ${drug_id}`);
+  // console.log(`Inserting details for drug_id: ${drug_id}`);
 
   id_list.forEach((id) => {
     const $el = $(el).find(`#${id}`);

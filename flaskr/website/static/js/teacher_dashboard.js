@@ -158,29 +158,29 @@ window.onload = function() {
 
 // Use the scenario-checkbox class so selectors are robust against id/name changes
 function selectAllToggle() {
-    var selectAll = document.getElementById('select-all');
-    var boxes = document.querySelectorAll('.scenario-checkbox');
+    let selectAll = document.getElementById('select-all');
+    let boxes = document.querySelectorAll('.scenario-checkbox');
     boxes.forEach(function(cb) { cb.checked = selectAll.checked; });
     updateSelectAllState();
 }
 
 function updateSelectAllState() {
-    var selectAll = document.getElementById('select-all');
+    let selectAll = document.getElementById('select-all');
     if (!selectAll) return;
-    var boxes = document.querySelectorAll('.scenario-checkbox');
-    var total = boxes.length;
-    var checked = Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
+    let boxes = document.querySelectorAll('.scenario-checkbox');
+    let total = boxes.length;
+    let checked = Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
     selectAll.checked = (total > 0 && checked === total);
     selectAll.indeterminate = (checked > 0 && checked < total);
 }
 
 function countSelected() {
-    var boxes = document.querySelectorAll('.scenario-checkbox');
+    let boxes = document.querySelectorAll('.scenario-checkbox');
     return Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
 }
 
 function bulkArchive() {
-    var selected = countSelected();
+    let selected = countSelected();
     if (selected === 0) {
         alert('Please select scenarios to archive');
         return;
@@ -191,7 +191,7 @@ function bulkArchive() {
 }
 
 function bulkExport() {
-    var selected = countSelected();
+    let selected = countSelected();
     if (selected === 0) {
         alert('Please select scenarios to export');
         return;
@@ -201,7 +201,7 @@ function bulkExport() {
 
 function confirmDelete(scenarioId) {
     if (confirm('Are you sure you want to archive this scenario?')) {
-        var form = document.getElementById('delete-form-' + scenarioId);
+        let form = document.getElementById('delete-form-' + scenarioId);
         if (form) {
             form.submit();
         }
@@ -210,45 +210,45 @@ function confirmDelete(scenarioId) {
 
 window.onload = function() {
     // Set up select all checkbox
-    var selectAllBox = document.getElementById('select-all');
+    let selectAllBox = document.getElementById('select-all');
     if (selectAllBox) {
         selectAllBox.addEventListener('change', selectAllToggle);
     }
 
     // Keep select-all state in sync when individual boxes change
-    var scenarioBoxes = document.querySelectorAll('.scenario-checkbox');
+    let scenarioBoxes = document.querySelectorAll('.scenario-checkbox');
     scenarioBoxes.forEach(function(cb){ cb.addEventListener('change', updateSelectAllState); });
 
     // Set up bulk action buttons
-    var deleteBtn = document.getElementById('bulk-delete');
+    let deleteBtn = document.getElementById('bulk-delete');
     if (deleteBtn) {
         deleteBtn.addEventListener('click', bulkArchive);
     }
 
-    var exportBtn = document.getElementById('bulk-export');
+    let exportBtn = document.getElementById('bulk-export');
     if (exportBtn) {
         exportBtn.addEventListener('click', bulkExport);
     }
 
     // Set up individual delete buttons
-    var deleteBtns = document.getElementsByClassName('delete-btn');
-    for (var i = 0; i < deleteBtns.length; i++) {
+    let deleteBtns = document.getElementsByClassName('delete-btn');
+    for (let i = 0; i < deleteBtns.length; i++) {
         (function(btn) {
             btn.onclick = function() {
-                var scenarioId = btn.getAttribute('data-scenario-id');
+                let scenarioId = btn.getAttribute('data-scenario-id');
                 confirmDelete(scenarioId);
             };
         })(deleteBtns[i]);
     }
 
     // Set up create first scenario link
-    var createLink = document.getElementById('create-first-scenario');
+    let createLink = document.getElementById('create-first-scenario');
     if (createLink) {
         createLink.onclick = function(e) {
             e.preventDefault();
-            var form = document.querySelector('form[action="{{ url_for("views.create_scenario") }}"]');
+            let form = document.querySelector('form[action="{{ url_for("views.create_scenario") }}"]');
             if (form) {
-                var button = form.querySelector('button[type="submit"]');
+                let button = form.querySelector('button[type="submit"]');
                 if (button) {
                     button.click();
                 }
