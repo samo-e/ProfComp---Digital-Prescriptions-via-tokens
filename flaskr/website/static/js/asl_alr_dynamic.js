@@ -19,7 +19,6 @@ $(document).ready(function () {
     $template = $template.replace(/__INDEX__/g, index);
     // Wrap in jQuery object
     const $item = $($template);
-    console.log($item);
 
     $item.find("input, textarea, select").each(function () {
       const originalName = $(this).attr("name") || "";
@@ -27,7 +26,6 @@ $(document).ready(function () {
       const newName = `${type.toLowerCase()}_creations-${index}-${originalName
         .split("-")
         .pop()}`;
-      console.log(newName);
       $(this).attr("name", newName);
     });
 
@@ -174,7 +172,6 @@ $(document).ready(function () {
 
   // Form validation
   $("#asl-form").on("submit", function (e) {
-    console.log("submitting");
     let hasError = false;
 
     $(".error-message").text("");
@@ -185,7 +182,6 @@ $(document).ready(function () {
         if ($(this).val().trim() === "") {
           hasError = true;
           $(this).next(".error-message").text("This field is required.");
-          console.log(this, "This field is required.");
         }
       });
 
