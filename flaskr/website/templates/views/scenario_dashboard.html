@@ -451,7 +451,7 @@
                             <div class="action-panel text-center">
                                 <div class="d-grid gap-3">
                                     {% if not is_exam or can_view_details %}
-                                    <a href="{{ url_for('views.asl', pt=assigned_patient.id) }}" class="btn btn-primary btn-lg shadow-sm">
+                                    <a href="{{ url_for('views.asl', patient_id=assigned_patient.id) }}" class="btn btn-primary btn-lg shadow-sm">
                                         <i class="bi bi-file-medical me-2"></i> 
                                         <span class="fw-semibold">View ASL</span>
                                     </a>
