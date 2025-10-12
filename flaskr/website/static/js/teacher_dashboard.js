@@ -113,7 +113,7 @@ function confirmDelete(scenarioId) {
 /**
  * Initialize the page when DOM is loaded
  */
-window.onload = function () {
+$(function () {
   // Set up select all checkbox
   $("#select-all").on("change", selectAllToggle);
 
@@ -138,7 +138,7 @@ window.onload = function () {
       button.click();
     }
   });
-};
+});
 
 function updateSelectAllState() {
   const selectAll = $("#select-all");

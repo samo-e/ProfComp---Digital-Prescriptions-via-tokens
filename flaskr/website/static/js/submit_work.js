@@ -3,11 +3,11 @@
 /**
  * Initialize file upload preview and validation
  */
-document.addEventListener("DOMContentLoaded", function () {
-  const fileInput = document.getElementById("pdf_file");
+$(function () {
+  const fileInput = $("#pdf_file");
 
-  if (fileInput) {
-    fileInput.addEventListener("change", handleFileSelection);
+  if (fileInput.length) {
+    fileInput.on("change", handleFileSelection);
   }
 });
 
@@ -17,77 +17,57 @@ document.addEventListener("DOMContentLoaded", function () {
  */
 function handleFileSelection(e) {
   const files = e.target.files;
-  const filePreview = document.getElementById("file-preview");
-  const fileList = document.getElementById("file-list");
+  const $filePreview = $("#file-preview");
+  const $fileList = $("#file-list");
   const maxSize = 10 * 1024 * 1024; // 10MB in bytes
 
   // Clear previous list
-  fileList.innerHTML = "";
+  $fileList.empty();
 
   if (files.length > 0) {
     // Show the preview section using jQuery (if available) or vanilla JS
-    if (typeof $ !== "undefined") {
-      $(filePreview).removeClass("d-none");
-    } else {
-      filePreview.classList.remove("d-none");
-    }
+    $filePreview.removeClass("d-none");
 
     let hasErrors = false;
 
     // Process each file
-    Array.from(files).forEach(function (file, index) {
-      const li = document.createElement("li");
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-center";
-
-      // File info
-      const fileInfo = document.createElement("div");
-      fileInfo.innerHTML =
+    $.each(files, function (index, file) {
+      const $li = $("<li>", {
+        class:
+          "list-group-item d-flex justify-content-between align-items-center",
+      });
+      const $fileInfo = $("<div>").html(
         "<strong>" +
-        escapeHtml(file.name) +
-        "</strong><br>" +
-        '<small class="text-muted">' +
-        formatFileSize(file.size) +
-        "</small>";
-
-      // File status
-      const fileStatus = document.createElement("span");
-
+          escapeHtml(file.name) +
+          "</strong><br>" +
+          '<small class="text-muted">' +
+          formatFileSize(file.size) +
+          "</small>"
+      );
+      const $fileStatus = $("<span>");
       if (file.size > maxSize) {
-        fileStatus.className = "badge bg-danger";
-        fileStatus.textContent = "Too Large";
+        $fileStatus.addClass("badge bg-danger").text("Too Large");
         hasErrors = true;
       } else {
-        fileStatus.className = "badge bg-success";
-        fileStatus.textContent = "Valid";
+        $fileStatus.addClass("badge bg-success").text("Valid");
       }
-
-      li.appendChild(fileInfo);
-      li.appendChild(fileStatus);
-      fileList.appendChild(li);
+      $li.append($fileInfo, $fileStatus);
+      $fileList.append($li);
     });
 
     // Disable submit button if there are errors
-    const submitBtn = document.getElementById("submit-btn");
-    if (submitBtn) {
-      submitBtn.disabled = hasErrors;
-    }
+    $("#submit-btn").prop("disabled", hasErrors);
 
     // Show error message if files are too large
     if (hasErrors) {
-      const errorMsg = document.createElement("div");
-      errorMsg.className = "alert alert-danger mt-2";
-      errorMsg.textContent =
-        "Some files exceed the 10MB limit. Please remove them before submitting.";
-      filePreview.appendChild(errorMsg);
+      const $errorMsg = $("<div>", {
+        class: "alert alert-danger mt-2",
+        text: "Some files exceed the 10MB limit. Please remove them before submitting.",
+      });
+      $filePreview.append($errorMsg);
     }
   } else {
-    // Hide preview if no files selected
-    if (typeof $ !== "undefined") {
-      $(filePreview).addClass("d-none");
-    } else {
-      filePreview.classList.add("d-none");
-    }
+    $filePreview.addClass("d-none");
   }
 }
 
@@ -112,7 +92,5 @@ function formatFileSize(bytes) {
  * @returns {string} Escaped text
  */
 function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+  return $("<div>").text(text).html();
 }
