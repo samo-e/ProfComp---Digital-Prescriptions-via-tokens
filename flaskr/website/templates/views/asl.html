@@ -16,7 +16,7 @@
     <script src="{{ url_for('static', filename='js/asl_export.js') }}"></script>
 
     <script>
-        const pt_id = {{ pt }};
+        const pt_id = {{ patient_id }};
         const pt_data = {{ pt_data|tojson }};
         const flatted_pt_data = flatten_dict(pt_data);
     </script>
@@ -100,7 +100,7 @@
         <div class="col">
             <div class="btn-group" role="group">
                 <!-- Export Complete ASL Button -->
-                <a href="{{ url_for('views.export_asl_csv', patient_id=pt) }}" 
+                     <a href="{{ url_for('views.export_asl_csv', patient_id=patient_id) }}" 
                    class="btn btn-success"
                    title="Export complete ASL and ALR as CSV">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Export Complete ASL
@@ -110,7 +110,7 @@
                 <button type="button" 
                         class="btn btn-outline-success" 
                         id="exportSelectedBtn"
-                        onclick="exportSelectedPrescriptions({{ pt }})"
+                        onclick="exportSelectedPrescriptions({{ patient_id }})"
                         title="Export only selected prescriptions">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Export Selected
                 </button>

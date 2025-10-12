@@ -2047,8 +2047,9 @@ def asl(patient_id: int):
         ]
         user_role = "teacher" if current_user.is_teacher() else "student"
 
+        # Render template and provide both 'patient_id' and legacy 'pt' for compatibility
         return render_template(
-            "views/asl.html", patient_id=patient_id, pt_data=pt_data, user_role=user_role
+            "views/asl.html", patient_id=patient_id, pt=patient_id, pt_data=pt_data, user_role=user_role
         )
 
     except Exception as e:
@@ -2477,8 +2478,8 @@ def patient_asl_form(patient_id):
 
         flash(f"ASL record saved for {patient.given_name or patient.name}!", "success")
 
-        # Redirect to ASL view to show the saved data
-        return redirect(url_for("views.asl", pt=patient.id))
+    # Redirect to ASL view to show the saved data
+    return redirect(url_for("views.asl", patient_id=patient.id))
 
     return render_template(
         "views/aslregister.html",
