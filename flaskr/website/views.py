@@ -1907,21 +1907,17 @@ def export_selected_asl_csv(patient_id):
 
 @views.route("/asl/<int:pt>")
 def asl(pt: int):
-    """ASL page - now requires login"""
+    """ASL page — ASL-first display. ALR shows only ALR-prescriber items."""
     try:
         patient = Patient.query.get_or_404(pt)
 
-        # Check access control
         can_view_asl = patient.can_view_asl()
-
-        # Only get prescriptions if we have access
         asl_prescriptions = []
         alr_prescriptions = []
 
         if can_view_asl:
-            # Get ALL prescriptions for ASL display (not just available ones)
-            # For ASL items - we distinguish them from ALR by having a non-minimal prescriber
-            # ASL prescriptions
+            # ASL: show prescriptions written by normal prescribers (not ALR),
+            # excluding fully dispensed items.
             asl_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
@@ -1932,7 +1928,8 @@ def asl(pt: int):
                 .all()
             )
 
-            # ALR prescriptions
+            # ALR: show only prescriptions explicitly moved to ALR (ALR prescriber),
+            # excluding fully dispensed items. This guarantees ASL > ALR priority.
             alr_prescriptions = (
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
@@ -1943,6 +1940,7 @@ def asl(pt: int):
                 .all()
             )
 
+        # Build template data
         pt_data = {
             "medicare": patient.medicare,
             "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no,
@@ -1952,7 +1950,7 @@ def asl(pt: int):
             "dob": patient.dob,
             "preferred-contact": patient.preferred_contact,
             "address-1": patient.address or "",
-            "address-2": "",  # Patient model doesn't have address_2
+            "address-2": "",
             "script-date": patient.script_date,
             "pbs": patient.pbs,
             "rpbs": patient.rpbs,
@@ -1970,9 +1968,9 @@ def asl(pt: int):
             "can_view_asl": can_view_asl,
         }
 
-        # Process ASL data
+        # Populate ASL data
         for prescription, prescriber in asl_prescriptions:
-            asl_item = {
+            pt_data["asl-data"].append({
                 "prescription_id": prescription.id,
                 "DSPID": "null",
                 "status": prescription.get_status().name.title(),
@@ -1996,12 +1994,11 @@ def asl(pt: int):
                     "phone": prescriber.phone,
                     "fax": prescriber.fax,
                 },
-            }
-            pt_data["asl-data"].append(asl_item)
+            })
 
-        # Process ALR data
+        # Populate ALR data
         for prescription, prescriber in alr_prescriptions:
-            alr_item = {
+            pt_data["alr-data"].append({
                 "prescription_id": prescription.id,
                 "DSPID": "null",
                 "drug-name": prescription.drug_name,
@@ -2026,12 +2023,10 @@ def asl(pt: int):
                     "phone": prescriber.phone,
                     "fax": prescriber.fax,
                 },
-            }
-            pt_data["alr-data"].append(alr_item)
+            })
 
-        # Get ASL record data (carer information, notes, etc.)
+        # Carer info and notes
         from .models import ASL
-
         asl_record = ASL.query.filter_by(patient_id=pt).first()
         pt_data["carer"] = {
             "name": asl_record.carer_name if asl_record else "",
@@ -2040,7 +2035,11 @@ def asl(pt: int):
             "email": asl_record.carer_email if asl_record else "",
         }
         pt_data["notes"] = asl_record.notes if asl_record else ""
-
+        asl_names = {a["drug-name"].lower().strip() for a in pt_data["asl-data"]}
+        pt_data["alr-data"] = [
+            a for a in pt_data["alr-data"]
+            if a["drug-name"].lower().strip() not in asl_names
+        ]
         user_role = "teacher" if current_user.is_teacher() else "student"
 
         return render_template(
@@ -2049,6 +2048,7 @@ def asl(pt: int):
 
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500
+
 
 
 # API routes with authentication
@@ -2357,23 +2357,47 @@ def dispense_prescriptions(patient_id):
         # Update prescriptions to dispensed status
         dispensed_count = 0
 
+        # Get ALR prescriber object
+        alr_prescriber = Prescriber.query.filter_by(fname="ALR").first()
+        if not alr_prescriber:
+            alr_prescriber = Prescriber(
+                fname="ALR",
+                lname="System",
+                title="ALR System",
+                prescriber_id="ALR001"
+            )
+            db.session.add(alr_prescriber)
+            db.session.commit()
+
         for prescription in prescriptions:
             # Check if already dispensed
             if prescription.status == PrescriptionStatus.DISPENSED.value:
                 continue
 
             # Update prescription status
-            prescription.status = PrescriptionStatus.DISPENSED.value
+            if prescription.remaining_repeats is None:
+                prescription.remaining_repeats = prescription.dose_rpt
+            
+
+            if prescription.remaining_repeats > 0:
+                prescription.remaining_repeats -= 1
+
+            # If repeats remain → move to ALR
+            if prescription.remaining_repeats > 0:
+                prescription.prescriber_id = alr_prescriber.id
+                prescription.status = PrescriptionStatus.DISPENSED.value
+                
+            else:
+                # No repeats left → mark as fully dispensed
+                prescription.status = PrescriptionStatus.DISPENSED.value
+            
             prescription.dispensed_date = dispensed_date
             prescription.dispensed_at_this_pharmacy = True
-
-            # Handle repeats - if this prescription has repeats, initialize remaining_repeats if not set
-            if prescription.dose_rpt > 0:
-                if prescription.remaining_repeats is None:
-                    prescription.remaining_repeats = prescription.dose_rpt
-                # Don't reduce repeats here - this happens when the prescription moves to ALR
+            prescription.dispensed_by = dispensed_by
+            prescription.dispensing_notes = dispensing_notes
 
             dispensed_count += 1
+
 
         db.session.commit()
 
