@@ -121,10 +121,11 @@ def export_and_encrypt_csv(csv_filename, zip_filename, password):
     # Delete the original CSV after encryption
     try:
         os.remove(csv_filename)
-        print(f"Original CSV deleted: {csv_filename}")
+        # print(f"Original CSV deleted: {csv_filename}")
     except Exception as e:
-        print(f"Failed to delete CSV: {e}")
-    print(f"Encrypted ZIP created: {zip_filename}")
+        pass
+        # print(f"Failed to delete CSV: {e}")
+    # print(f"Encrypted ZIP created: {zip_filename}")
 
 
 @admin.route("/admin/download_last_created_accounts_csv")
@@ -649,15 +650,15 @@ def create_account():
 @login_required
 def batch_create_accounts():
     global _last_created_csv_path
-    print("DEBUGSADASD: ", request.get_json(force=True) or {})
-    print("[DEBUG] batch_create_accounts called by:", current_user.email)
+    # print("DEBUGSADASD: ", request.get_json(force=True) or {})
+    # print("[DEBUG] batch_create_accounts called by:", current_user.email)
     if current_user.role != "admin":
-        print("[DEBUG] Access denied: not admin")
+        # print("[DEBUG] Access denied: not admin")
         return jsonify(success=False, message="Admin privileges required."), 403
     data = request.get_json()
-    print("[DEBUG] Received data:", data)
+    # print("[DEBUG] Received data:", data)
     accounts = data.get("accounts", [])
-    print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
+    # print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
     created_emails = []
     errors = []
     import time
@@ -665,7 +666,7 @@ def batch_create_accounts():
     created_accounts_for_csv = []
 
     for acc in accounts:
-        print("[DEBUG] Processing account:", acc)
+        # print("[DEBUG] Processing account:", acc)
         # Check for required fields
         role = acc.get("role")
         first_name = acc.get("first_name")
@@ -674,26 +675,26 @@ def batch_create_accounts():
         password = acc.get("password")
         studentnumber = acc.get("studentnumber")
         if not (role and first_name and last_name and email and password):
-            print(
-                f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}"
-            )
+            # print(
+            #     f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}"
+            # )
             errors.append(f"Missing fields for {email or '[no email]' }.")
             continue
         if role == "student":
             if not studentnumber:
-                print(f"[DEBUG] Student number missing for {email}")
+                # print(f"[DEBUG] Student number missing for {email}")
                 errors.append(f"Student number required for {email}.")
                 continue
         # Check for duplicates
         if User.query.filter_by(email=email).first():
-            print(f"[DEBUG] Duplicate email: {email}")
+            # print(f"[DEBUG] Duplicate email: {email}")
             errors.append(f"Email {email} already exists.")
             continue
         if (
             role == "student"
             and User.query.filter_by(studentnumber=studentnumber).first()
         ):
-            print(f"[DEBUG] Duplicate student number: {studentnumber}")
+            # print(f"[DEBUG] Duplicate student number: {studentnumber}")
             errors.append(f"Student number {studentnumber} already exists.")
             continue
         try:
@@ -711,7 +712,7 @@ def batch_create_accounts():
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
-            print(f"[DEBUG] Created user: {email}")
+            # print(f"[DEBUG] Created user: {email}")
             created_emails.append(email)
             # Add to CSV export list
             created_accounts_for_csv.append(
@@ -726,7 +727,7 @@ def batch_create_accounts():
             )
         except Exception as e:
             db.session.rollback()
-            print(f"[DEBUG] Error creating {email}: {str(e)}")
+            # print(f"[DEBUG] Error creating {email}: {str(e)}")
             errors.append(f"Error creating {email}: {str(e)}")
     if created_emails:
         # Export created accounts to CSV in exports folder with timestamp
@@ -972,8 +973,8 @@ def export_all_students_csv():
             if scenario is None:
                 continue
 
-            print("Patient =", patient)
-            print("Scenario =", scenario)
+            # print("Patient =", patient)
+            # print("Scenario =", scenario)
             prescriptions = Prescription.query.filter_by(patient_id=patient.id).all()
 
             presc_data = []

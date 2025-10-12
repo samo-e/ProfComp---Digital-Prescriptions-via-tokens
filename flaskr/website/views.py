@@ -2562,7 +2562,7 @@ def patient_asl_form(patient_id):
         asl.notes = form.notes.data
         asl.consent_status = int(form.consent_status.data)
 
-        # Update patient’s preferred contact (lives in Patient model)
+        # Update patient's preferred contact (lives in Patient model)
         patient.preferred_contact = form.preferred_contact.data
 
         # Set patient as registered when the form is submitted
