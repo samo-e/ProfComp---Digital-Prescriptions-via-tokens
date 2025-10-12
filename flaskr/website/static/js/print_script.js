@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
   $("#script-print").click(print_scripts);
 });
 

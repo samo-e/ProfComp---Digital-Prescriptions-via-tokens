@@ -20,15 +20,16 @@ $(document).ready(function () {
     // Wrap in jQuery object
     const $item = $($template);
     console.log($item);
-    
-$item.find("input, textarea, select").each(function () {
-    const originalName = $(this).attr("name") || "";
 
-    const newName = `${type.toLowerCase()}_creations-${index}-${originalName.split("-").pop()}`;
-    console.log(newName);
-    $(this).attr("name", newName);
-});
+    $item.find("input, textarea, select").each(function () {
+      const originalName = $(this).attr("name") || "";
 
+      const newName = `${type.toLowerCase()}_creations-${index}-${originalName
+        .split("-")
+        .pop()}`;
+      console.log(newName);
+      $(this).attr("name", newName);
+    });
 
     // Append to container
     $container.append($item);

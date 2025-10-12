@@ -34,7 +34,7 @@ function flatten_dict(dict) {
 }
 
 // Initialize flattened data if pt_data exists
-if (typeof pt_data !== 'undefined') {
+if (typeof pt_data !== "undefined") {
   const flatted_pt_data = flatten_dict(pt_data);
   // Make it globally available for other scripts
   window.flatted_pt_data = flatted_pt_data;

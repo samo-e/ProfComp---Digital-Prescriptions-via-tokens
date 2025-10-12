@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
   // collapse functionality
   $(".btn-collapse").on("click", function () {
     var $btn = $(this);
@@ -182,11 +182,11 @@ $(function() {
 
     if (!hasResults) {
       const noResultsRow = `
-              <tr id="no-results">
-                  <td colspan="7" class="text-center text-muted py-4">
-                      <i class="bi bi-search"></i> No matching prescriptions found
-                  </td>
-              </tr>`;
+<tr id="no-results">
+  <td colspan="7" class="text-center text-muted py-4">
+    <i class="bi bi-search"></i> No matching prescriptions found
+  </td>
+</tr>`;
       $("#asl-table tbody").append(noResultsRow);
     }
   }
@@ -271,7 +271,7 @@ $(function() {
   console.log("ASL Status:", pt_data["consent-status"]["status"]);
 });
 
-$(function() {
+$(function () {
   // Handle prescription selection for dispensing
   const checkboxes = document.querySelectorAll(
     '#asl-table input[type="checkbox"]'
