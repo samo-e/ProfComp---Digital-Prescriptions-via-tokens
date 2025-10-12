@@ -393,6 +393,15 @@ $(function () {
             // Show success message
             showAlert("success", "Prescriptions dispensed successfully!");
 
+            // Remove dispensed prescriptions from table
+            document.querySelectorAll('#asl-table input[type="checkbox"]:checked').forEach(cb => {
+              const row = cb.closest("tr");
+              if (row) row.remove();
+            });
+
+            // Hide dispense button
+            document.getElementById("dispense-selected").classList.add("d-none");
+
             // Refresh page to show updated status
             setTimeout(() => {
               window.location.reload();

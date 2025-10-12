@@ -16,7 +16,7 @@
     <script src="{{ url_for('static', filename='js/asl_export.js') }}"></script>
 
     <script>
-        const pt_id = {{ pt }};
+        const pt_id = {{ patient_id }};
         const pt_data = {{ pt_data|tojson }};
         const flatted_pt_data = flatten_dict(pt_data);
     </script>
@@ -100,7 +100,7 @@
         <div class="col">
             <div class="btn-group" role="group">
                 <!-- Export Complete ASL Button -->
-                <a href="{{ url_for('views.export_asl_csv', patient_id=pt) }}" 
+                     <a href="{{ url_for('views.export_asl_csv', patient_id=patient_id) }}" 
                    class="btn btn-success"
                    title="Export complete ASL and ALR as CSV">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Export Complete ASL
@@ -110,7 +110,7 @@
                 <button type="button" 
                         class="btn btn-outline-success" 
                         id="exportSelectedBtn"
-                        onclick="exportSelectedPrescriptions({{ pt }})"
+                        onclick="exportSelectedPrescriptions({{ patient_id }})"
                         title="Export only selected prescriptions">
                     <i class="bi bi-file-earmark-spreadsheet"></i> Export Selected
                 </button>
@@ -183,6 +183,15 @@
         </div>
     </div>
 
+    <!-- Dispense button - shows when prescriptions are selected -->
+    <div class="row mt-3">
+        <div class="col-12 text-end">
+            <button id="dispense-selected" class="btn btn-success d-none">
+                <i class="bi bi-capsule"></i> Dispense Selected
+            </button>
+        </div>
+    </div>
+
     <!-- ALR Section -->
     <div class="row mt-4">
         <div class="col">
@@ -239,6 +248,40 @@
                 </table>
             </div>
         </div>
+        
+        <table id="alr-table" class="table collapse show">
+            <thead>
+                <tr>
+                    <th scope="col">Dispensed</th>
+                    <th scope="col">Item</th>
+                    <th scope="col">Qty</th>
+                    <th scope="col">Prescribed</th>
+                    <th scope="col">Rpt</th>
+                    <th scope="col">Paperless</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alr in pt_data['alr-data'] %}
+                <tr id="alr-{{ loop.index }}" class="alr-{{ 'paperless' if alr['paperless'] else 'paper' }}">
+                    <td class="alr-date">{{ alr['dispensed-date'] or "" }}</td>
+                    <td class="alr-item">
+                        {{ alr['drug-name'] }}
+                        <p>{{ alr['dose-instr'] }}</p>
+                    </td>
+                    <td class="alr-qty">{{ alr['dose-qty'] }}</td>
+                    <td class="alr-prescriber">
+                        {{ alr['prescriber']['lname'] }}, {{ alr['prescriber']['fname'][0] }}<br>
+                        {{ alr['prescribed-date'] }}
+                    </td>
+                    <td class="alr-rpt">{{ alr.get('remaining-repeats', 'N/A') }}</td>
+                    <td class="alr-cloud-prescription">
+                        <img src="{{ url_for('static', filename='cloud-prescription.svg') }}"/>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
     </div>
     {% else %}
     <div class="alert alert-warning mt-4" role="alert">
@@ -264,4 +307,52 @@
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="prescription_ids" id="prescriptionIds">
 </form>
+
+<!-- Dispensing Modal -->
+<div class="modal fade" id="dispensingModal" tabindex="-1" aria-labelledby="dispensingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="dispensingModalLabel">
+                    <i class="bi bi-capsule"></i> Dispense Prescriptions
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="selected-prescriptions">
+                    <!-- Selected prescriptions will be populated here -->
+                </div>
+                <form id="dispensing-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="patient_id" value="{{ patient_id }}">
+                    <input type="hidden" id="prescription-ids" name="prescription_ids" value="">
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="dispensed_by" class="form-label">Dispensed By</label>
+                            <input type="text" class="form-control" id="dispensed_by" name="dispensed_by" 
+                                   value="{{ current_user.get_full_name() if current_user.is_authenticated else '' }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="dispensed_date" class="form-label">Dispensed Date</label>
+                            <input type="text" class="form-control" id="dispensed_date" name="dispensed_date" 
+                                   value="" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="dispensing_notes" class="form-label">Dispensing Notes</label>
+                            <textarea class="form-control" id="dispensing_notes" name="dispensing_notes" 
+                                      rows="3" placeholder="Add any notes about the dispensing..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirm-dispense">
+                    <i class="bi bi-check-circle"></i> Confirm Dispensing
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
