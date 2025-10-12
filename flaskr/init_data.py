@@ -293,7 +293,7 @@ def init_asl_database():
         # print("- Patient 2 (John): PENDING - waiting for SMS/email reply")
         # print("- Patient 3 (Sarah): REJECTED - patient denied access")
         # print("- Patient 4 (Michael): NO_CONSENT - never requested access before")
-
+        #
 
 if __name__ == "__main__":
     init_asl_database()
