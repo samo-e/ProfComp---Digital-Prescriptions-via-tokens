@@ -6,14 +6,14 @@
 function flatten_dict(dict) {
   let new_dict = {};
 
-  for (var key in dict) {
+  for (let key in dict) {
     const value = dict[key];
 
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
         if (typeof item === "object" && item !== null) {
           const flattened = flatten_dict(item);
-          for (var subkey in flattened) {
+          for (let subkey in flattened) {
             new_dict[`${key}-${index}-${subkey}`] = flattened[subkey];
           }
         } else {
@@ -22,7 +22,7 @@ function flatten_dict(dict) {
       });
     } else if (typeof value === "object" && value !== null) {
       const flattened = flatten_dict(value);
-      for (var subkey in flattened) {
+      for (let subkey in flattened) {
         new_dict[`${key}-${subkey}`] = flattened[subkey];
       }
     } else {

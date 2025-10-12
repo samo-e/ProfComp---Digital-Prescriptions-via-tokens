@@ -216,16 +216,16 @@ input[readonly].form-control {
   .table td {
     max-width: 150px;
   }
-  
+
   #patientsTable td:nth-child(5) {
     max-width: 120px;
   }
-  
+
   .form-control,
   .form-select {
     font-size: 14px;
   }
-  
+
   .scenario-name {
     max-width: 200px;
   }
@@ -235,11 +235,11 @@ input[readonly].form-control {
   .table td {
     max-width: 100px;
   }
-  
+
   #patientsTable td:nth-child(5) {
     max-width: 80px;
   }
-  
+
   .patient-name,
   .user-name {
     max-width: 150px;

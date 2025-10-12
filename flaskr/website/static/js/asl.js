@@ -1,8 +1,8 @@
 $(function () {
   // collapse functionality
   $(".btn-collapse").on("click", function () {
-    var $btn = $(this);
-    var $icon = $btn.find("i");
+    let $btn = $(this);
+    let $icon = $btn.find("i");
     $icon.toggleClass("bi-chevron-up bi-chevron-down");
   });
 
@@ -266,9 +266,9 @@ $(function () {
   }
 
   // debug info
-  console.log("pt_id:", pt_id);
-  console.log("pt_data:", pt_data);
-  console.log("ASL Status:", pt_data["consent-status"]["status"]);
+  // console.log("pt_id:", pt_id);
+  // console.log("pt_data:", pt_data);
+  // console.log("ASL Status:", pt_data["consent-status"]["status"]);
 });
 
 $(function () {

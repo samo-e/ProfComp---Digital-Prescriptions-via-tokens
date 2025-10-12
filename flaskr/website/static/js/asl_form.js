@@ -1,12 +1,12 @@
 // flaskr/website/static/js/asl_form.js
 
 (function () {
-  const aslContainer = document.getElementById("asl-items");
-  const alrContainer = document.getElementById("alr-items");
-  const aslTemplate = document.getElementById("asl-item-template");
-  const alrTemplate = document.getElementById("alr-item-template");
-  const addAslBtn = document.getElementById("add-asl-item");
-  const addAlrBtn = document.getElementById("add-alr-item");
+  const aslContainer = $("#asl-items");
+  const alrContainer = $("#alr-items");
+  const aslTemplate = $("#asl-item-template");
+  const alrTemplate = $("#alr-item-template");
+  const addAslBtn = $("#add-asl-item");
+  const addAlrBtn = $("#add-alr-item");
 
   function addItem(container, templateEl, data = null, index = null) {
     const itemIndex = index !== null ? index : container.children.length;

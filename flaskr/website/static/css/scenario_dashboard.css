@@ -260,7 +260,7 @@
 .condition-chooser .btn-group {
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   background: #fff;
 }
 
@@ -278,7 +278,7 @@
   color: #fff;
 }
 
-#smallExamControls input[type=datetime-local] {
+#smallExamControls input[type="datetime-local"] {
   min-width: 180px;
 }
 
