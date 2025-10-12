@@ -453,21 +453,26 @@ def assign_scenario(scenario_id):
                         ).first()
 
                         if not existing_student:
+                            # If exam_start/exam_end were not provided in the form,
+                            # fall back to the scenario default values (if any).
+                            create_exam_start = exam_start if exam_start is not None else getattr(scenario, 'default_exam_start', None)
+                            create_exam_end = exam_end if exam_end is not None else getattr(scenario, 'default_exam_end', None)
+
                             student_assignment = StudentScenario(
                                 student_id=student_id,
                                 scenario_id=scenario.id,
                                 assignment_condition=assignment_condition,
-                                exam_start=exam_start,
-                                exam_end=exam_end,
+                                exam_start=create_exam_start,
+                                exam_end=create_exam_end,
                             )
                             db.session.add(student_assignment)
                         else:
                             # update existing assignment's condition and schedule if provided
                             if assignment_condition:
                                 existing_student.assignment_condition = assignment_condition
-                            if exam_start:
+                            if exam_start is not None:
                                 existing_student.exam_start = exam_start
-                            if exam_end:
+                            if exam_end is not None:
                                 existing_student.exam_end = exam_end
 
                         # Check if this exact patient assignment already exists
@@ -1790,7 +1795,7 @@ def export_selected_asl_csv(patient_id):
         
         if not prescription_ids or not prescription_ids[0]:
             flash("No prescriptions selected for export", "warning")
-            return redirect(url_for("views.asl", pt=patient_id))
+            return redirect(url_for("views.asl", patient_id=patient_id))
         
         # Get selected prescriptions with prescriber info
         prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
@@ -1806,7 +1811,7 @@ def export_selected_asl_csv(patient_id):
         
         if not prescriptions:
             flash("No valid prescriptions found to export", "error")
-            return redirect(url_for("views.asl", pt=patient_id))
+            return redirect(url_for("views.asl", patient_id=patient_id))
         
         # Create CSV
         output = StringIO()
@@ -1903,13 +1908,13 @@ def export_selected_asl_csv(patient_id):
         
     except Exception as e:
         flash(f"Error exporting selected prescriptions: {str(e)}", "error")
-        return redirect(url_for("views.asl", pt=patient_id))
+        return redirect(url_for("views.asl", patient_id=patient_id))
 
-@views.route("/asl/<int:pt>")
-def asl(pt: int):
+@views.route("/asl/<int:patient_id>")
+def asl(patient_id: int):
     """ASL page — ASL-first display. ALR shows only ALR-prescriber items."""
     try:
-        patient = Patient.query.get_or_404(pt)
+        patient = Patient.query.get_or_404(patient_id)
 
         can_view_asl = patient.can_view_asl()
         asl_prescriptions = []
@@ -1922,7 +1927,7 @@ def asl(pt: int):
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
-                    Prescription.patient_id == pt,
+                    Prescription.patient_id == patient_id,
                     Prescription.DSPID == "asl",  # filter by DSPID
                 )
                 .all()
@@ -1934,7 +1939,7 @@ def asl(pt: int):
                 db.session.query(Prescription, Prescriber)
                 .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
                 .filter(
-                    Prescription.patient_id == pt,
+                    Prescription.patient_id == patient_id,
                     Prescription.DSPID == "alr",  # filter by DSPID
                 )
                 .all()
@@ -2027,7 +2032,7 @@ def asl(pt: int):
 
         # Carer info and notes
         from .models import ASL
-        asl_record = ASL.query.filter_by(patient_id=pt).first()
+        asl_record = ASL.query.filter_by(patient_id=patient_id).first()
         pt_data["carer"] = {
             "name": asl_record.carer_name if asl_record else "",
             "relationship": asl_record.carer_relationship if asl_record else "",
@@ -2043,7 +2048,7 @@ def asl(pt: int):
         user_role = "teacher" if current_user.is_teacher() else "student"
 
         return render_template(
-            "views/asl.html", pt=pt, pt_data=pt_data, user_role=user_role
+            "views/asl.html", patient_id=patient_id, pt_data=pt_data, user_role=user_role
         )
 
     except Exception as e:
@@ -2052,19 +2057,19 @@ def asl(pt: int):
 
 
 # API routes with authentication
-@views.route("/api/asl/<int:pt>/refresh", methods=["POST"])
+@views.route("/api/asl/<int:patient_id>/refresh", methods=["POST"])
 @login_required
-def refresh_asl(pt: int):
+def refresh_asl(patient_id: int):
     """Refresh Button - check for patient replies and update PENDING prescriptions"""
     try:
-        patient = Patient.query.get_or_404(pt)
+        patient = Patient.query.get_or_404(patient_id)
 
         if patient.asl_status == ASLStatus.PENDING.value:
             patient.asl_status = ASLStatus.GRANTED.value
             patient.consent_last_updated = datetime.now().strftime("%d/%m/%Y %H:%M")
 
             updated_count = Prescription.query.filter_by(
-                patient_id=pt, status=PrescriptionStatus.PENDING.value
+                patient_id=patient_id, status=PrescriptionStatus.PENDING.value
             ).update({"status": PrescriptionStatus.AVAILABLE.value})
 
             db.session.commit()
@@ -2087,7 +2092,7 @@ def refresh_asl(pt: int):
 
         elif patient.asl_status == ASLStatus.GRANTED.value:
             updated_count = Prescription.query.filter_by(
-                patient_id=pt, status=PrescriptionStatus.PENDING.value
+                patient_id=patient_id, status=PrescriptionStatus.PENDING.value
             ).update({"status": PrescriptionStatus.AVAILABLE.value})
 
             db.session.commit()
@@ -2117,12 +2122,12 @@ def refresh_asl(pt: int):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@views.route("/api/asl/<int:pt>/request-access", methods=["POST"])
+@views.route("/api/asl/<int:patient_id>/request-access", methods=["POST"])
 @login_required
-def request_access(pt: int):
+def request_access(patient_id: int):
     """Request access Button - handle proper ASL status transitions"""
     try:
-        patient = Patient.query.get_or_404(pt)
+        patient = Patient.query.get_or_404(patient_id)
         current_status = patient.get_asl_status()
 
         if current_status != ASLStatus.NO_CONSENT:
@@ -2159,12 +2164,12 @@ def request_access(pt: int):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@views.route("/api/patient/<int:pt>/consent", methods=["DELETE"])
+@views.route("/api/patient/<int:patient_id>/consent", methods=["DELETE"])
 @login_required
-def delete_consent(pt: int):
+def delete_consent(patient_id: int):
     """Delete consent - reset ASL status to NO_CONSENT for re-requesting"""
     try:
-        patient = Patient.query.get_or_404(pt)
+        patient = Patient.query.get_or_404(patient_id)
 
         patient.asl_status = ASLStatus.NO_CONSENT.value
         patient.consent_last_updated = datetime.now().strftime("%d/%m/%Y %H:%M")
@@ -2189,12 +2194,12 @@ def delete_consent(pt: int):
         return jsonify({"success": False, "error": str(e)}), 500
 
 
-@views.route("/api/asl/<int:pt>/search")
+@views.route("/api/asl/<int:patient_id>/search")
 @login_required
-def search_asl(pt: int):
+def search_asl(patient_id: int):
     """Search ASL prescriptions - only if access granted"""
     try:
-        patient = Patient.query.get_or_404(pt)
+        patient = Patient.query.get_or_404(patient_id)
 
         if not patient.can_view_asl():
             return (
@@ -2215,7 +2220,7 @@ def search_asl(pt: int):
             db.session.query(Prescription, Prescriber)
             .join(Prescriber, Prescription.prescriber_id == Prescriber.id)
             .filter(
-                Prescription.patient_id == pt,
+                Prescription.patient_id == patient_id,
                 or_(
                     Prescription.drug_name.ilike(f"%{query}%"),
                     Prescription.drug_code.ilike(f"%{query}%"),
