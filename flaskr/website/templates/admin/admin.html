@@ -126,9 +126,9 @@ function confirmDeleteUser(userName, userRole, form) {
     Updating data...
 </div>
 
-<div class="container">
+<div class="row">
     <!-- Teachers Column -->
-    <div class="column teachers-column">
+    <div class="col-lg-4 teacher-column">
         <h2>Teachers <span class="user-count">{{ teachers|length }}</span></h2>
         <ul class="user-list">
             {% for teacher in teachers %}
@@ -150,7 +150,7 @@ function confirmDeleteUser(userName, userRole, form) {
     </div>
 
     <!-- Students Column -->
-    <div class="column students-column">
+    <div class="col-lg-4 student-column">
            <h2>Students <span class="user-count">{{ students|length }}</span></h2>
            <ul class="user-list">
                {% for student in students %}
@@ -173,7 +173,7 @@ function confirmDeleteUser(userName, userRole, form) {
     </div>
 
     <!-- Admins Column -->
-    <div class="column admins-column">
+    <div class="col-lg-4 admin-column">
         <h2>Admins <span class="user-count">{{ admins|length }}</span></h2>
         <ul class="user-list">
             {% for admin_user in admins %}

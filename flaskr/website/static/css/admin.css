@@ -115,17 +115,10 @@ body {
   max-width: 1400px;
   margin: 0 auto;
 }
-.column {
-  background: var(--bs-body-bg, #fff);
-  color: var(--bs-body-color, #212529);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  height: 500px; /* Fixed height for consistent columns */
-  display: flex;
-  flex-direction: column;
+.col-lg-4 {
+  max-height: 70vh;
 }
-.column h2 {
+.col-lg-4 h2 {
   margin-top: 0;
   margin-bottom: 20px;
   color: var(--bs-body-color, #212529);
