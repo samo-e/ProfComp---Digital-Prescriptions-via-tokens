@@ -170,11 +170,7 @@ $(document).ready(function () {
           }
         } catch (e) {}
       }
-      if (
-        $modeForm &&
-        $modeForm.data("teacher-saved") &&
-        $modeForm.data("teacher-saved") == "1"
-      ) {
+      if ($modeForm.data("teacher-saved") == "1") {
         // remove any Saved/Edit elements that might have been inserted by inline template scripts
         try {
           $("#modeSavedBtn").remove();
