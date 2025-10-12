@@ -1,5 +1,5 @@
 """
-This module maps every field defined in the data‑contract to
+This module maps every field defined in the data-contract to
 the SQLAlchemy models in models.py.
 """
 

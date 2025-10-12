@@ -5,24 +5,26 @@
  * for the ASL Pharmacy Simulation Tool
  */
 
-(function() {
-  'use strict';
+(function () {
+  "use strict";
 
   /**
    * Check if an element's content is truncated
    */
   function isTextTruncated(element) {
     // For input fields, check if scrollWidth exceeds clientWidth
-    if (element.tagName === 'INPUT' || element.tagName === 'SELECT') {
+    if (element.tagName === "INPUT" || element.tagName === "SELECT") {
       return element.scrollWidth > element.clientWidth;
     }
-    
+
     // For regular elements
-    if (element.scrollWidth > element.clientWidth || 
-        element.scrollHeight > element.clientHeight) {
+    if (
+      element.scrollWidth > element.clientWidth ||
+      element.scrollHeight > element.clientHeight
+    ) {
       return true;
     }
-    
+
     return false;
   }
 
@@ -31,32 +33,35 @@
    */
   function addTooltipIfTruncated(element) {
     // Skip if element already has a title
-    if (element.hasAttribute('title') || element.hasAttribute('data-bs-original-title')) {
+    if (
+      element.hasAttribute("title") ||
+      element.hasAttribute("data-bs-original-title")
+    ) {
       return;
     }
 
-    let textContent = '';
-    
+    let textContent = "";
+
     // Get text content based on element type
-    if (element.tagName === 'INPUT') {
+    if (element.tagName === "INPUT") {
       textContent = element.value;
-    } else if (element.tagName === 'SELECT') {
+    } else if (element.tagName === "SELECT") {
       const selectedOption = element.options[element.selectedIndex];
-      textContent = selectedOption ? selectedOption.text : '';
+      textContent = selectedOption ? selectedOption.text : "";
     } else {
       textContent = element.textContent || element.innerText;
     }
 
     // Only add tooltip if text exists and is truncated
     if (textContent.trim() && isTextTruncated(element)) {
-      element.setAttribute('title', textContent.trim());
-      
+      element.setAttribute("title", textContent.trim());
+
       // If Bootstrap tooltips are available, initialize them
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+      if (typeof bootstrap !== "undefined" && bootstrap.Tooltip) {
         new bootstrap.Tooltip(element, {
-          trigger: 'hover',
-          placement: 'top',
-          boundary: 'window'
+          trigger: "hover",
+          placement: "top",
+          boundary: "window",
         });
       }
     }
@@ -67,11 +72,11 @@
    */
   function removeTooltipIfNotTruncated(element) {
     if (!isTextTruncated(element)) {
-      element.removeAttribute('title');
-      element.removeAttribute('data-bs-original-title');
-      
+      element.removeAttribute("title");
+      element.removeAttribute("data-bs-original-title");
+
       // Dispose Bootstrap tooltip if it exists
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+      if (typeof bootstrap !== "undefined" && bootstrap.Tooltip) {
         const tooltipInstance = bootstrap.Tooltip.getInstance(element);
         if (tooltipInstance) {
           tooltipInstance.dispose();
@@ -88,14 +93,14 @@
       'input[type="text"].form-control',
       'input[type="email"].form-control',
       'input[type="tel"].form-control',
-      'input[readonly].form-control',
-      'select.form-select',
-      '.form-control-sm',
-      '.form-select-sm'
+      "input[readonly].form-control",
+      "select.form-select",
+      ".form-control-sm",
+      ".form-select-sm",
     ];
 
-    selectors.forEach(selector => {
-      document.querySelectorAll(selector).forEach(element => {
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((element) => {
         addTooltipIfTruncated(element);
       });
     });
@@ -105,7 +110,7 @@
    * Process table cells and add tooltips where needed
    */
   function processTableCells() {
-    document.querySelectorAll('.table td').forEach(cell => {
+    document.querySelectorAll(".table td").forEach((cell) => {
       addTooltipIfTruncated(cell);
     });
   }
@@ -115,16 +120,16 @@
    */
   function processLongTextElements() {
     const selectors = [
-      '.scenario-name',
-      '.scenario-name a',
-      '.patient-name',
-      '.user-name',
-      '.fw-semibold',
-      '.badge'
+      ".scenario-name",
+      ".scenario-name a",
+      ".patient-name",
+      ".user-name",
+      ".fw-semibold",
+      ".badge",
     ];
 
-    selectors.forEach(selector => {
-      document.querySelectorAll(selector).forEach(element => {
+    selectors.forEach((selector) => {
+      document.querySelectorAll(selector).forEach((element) => {
         addTooltipIfTruncated(element);
       });
     });
@@ -135,10 +140,10 @@
    */
   function handleInputChange(event) {
     const element = event.target;
-    
+
     // Remove old tooltip
     removeTooltipIfNotTruncated(element);
-    
+
     // Add new tooltip if needed
     setTimeout(() => {
       addTooltipIfTruncated(element);
@@ -161,7 +166,7 @@
   function initMutationObserver() {
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+        if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
           // Process newly added nodes
           setTimeout(() => {
             processInputFields();
@@ -175,7 +180,7 @@
     // Observe the entire document body for changes
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
   }
 
@@ -183,29 +188,33 @@
    * Add click-to-copy functionality for truncated text
    */
   function addClickToCopy() {
-    document.addEventListener('dblclick', function(event) {
+    document.addEventListener("dblclick", function (event) {
       const element = event.target;
-      
+
       // Only for input fields with truncated text
-      if ((element.tagName === 'INPUT' || element.tagName === 'TD') && 
-          element.hasAttribute('title')) {
-        
-        const textToCopy = element.getAttribute('title');
-        
+      if (
+        (element.tagName === "INPUT" || element.tagName === "TD") &&
+        element.hasAttribute("title")
+      ) {
+        const textToCopy = element.getAttribute("title");
+
         // Try to copy to clipboard
         if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(textToCopy).then(() => {
-            // Show feedback
-            const originalTitle = element.getAttribute('title');
-            element.setAttribute('title', 'Copied to clipboard!');
-            
-            // Restore original title after 2 seconds
-            setTimeout(() => {
-              element.setAttribute('title', originalTitle);
-            }, 2000);
-          }).catch(err => {
-            console.error('Failed to copy text:', err);
-          });
+          navigator.clipboard
+            .writeText(textToCopy)
+            .then(() => {
+              // Show feedback
+              const originalTitle = element.getAttribute("title");
+              element.setAttribute("title", "Copied to clipboard!");
+
+              // Restore original title after 2 seconds
+              setTimeout(() => {
+                element.setAttribute("title", originalTitle);
+              }, 2000);
+            })
+            .catch((err) => {
+              console.error("Failed to copy text:", err);
+            });
         }
       }
     });
@@ -216,8 +225,8 @@
    */
   function init() {
     // Wait for DOM to be ready
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', init);
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
       return;
     }
 
@@ -227,12 +236,12 @@
     processLongTextElements();
 
     // Add event listeners for input changes
-    document.addEventListener('input', handleInputChange);
-    document.addEventListener('change', handleInputChange);
+    document.addEventListener("input", handleInputChange);
+    document.addEventListener("change", handleInputChange);
 
     // Handle window resize with debouncing
     let resizeTimeout;
-    window.addEventListener('resize', function() {
+    window.addEventListener("resize", function () {
       clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(handleResize, 250);
     });
@@ -253,7 +262,6 @@
 
   // Start initialization
   init();
-
 })();
 
 /**
@@ -261,35 +269,36 @@
  * Can be called from other scripts if needed
  */
 window.ASLTooltipUtils = {
-  addTooltip: function(element) {
-    if (element && typeof element.getAttribute === 'function') {
-      const isInputOrSelect = element.tagName === 'INPUT' || element.tagName === 'SELECT';
+  addTooltip: function (element) {
+    if (element && typeof element.getAttribute === "function") {
+      const isInputOrSelect =
+        element.tagName === "INPUT" || element.tagName === "SELECT";
       const textContent = isInputOrSelect ? element.value : element.textContent;
-      
+
       if (textContent && textContent.trim()) {
-        element.setAttribute('title', textContent.trim());
-        
-        if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        element.setAttribute("title", textContent.trim());
+
+        if (typeof bootstrap !== "undefined" && bootstrap.Tooltip) {
           new bootstrap.Tooltip(element, {
-            trigger: 'hover',
-            placement: 'top'
+            trigger: "hover",
+            placement: "top",
           });
         }
       }
     }
   },
-  
-  removeTooltip: function(element) {
+
+  removeTooltip: function (element) {
     if (element) {
-      element.removeAttribute('title');
-      element.removeAttribute('data-bs-original-title');
-      
-      if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+      element.removeAttribute("title");
+      element.removeAttribute("data-bs-original-title");
+
+      if (typeof bootstrap !== "undefined" && bootstrap.Tooltip) {
         const tooltipInstance = bootstrap.Tooltip.getInstance(element);
         if (tooltipInstance) {
           tooltipInstance.dispose();
         }
       }
     }
-  }
+  },
 };

@@ -1,46 +1,36 @@
 // DEBUG: Student profile assign/unassign teacher modal logic
-document.addEventListener("DOMContentLoaded", function () {
+(function () {
   // DEBUG: Modal and button element references
-  var modal = document.getElementById("assignTeacherModal");
-  var btn = document.getElementById("assign-teachers-btn");
-  var closeBtn = document.getElementById("closeTeacherModal");
-  var searchInput = document.getElementById("teacher-search");
-  var teachersList = document.getElementById("teachers-list");
+  const $modal = $("#assignTeacherModal");
+  const $btn = $("#assign-teachers-btn");
+  const $closeBtn = $("#closeTeacherModal");
+  const $searchInput = $("#teacher-search");
+  const $teachersList = $("#teachers-list");
 
   // DEBUG: Modal open/close handlers
-  if (btn) {
-    btn.onclick = function () {
-      // DEBUG: Open assign teacher modal
-      modal.style.display = "block";
-    };
-  }
+  $btn.on("click", function () {
+    $modal.show();
+  });
 
-  if (closeBtn) {
-    closeBtn.onclick = function () {
-      // DEBUG: Close assign teacher modal
-      modal.style.display = "none";
-    };
-  }
+  $closeBtn.on("click", function () {
+    $modal.hide();
+  });
 
-  window.onclick = function (event) {
-    if (event.target == modal) {
-      // DEBUG: Click outside modal closes it
-      modal.style.display = "none";
+  $(window).on("click", function (e) {
+    if ($(e.target).is($modal)) {
+      $modal.hide();
     }
-  };
+  });
 
   // DEBUG: Teacher search filter
-  if (searchInput && teachersList) {
-    searchInput.addEventListener("keyup", function () {
-      var filter = searchInput.value.toLowerCase();
-      var teachers = teachersList.getElementsByTagName("li");
-      Array.from(teachers).forEach(function (teacher) {
-        var text = teacher.textContent || teacher.innerText;
-        teacher.style.display =
-          text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
-      });
+  $searchInput.on("keyup", function () {
+    const filter = $(this).val().toLowerCase();
+
+    $teachersList.find("li").each(function () {
+      const text = $(this).text().toLowerCase();
+      $(this).toggle(text.indexOf(filter) > -1);
     });
-  }
+  });
 
   // --- AJAX assign teacher logic ---
   // DEBUG: Setup assign-teacher-form AJAX handlers
@@ -83,9 +73,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 li.style.opacity = "0.5";
               }
               // Update assigned teachers list live
-              const assignedList = document.getElementById(
-                "assigned-teachers-list"
-              );
+              const assignedList = $("#assigned-teachers-list");
               if (assignedList) {
                 const firstLi = assignedList.querySelector("li");
                 if (
@@ -173,9 +161,7 @@ document.addEventListener("DOMContentLoaded", function () {
           // DEBUG: Unassign teacher success
           if (li) li.remove();
           // Always get the assignedList after removal
-          const assignedList = document.getElementById(
-            "assigned-teachers-list"
-          );
+          const assignedList = $("#assigned-teachers-list");
           if (assignedList && assignedList.children.length === 0) {
             const placeholder = document.createElement("li");
             placeholder.className = "list-group-item text-muted";

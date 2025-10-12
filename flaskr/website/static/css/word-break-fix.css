@@ -94,7 +94,13 @@ div[contenteditable],
 }
 
 /* Paragraph and heading elements */
-p, h1, h2, h3, h4, h5, h6,
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 .text-content,
 .content-text {
   word-wrap: break-word !important;
@@ -290,7 +296,7 @@ body * {
     word-break: break-word !important;
     overflow-wrap: break-word !important;
   }
-  
+
   .container,
   .card,
   .modal {

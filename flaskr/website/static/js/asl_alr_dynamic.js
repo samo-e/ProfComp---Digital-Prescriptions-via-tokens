@@ -19,16 +19,15 @@ $(document).ready(function () {
     $template = $template.replace(/__INDEX__/g, index);
     // Wrap in jQuery object
     const $item = $($template);
-    console.log($item);
-    
-$item.find("input, textarea, select").each(function () {
-    const originalName = $(this).attr("name") || "";
 
-    const newName = `${type.toLowerCase()}_creations-${index}-${originalName.split("-").pop()}`;
-    console.log(newName);
-    $(this).attr("name", newName);
-});
+    $item.find("input, textarea, select").each(function () {
+      const originalName = $(this).attr("name") || "";
 
+      const newName = `${type.toLowerCase()}_creations-${index}-${originalName
+        .split("-")
+        .pop()}`;
+      $(this).attr("name", newName);
+    });
 
     // Append to container
     $container.append($item);
@@ -173,7 +172,6 @@ $item.find("input, textarea, select").each(function () {
 
   // Form validation
   $("#asl-form").on("submit", function (e) {
-    console.log("submitting");
     let hasError = false;
 
     $(".error-message").text("");
@@ -184,7 +182,6 @@ $item.find("input, textarea, select").each(function () {
         if ($(this).val().trim() === "") {
           hasError = true;
           $(this).next(".error-message").text("This field is required.");
-          console.log(this, "This field is required.");
         }
       });
 

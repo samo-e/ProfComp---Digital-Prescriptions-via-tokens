@@ -21,7 +21,16 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Email, Optional, Length, NumberRange
 from flask_login import login_required, current_user
-from .models import db, User, UserRole, ScenarioPatient, StudentScenario, Prescription, Patient, Scenario
+from .models import (
+    db,
+    User,
+    UserRole,
+    ScenarioPatient,
+    StudentScenario,
+    Prescription,
+    Patient,
+    Scenario,
+)
 from datetime import datetime
 from functools import wraps
 
@@ -112,10 +121,11 @@ def export_and_encrypt_csv(csv_filename, zip_filename, password):
     # Delete the original CSV after encryption
     try:
         os.remove(csv_filename)
-        print(f"Original CSV deleted: {csv_filename}")
+        # print(f"Original CSV deleted: {csv_filename}")
     except Exception as e:
-        print(f"Failed to delete CSV: {e}")
-    print(f"Encrypted ZIP created: {zip_filename}")
+        pass
+        # print(f"Failed to delete CSV: {e}")
+    # print(f"Encrypted ZIP created: {zip_filename}")
 
 
 @admin.route("/admin/download_last_created_accounts_csv")
@@ -640,15 +650,15 @@ def create_account():
 @login_required
 def batch_create_accounts():
     global _last_created_csv_path
-    print("DEBUGSADASD: ", request.get_json(force=True) or {})
-    print("[DEBUG] batch_create_accounts called by:", current_user.email)
+    # print("DEBUGSADASD: ", request.get_json(force=True) or {})
+    # print("[DEBUG] batch_create_accounts called by:", current_user.email)
     if current_user.role != "admin":
-        print("[DEBUG] Access denied: not admin")
+        # print("[DEBUG] Access denied: not admin")
         return jsonify(success=False, message="Admin privileges required."), 403
     data = request.get_json()
-    print("[DEBUG] Received data:", data)
+    # print("[DEBUG] Received data:", data)
     accounts = data.get("accounts", [])
-    print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
+    # print(f"[DEBUG] Number of accounts to create: {len(accounts)}")
     created_emails = []
     errors = []
     import time
@@ -656,7 +666,7 @@ def batch_create_accounts():
     created_accounts_for_csv = []
 
     for acc in accounts:
-        print("[DEBUG] Processing account:", acc)
+        # print("[DEBUG] Processing account:", acc)
         # Check for required fields
         role = acc.get("role")
         first_name = acc.get("first_name")
@@ -665,26 +675,26 @@ def batch_create_accounts():
         password = acc.get("password")
         studentnumber = acc.get("studentnumber")
         if not (role and first_name and last_name and email and password):
-            print(
-                f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}"
-            )
+            # print(
+            #     f"[DEBUG] Missing fields for {email or '[no email]'}: role={role}, first_name={first_name}, last_name={last_name}, email={email}, password={'yes' if password else 'no'}"
+            # )
             errors.append(f"Missing fields for {email or '[no email]' }.")
             continue
         if role == "student":
             if not studentnumber:
-                print(f"[DEBUG] Student number missing for {email}")
+                # print(f"[DEBUG] Student number missing for {email}")
                 errors.append(f"Student number required for {email}.")
                 continue
         # Check for duplicates
         if User.query.filter_by(email=email).first():
-            print(f"[DEBUG] Duplicate email: {email}")
+            # print(f"[DEBUG] Duplicate email: {email}")
             errors.append(f"Email {email} already exists.")
             continue
         if (
             role == "student"
             and User.query.filter_by(studentnumber=studentnumber).first()
         ):
-            print(f"[DEBUG] Duplicate student number: {studentnumber}")
+            # print(f"[DEBUG] Duplicate student number: {studentnumber}")
             errors.append(f"Student number {studentnumber} already exists.")
             continue
         try:
@@ -702,7 +712,7 @@ def batch_create_accounts():
             new_user.set_password(password)
             db.session.add(new_user)
             db.session.commit()
-            print(f"[DEBUG] Created user: {email}")
+            # print(f"[DEBUG] Created user: {email}")
             created_emails.append(email)
             # Add to CSV export list
             created_accounts_for_csv.append(
@@ -717,7 +727,7 @@ def batch_create_accounts():
             )
         except Exception as e:
             db.session.rollback()
-            print(f"[DEBUG] Error creating {email}: {str(e)}")
+            # print(f"[DEBUG] Error creating {email}: {str(e)}")
             errors.append(f"Error creating {email}: {str(e)}")
     if created_emails:
         # Export created accounts to CSV in exports folder with timestamp
@@ -926,15 +936,17 @@ def export_all_students_csv():
         return "Access denied", 403
 
     # --- STUDENT DATA SHEET ---
-    students = User.query.filter_by(role='student').all()
+    students = User.query.filter_by(role="student").all()
     student_rows = []
     for student in students:
-        student_rows.append({
-            "studentnumber": student.studentnumber,
-            "email": student.email,
-            "first_name": student.first_name,
-            "last_name": student.last_name,
-        })
+        student_rows.append(
+            {
+                "studentnumber": student.studentnumber,
+                "email": student.email,
+                "first_name": student.first_name,
+                "last_name": student.last_name,
+            }
+        )
     df_students = pd.DataFrame(student_rows)
 
     # --- SCENARIOS SHEET ---
@@ -960,55 +972,60 @@ def export_all_students_csv():
             scenario = Scenario.query.get(student_scenario.scenario_id)
             if scenario is None:
                 continue
-            
-            print("Patient =",patient)
-            print("Scenario =",scenario)
+
+            # print("Patient =", patient)
+            # print("Scenario =", scenario)
             prescriptions = Prescription.query.filter_by(patient_id=patient.id).all()
-            
+
             presc_data = []
             for prescription in prescriptions:
-                presc_data.append({
-                    'drug_name': prescription.drug_name,
-                    'dose_instr': prescription.dose_instr,
-                    'dose_qty': prescription.dose_qty,
-                    'dose_rpt': prescription.dose_rpt,
-                    'prescribed_date': prescription.prescribed_date,
-                    'dispensed_date': prescription.dispensed_date,
-                    'remaining_repeats': prescription.remaining_repeats,
-                    'paperless': prescription.paperless,
-                    'brand_sub_not_prmt': prescription.brand_sub_not_prmt,
-                    'dispensed_at_this_pharmacy': prescription.dispensed_at_this_pharmacy,
-                    'prescriber_id': prescription.prescriber_id,
-                    'prescriber_name': f"{prescription.prescriber.fname} {prescription.prescriber.lname}" if prescription.prescriber else None
-                })
+                presc_data.append(
+                    {
+                        "drug_name": prescription.drug_name,
+                        "dose_instr": prescription.dose_instr,
+                        "dose_qty": prescription.dose_qty,
+                        "dose_rpt": prescription.dose_rpt,
+                        "prescribed_date": prescription.prescribed_date,
+                        "dispensed_date": prescription.dispensed_date,
+                        "remaining_repeats": prescription.remaining_repeats,
+                        "paperless": prescription.paperless,
+                        "brand_sub_not_prmt": prescription.brand_sub_not_prmt,
+                        "dispensed_at_this_pharmacy": prescription.dispensed_at_this_pharmacy,
+                        "prescriber_id": prescription.prescriber_id,
+                        "prescriber_name": (
+                            f"{prescription.prescriber.fname} {prescription.prescriber.lname}"
+                            if prescription.prescriber
+                            else None
+                        ),
+                    }
+                )
 
-            scenario_rows.append({
-                # Student info
-                "studentnumber": student.studentnumber if student else None,
-                
-                # Scenario info
-                "scenario_name": scenario.name,
-                "scenario_version": scenario.version,
-                "assigned_at": student_scenario.assigned_at,
-                "submitted_at": student_scenario.submitted_at,
-                "completed_at": student_scenario.completed_at,
-                "score": student_scenario.score,
-                "status": student_scenario.status,
-                
-                # Patient info
-                "patient_id": patient.id if patient else None,
-                "patient_last_name": patient.last_name if patient else None,
-                "patient_given_name": patient.given_name if patient else None,
-                "patient_dob": patient.dob if patient else None,
-
-                # Prescription data
-                'prescriptions': presc_data,
-            })
+            scenario_rows.append(
+                {
+                    # Student info
+                    "studentnumber": student.studentnumber if student else None,
+                    # Scenario info
+                    "scenario_name": scenario.name,
+                    "scenario_version": scenario.version,
+                    "assigned_at": student_scenario.assigned_at,
+                    "submitted_at": student_scenario.submitted_at,
+                    "completed_at": student_scenario.completed_at,
+                    "score": student_scenario.score,
+                    "status": student_scenario.status,
+                    # Patient info
+                    "patient_id": patient.id if patient else None,
+                    "patient_last_name": patient.last_name if patient else None,
+                    "patient_given_name": patient.given_name if patient else None,
+                    "patient_dob": patient.dob if patient else None,
+                    # Prescription data
+                    "prescriptions": presc_data,
+                }
+            )
     df_scenarios = pd.DataFrame(scenario_rows)
 
     # --- WRITE XLSX IN MEMORY ---
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df_students.to_excel(writer, sheet_name="Students", index=False)
         df_scenarios.to_excel(writer, sheet_name="Scenarios", index=False)
     output.seek(0)
@@ -1017,6 +1034,5 @@ def export_all_students_csv():
         output,
         mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         as_attachment=True,
-        download_name="full_student_export.xlsx"
+        download_name="full_student_export.xlsx",
     )
-

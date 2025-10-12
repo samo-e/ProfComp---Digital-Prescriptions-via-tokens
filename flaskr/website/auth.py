@@ -1,4 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash,
+    current_app,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
@@ -42,7 +50,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-    # ...existing code...
+        # ...existing code...
         remember = request.form.get("remember") == "on"
 
         # Validate input
@@ -89,11 +97,11 @@ def login():
         next_page = request.args.get("next")
         if next_page:
             return redirect(next_page)
-        
-        if user.role == 'admin':
-            return redirect(url_for('admin.admin_dashboard'))
+
+        if user.role == "admin":
+            return redirect(url_for("admin.admin_dashboard"))
         elif user.is_teacher():
-            return redirect(url_for('views.teacher_dashboard'))
+            return redirect(url_for("views.teacher_dashboard"))
         else:
             return redirect(url_for("views.student_dashboard"))
 
