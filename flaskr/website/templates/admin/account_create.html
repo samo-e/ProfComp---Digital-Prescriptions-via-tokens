@@ -71,7 +71,7 @@
         // Reset student number field state
         toggleStudentNumber();
         
-        console.log('Account creation form reset to fresh state');
+        // console.log('Account creation form reset to fresh state');
     }
     
     // Function to toggle student number field based on role
@@ -123,29 +123,26 @@ if ($input.attr('type') === 'password') {
 
 {% block admin_content %}
 <div class="admin-main-scroll-area">
-  <div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <h1 class="mb-4">Create Accounts</h1>
-            <!-- CSV Upload Dropbox -->
-            <div class="mb-4">
-                <form id="csv-upload-form" method="POST" action="/admin/upload_accounts_csv" enctype="multipart/form-data" style="margin-bottom:0;">
-                    <p class="form-label">Upload CSV file for batch account creation:
-                        <i class="bi bi-info-circle"
-                           data-bs-toggle="tooltip"
-                           data-bs-placement="right"
-                           data-bs-custom-class="custom-tooltip"
-                           data-bs-html="true"
-                           data-bs-title="
+  <h1 class="mb-4">Create Accounts</h1>
+  <!-- CSV Upload Dropbox -->
+  <div class="mb-4 w-100">
+      <form id="csv-upload-form" method="POST" action="/admin/upload_accounts_csv" enctype="multipart/form-data" class="w-100">
+          <p class="form-label">Upload CSV file for batch account creation:
+              <i class="bi bi-info-circle"
+                  data-bs-toggle="tooltip"
+                  data-bs-placement="right"
+                  data-bs-custom-class="custom-tooltip"
+                  data-bs-html="true"
+                  data-bs-title="
 <div class='text-start'>
   <strong>CSV column requirements:</strong>  
   <ul>
     <li><strong>First Name</strong></li>
     <li><strong>Last Name</strong></li>
     <li><strong>Email</strong></li>
-    <li><strong>Password</strong> (optional) → leave blank to auto-generate</li>
-    <li><strong>User Type</strong> → valid values: <code>student</code>, <code>teacher</code>, <code>admin</code></li>
-    <li><strong>Student Number</strong> → required only for students</li>
+    <li><strong>Password</strong> (optional) <i class='bi bi-arrow-right'></i> leave blank to auto-generate</li>
+    <li><strong>User Type</strong> <i class='bi bi-arrow-right'><i> valid values: <code>student</code>, <code>teacher</code>, <code>admin</code></li>
+    <li><strong>Student Number</strong> <i class='bi bi-arrow-right'></i> required only for students</li>
   </ul>
   <strong>Tips:</strong>
   <ul>
@@ -153,37 +150,33 @@ if ($input.attr('type') === 'password') {
     <li>Empty passwords will be auto-generated.</li>
   </ul>
 </div>"
-                        ></i>
-                    </p>
-                    <!-- CSRF Token for CSV upload form -->
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                    <input type="file" id="csv-file" name="csv_file" accept=".csv" class="form-control w-100 mb-2" required>
-                    <div class="d-flex justify-content-between gap-2">
-                        <div>
-                            <button type="button" id="upload-csv-btn" class="btn btn-outline-primary">Generate Accounts from File</button>
-                            <button id="add-account-btn" class="btn btn-success ms-2" type="button" style="white-space:nowrap;">&#43; Add New Account Manually</button>
-                        </div>
-                        <button id="create-accounts-btn" class="btn btn-primary" style="display:none;" type="button">Confirm Account Creation</button>
-                    </div>
-                </form>
+                ></i>
+            </p>
+            <!-- CSRF Token for CSV upload form -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="file" id="csv-file" name="csv_file" accept=".csv" class="form-control w-100 mb-2" required>
+            <div class="d-flex justify-content-between gap-2">
+                <div>
+                    <button type="button" id="upload-csv-btn" class="btn btn-outline-primary">Generate Accounts from File</button>
+                    <button id="add-account-btn" class="btn btn-success ms-2" type="button">&#43; Add New Account Manually</button>
+                    <button id="clear-all-accounts-btn" class="btn btn-danger ms-2" type="button">Clear all</button>
+                </div>
+                <button id="create-accounts-btn" class="btn btn-primary" style="display:none;" type="button">Confirm Account Creation</button>
             </div>
-            <!-- Flash Messages -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            <div id="account-cards-container"></div>
-            <div id="batch-create-feedback" class="mt-2"></div>
-        </div>
+        </form>
     </div>
-  </div>
-</div>
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{% if category == 'error' %}danger{% else %}{{ category }}{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    <div id="account-cards-container"></div>
 </div>
 <template id="account-card-template">
     <div class="card mb-2 account-card" style="cursor:pointer;" title="Click to Expand">
@@ -243,6 +236,14 @@ bootstrap.Tooltip.getOrCreateInstance(
 );
 
 document.addEventListener("DOMContentLoaded", function () {
+  $("#clear-all-accounts-btn").on("click", function() {
+    if (confirm("Are you sure you want to remove all account cards?")) {
+      $("#account-cards-container").empty();
+      localStorage.removeItem("accountCards");
+      $("#create-accounts-btn").hide();
+    }
+  });
+
   // Password generator
   function generatePassword(length = 10) {
     const chars =
@@ -276,8 +277,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("CSV is empty or invalid.");
                 return;
             }
-
-            container.innerHTML = ""; // Clear existing cards
 
             rows.forEach(row => {
                 // Normalise header names to lower case for matching
@@ -342,42 +341,34 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-  const addBtn = document.getElementById("add-account-btn");
-  const container = document.getElementById("account-cards-container");
-  const template = document.getElementById("account-card-template");
-  const createBtn = document.getElementById("create-accounts-btn");
+  const $addBtn = $("#add-account-btn");
+  const $container = $("#account-cards-container");
+  const $template = $("#account-card-template");
+  const $createBtn = $("#create-accounts-btn");
 
   // Show/hide create button based on card count
   function updateCreateBtnVisibility() {
-    createBtn.style.display = container.children.length > 0 ? "" : "none";
+    $createBtn.toggle($container.children(".account-card").length > 0);
   }
   // --- Save/restore state helpers ---
   function getAllCardStates() {
-    const cards = Array.from(container.querySelectorAll(".account-card"));
-    return cards.map((card) => {
-      const form = card.querySelector("form");
-      const role = form.querySelector(".role-select").value;
-      const studentnumber = form.querySelector(".studentnumber-field").value;
-      const first_name = form.querySelector('input[name="first_name"]').value;
-      const last_name = form.querySelector('input[name="last_name"]').value;
-      const email = form.querySelector('input[name="email"]').value;
-      const password = form.querySelector('input[name="password"]').value;
-      const expanded =
-        card.querySelector(".card-body-collapsible").style.display !== "none";
+    const cards = $container.find(".account-card").toArray();
+    return cards.map(card => {
+      const $card = $(card);
+      const $form = $card.find("form");
       return {
-        role,
-        studentnumber,
-        first_name,
-        last_name,
-        email,
-        password,
-        expanded,
+        role: $form.find(".role-select").val(),
+        studentnumber: $form.find(".studentnumber-field").val(),
+        first_name: $form.find('input[name="first_name"]').val(),
+        last_name: $form.find('input[name="last_name"]').val(),
+        email: $form.find('input[name="email"]').val(),
+        password: $form.find('input[name="password"]').val(),
+        expanded: $card.find(".card-body-collapsible").is(":visible")
       };
     });
   }
   function saveCardsToStorage() {
-    const state = getAllCardStates();
-    localStorage.setItem("accountCards", JSON.stringify(state));
+    localStorage.setItem("accountCards", JSON.stringify(getAllCardStates()));
   }
   function clearCardsFromStorage() {
     localStorage.removeItem("accountCards");
@@ -388,15 +379,15 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const cards = JSON.parse(state);
       if (!Array.isArray(cards)) return;
-      cards.forEach((cardData) => addAccountCard(cardData));
+      cards.forEach(cardData => addAccountCard(cardData));
     } catch (e) {
-      /* ignore */
+      // ignore errors
     }
   }
 
   // --- Card creation logic ---
   function addAccountCard(cardData, prepend=false) {
-    const clone = template.content.cloneNode(true);
+    const clone = $template[0].content.cloneNode(true);
     // Remove handler (both in header and in form)
     clone.querySelectorAll(".remove-account-card").forEach((btn) => {
       btn.onclick = function () {
@@ -498,11 +489,11 @@ document.addEventListener("DOMContentLoaded", function () {
     setExpanded(expanded);
     let newCard;
     if (prepend) {
-        container.prepend(clone);
-        newCard = container.firstElementChild;
+      $container.prepend(clone);
+      newCard = $container[0].firstElementChild;
     } else {
-        container.appendChild(clone);
-        newCard = container.lastElementChild;
+      $container.append(clone);
+      newCard = $container[0].lastElementChild;
     }
     
     // Attach event listeners to all input/select fields in the newly added card (now in DOM)
@@ -537,10 +528,10 @@ document.addEventListener("DOMContentLoaded", function () {
       updateHeader.call(firstNameInputNew);
     updateCreateBtnVisibility();
   }
-  addBtn.onclick = function () {
+  $addBtn.on("click", function () {
     addAccountCard(undefined, true);
     saveCardsToStorage();
-  };
+  });
 
   // Restore cards on load
   restoreCardsFromStorage();
@@ -550,23 +541,24 @@ document.addEventListener("DOMContentLoaded", function () {
   window.addEventListener("beforeunload", saveCardsToStorage);
 
   // Batch create accounts button logic
-  createBtn.onclick = function () {
-    const cards = Array.from(container.querySelectorAll(".account-card"));
+  $createBtn.on("click", function () {
+    const $cards = $container.find(".account-card");
     let validAccounts = [];
-    let invalidCards = [];
-    cards.forEach((card) => {
-      const form = card.querySelector("form");
-      const role = form.querySelector(".role-select").value.trim();
-      const first = form.querySelector('input[name="first_name"]').value.trim();
-      const last = form.querySelector('input[name="last_name"]').value.trim();
-      const email = form.querySelector('input[name="email"]').value.trim();
-      const password = form
-        .querySelector('input[name="password"]')
-        .value.trim();
+    let $invalidCards = $();
+
+    $cards.each(function () {
+      const $card = $(this);
+      const $form = $card.find("form");
+      const role = $form.find(".role-select").val().trim();
+      const first = $form.find('input[name="first_name"]').val().trim();
+      const last = $form.find('input[name="last_name"]').val().trim();
+      const email = $form.find('input[name="email"]').val().trim();
+      const password = $form.find('input[name="password"]').val().trim();
       let valid = role && first && last && email && password;
+
       let studentnumber = "";
       if (role === "student") {
-        studentnumber = form.querySelector(".studentnumber-field").value.trim();
+        studentnumber = $form.find(".studentnumber-field").val().trim();
         valid = valid && studentnumber;
       }
       // For admin/teacher, studentnumber is not required
@@ -580,18 +572,19 @@ document.addEventListener("DOMContentLoaded", function () {
           studentnumber,
         });
       } else {
-        invalidCards.push(card);
+        $invalidCards = $invalidCards.add($card);
       }
     });
+
     // Highlight invalid cards
-    invalidCards.forEach((card) => {
-      card.classList.add("border-danger");
-      setTimeout(() => card.classList.remove("border-danger"), 1500);
-    });
+    $invalidCards.addClass("border-danger");
+    setTimeout(() => $invalidCards.removeClass("border-danger"), 1500);
+
     if (validAccounts.length === 0) {
       alert("Please fill all required fields in at least one account card.");
       return;
     }
+
     // Send AJAX request to batch endpoint
     fetch("/admin/batch_create_accounts", {
       method: "POST",
@@ -603,22 +596,27 @@ document.addEventListener("DOMContentLoaded", function () {
     })
       .then((response) => response.json())
       .then((data) => {
-        const feedback = document.getElementById("batch-create-feedback");
+        const $feedback = $("#batch-create-feedback");
         if (!data.success) {
-          feedback.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+          $feedback.html(`<div class="alert alert-danger">${data.message}</div>`);
           return;
         }
 
         // Remove cards for successful accounts
-        cards.forEach((card) => {
-        const form = card.querySelector("form");
-        const email = form
-            .querySelector('input[name="email"]')
-            .value.trim();
-        if (data.created_emails.includes(email)) {
-            card.remove();
-        }
+        $cards.each(function () {
+          const $card = $(this);
+          const $form = $card.find("form");
+          const email = $form.find('input[name="email"]').val().trim();
+          const studentnumber = $form.find('.studentnumber-field').val()?.trim() || '';
+
+          const match = data.created_accounts.some(acc =>
+            (acc.email && acc.email === email) || 
+            (acc.studentnumber && acc.studentnumber === studentnumber)
+          );
+
+          if (match) $card.remove();
         });
+
         saveCardsToStorage();
         updateCreateBtnVisibility();
         feedback.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
@@ -631,10 +629,9 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       })
       .catch(() => {
-        document.getElementById("batch-create-feedback").innerHTML =
-          '<div class="alert alert-danger">Error creating accounts. Please try again.</div>';
+        $("#batch-create-feedback").html('<div class="alert alert-danger">Error creating accounts. Please try again.</div>');
       });
-  };
+  });
 });
 </script>
 {% endblock %}
