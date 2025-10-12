@@ -2,37 +2,18 @@
  * Toggle select all checkboxes for scenarios
  */
 function selectAllToggle() {
-  const selectAll = document.getElementById("select-all");
-  const checkboxes = document.getElementsByTagName("input");
+  const selectAll = $("#select-all").prop("checked"); // true/false
+  const checkboxes = $("input[type=checkbox][id^='scenario-']");
 
-  for (let i = 0; i < checkboxes.length; i++) {
-    if (
-      checkboxes[i].type === "checkbox" &&
-      checkboxes[i].id &&
-      checkboxes[i].id.indexOf("scenario-") === 0
-    ) {
-      checkboxes[i].checked = selectAll.checked;
-    }
-  }
+  checkboxes.prop("checked", selectAll);
 }
 
 /**
  * Archive selected scenarios in bulk
  */
 function bulkArchive() {
-  const checkboxes = document.getElementsByTagName("input");
-  let selected = 0;
-
-  for (let i = 0; i < checkboxes.length; i++) {
-    if (
-      checkboxes[i].type === "checkbox" &&
-      checkboxes[i].id &&
-      checkboxes[i].id.indexOf("scenario-") === 0 &&
-      checkboxes[i].checked
-    ) {
-      selected++;
-    }
-  }
+  const checkboxes = $("input[type=checkbox][id^='scenario-']:checked");
+  const selected = checkboxes.length;
 
   if (selected === 0) {
     alert("Please select scenarios to archive");
@@ -40,14 +21,21 @@ function bulkArchive() {
   }
 
   if (
-    confirm(
-      "Are you sure you want to archive " + selected + " selected scenario(s)?"
+    !confirm(
+      `Are you sure you want to archive ${selected} selected scenario(s)?`
     )
   ) {
-    alert("Bulk archive functionality to be implemented");
-    // TODO: Implement actual bulk archive functionality
-    // This would require a backend endpoint to handle bulk operations
+    return;
   }
+
+  // submit each corresponding delete form
+  checkboxes.each(function () {
+    const scenarioId = $(this).attr("id").replace("scenario-", "");
+    const form = $("#delete-form-" + scenarioId);
+    if (form.length) {
+      form.submit();
+    }
+  });
 }
 
 /**
@@ -115,8 +103,8 @@ function bulkExport() {
  */
 function confirmDelete(scenarioId) {
   if (confirm("Are you sure you want to archive this scenario?")) {
-    const form = document.getElementById("delete-form-" + scenarioId);
-    if (form) {
+    const form = $("#delete-form-" + scenarioId);
+    if (form.length) {
       form.submit();
     }
   }
@@ -127,162 +115,43 @@ function confirmDelete(scenarioId) {
  */
 window.onload = function () {
   // Set up select all checkbox
-  const selectAllBox = document.getElementById("select-all");
-  if (selectAllBox) {
-    selectAllBox.onchange = selectAllToggle;
-  }
+  $("#select-all").on("change", selectAllToggle);
 
   // Set up bulk action buttons
-  const deleteBtn = document.getElementById("bulk-delete");
-  if (deleteBtn) {
-    deleteBtn.onclick = bulkArchive;
-  }
-
-  const exportBtn = document.getElementById("bulk-export");
-  if (exportBtn) {
-    exportBtn.onclick = bulkExport;
-  }
+  $("#bulk-delete").on("click", bulkArchive);
+  $("#bulk-export").on("click", bulkExport);
 
   // Set up individual delete buttons
-  const deleteBtns = document.getElementsByClassName("delete-btn");
-  for (let i = 0; i < deleteBtns.length; i++) {
-    (function (btn) {
-      btn.onclick = function () {
-        const scenarioId = btn.getAttribute("data-scenario-id");
-        confirmDelete(scenarioId);
-      };
-    })(deleteBtns[i]);
-  }
+  $(".delete-btn").each(function () {
+    const btn = $(this);
+    btn.on("click", function () {
+      confirmDelete(btn.data("scenario-id"));
+    });
+  });
 
   // Set up create first scenario link
-  const createLink = document.getElementById("create-first-scenario");
-  if (createLink) {
-    createLink.onclick = function (e) {
-      e.preventDefault();
-      const forms = document.querySelectorAll(
-        'form[action*="create_scenario"]'
-      );
-      if (forms.length > 0) {
-        const button = forms[0].querySelector('button[type="submit"]');
-        if (button) {
-          button.click();
-        }
-      }
-    };
-  }
+  $("#create-first-scenario").on("click", function (e) {
+    e.preventDefault();
+    const form = $('form[action*="create_scenario"]').first();
+    const button = form.find('button[type="submit"]').first();
+    if (button.length) {
+      button.click();
+    }
+  });
 };
 
-// Use the scenario-checkbox class so selectors are robust against id/name changes
-function selectAllToggle() {
-  let selectAll = document.getElementById("select-all");
-  let boxes = document.querySelectorAll(".scenario-checkbox");
-  boxes.forEach(function (cb) {
-    cb.checked = selectAll.checked;
-  });
-  updateSelectAllState();
-}
-
 function updateSelectAllState() {
-  let selectAll = document.getElementById("select-all");
-  if (!selectAll) return;
-  let boxes = document.querySelectorAll(".scenario-checkbox");
-  let total = boxes.length;
-  let checked = Array.prototype.filter.call(boxes, function (b) {
-    return b.checked;
-  }).length;
-  selectAll.checked = total > 0 && checked === total;
-  selectAll.indeterminate = checked > 0 && checked < total;
+  const selectAll = $("#select-all");
+  if (!selectAll.length) return;
+
+  const boxes = $(".scenario-checkbox");
+  const total = boxes.length;
+  const checked = boxes.filter(":checked").length;
+
+  selectAll.prop("checked", total > 0 && checked === total);
+  selectAll.prop("indeterminate", checked > 0 && checked < total);
 }
 
 function countSelected() {
-  let boxes = document.querySelectorAll(".scenario-checkbox");
-  return Array.prototype.filter.call(boxes, function (b) {
-    return b.checked;
-  }).length;
+  return $(".scenario-checkbox:checked").length;
 }
-
-function bulkArchive() {
-  let selected = countSelected();
-  if (selected === 0) {
-    alert("Please select scenarios to archive");
-    return;
-  }
-  if (
-    confirm(
-      "Are you sure you want to archive " + selected + " selected scenario(s)?"
-    )
-  ) {
-    alert("Bulk archive functionality to be implemented");
-  }
-}
-
-function bulkExport() {
-  let selected = countSelected();
-  if (selected === 0) {
-    alert("Please select scenarios to export");
-    return;
-  }
-  alert("Bulk export functionality to be implemented");
-}
-
-function confirmDelete(scenarioId) {
-  if (confirm("Are you sure you want to archive this scenario?")) {
-    let form = document.getElementById("delete-form-" + scenarioId);
-    if (form) {
-      form.submit();
-    }
-  }
-}
-
-window.onload = function () {
-  // Set up select all checkbox
-  let selectAllBox = document.getElementById("select-all");
-  if (selectAllBox) {
-    selectAllBox.addEventListener("change", selectAllToggle);
-  }
-
-  // Keep select-all state in sync when individual boxes change
-  let scenarioBoxes = document.querySelectorAll(".scenario-checkbox");
-  scenarioBoxes.forEach(function (cb) {
-    cb.addEventListener("change", updateSelectAllState);
-  });
-
-  // Set up bulk action buttons
-  let deleteBtn = document.getElementById("bulk-delete");
-  if (deleteBtn) {
-    deleteBtn.addEventListener("click", bulkArchive);
-  }
-
-  let exportBtn = document.getElementById("bulk-export");
-  if (exportBtn) {
-    exportBtn.addEventListener("click", bulkExport);
-  }
-
-  // Set up individual delete buttons
-  let deleteBtns = document.getElementsByClassName("delete-btn");
-  for (let i = 0; i < deleteBtns.length; i++) {
-    (function (btn) {
-      btn.onclick = function () {
-        let scenarioId = btn.getAttribute("data-scenario-id");
-        confirmDelete(scenarioId);
-      };
-    })(deleteBtns[i]);
-  }
-
-  // Set up create first scenario link
-  let createLink = document.getElementById("create-first-scenario");
-  if (createLink) {
-    createLink.onclick = function (e) {
-      e.preventDefault();
-      let form = document.querySelector(
-        'form[action="{{ url_for("views.create_scenario") }}"]'
-      );
-      if (form) {
-        let button = form.querySelector('button[type="submit"]');
-        if (button) {
-          button.click();
-        }
-      }
-    };
-  }
-};
