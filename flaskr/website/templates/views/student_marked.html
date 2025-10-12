@@ -10,7 +10,9 @@
     </div>
 
     <div class="mb-3">
-        <a class="btn btn-secondary" href="{{ url_for('views.student_dashboard') }}">← Back</a>
+        <a class="btn btn-secondary" href="{{ url_for('views.student_dashboard') }}">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
     </div>
 
     {% if not results or results|length == 0 %}
