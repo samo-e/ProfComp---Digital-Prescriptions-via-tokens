@@ -558,6 +558,31 @@ window.onload = function() {
     // Initialize
     updateCount();
     updatePatientAvailability();
+
+    // Auto-check checkbox when a patient is selected
+    document.querySelectorAll('select.patient-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const row = this.closest('tr');
+        if (!row) return;
+
+        const checkbox = row.querySelector('.student-checkbox');
+        if (!checkbox) return;
+
+        // Check the checkbox if a patient is selected
+        if (this.value && this.value.trim() !== '') {
+        checkbox.checked = true;
+        } else {
+        // Uncheck if no patient is selected
+        checkbox.checked = false;
+        }
+
+        // Update the count display
+        if (typeof updateCount === 'function') {
+        updateCount();
+        }
+    });
+    });
+
 };
 </script>
 {% endblock %}
