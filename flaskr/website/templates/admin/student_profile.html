@@ -18,11 +18,11 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h2 class="card-title mb-0">Student Information</h2>
                         <div class="d-flex align-items-center">
-                            <form method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" id="edit-student-form" style="display: inline; margin-right: 1rem;">
+                            <form method="post" action="{{ url_for('admin.update_user', user_id=user.id) }}" id="edit-student-form" class="d-inline me-1">
                                 {{ edit_form.hidden_tag() if edit_form is defined }}
                                 <button type="submit" class="btn btn-success btn-sm">Confirm Changes</button>
                             </form>
-                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" style="display: inline;">
+                            <form id="delete-user-form" method="post" action="{{ url_for('admin.delete_user', user_id=user.id) }}" class="d-inline">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="button" onclick="confirmDelete('{{ user.get_full_name() }}', '{{ user.role }}')" class="btn btn-danger btn-sm" title="Delete Account">
                                     Delete
@@ -78,7 +78,7 @@
                         {% for teacher in assigned_teachers %}
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>{{ teacher.get_full_name() }} ({{ teacher.email }})</span>
-                                <form class="unassign-teacher-form" method="post" action="{{ url_for('admin.unassign_student') }}" style="display:inline;">
+                                <form class="unassign-teacher-form d-inline" method="post" action="{{ url_for('admin.unassign_student') }}">
                                     {{ password_form.csrf_token }}
                                     <input type="hidden" name="student_id" value="{{ user.id }}">
                                     <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
@@ -107,7 +107,7 @@
                                         {% set is_assigned = teacher in assigned_teachers %}
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span class="teacher-name">{{ teacher.get_full_name() }} ({{ teacher.email }})</span>
-                                            <form class="assign-teacher-form" method="post" action="{{ url_for('admin.assign_student') }}" style="display:inline;">
+                                            <form class="assign-teacher-form d-inline" method="post" action="{{ url_for('admin.assign_student') }}">
                                                 {{ password_form.csrf_token }}
                                                 <input type="hidden" name="student_id" value="{{ user.id }}">
                                                 <input type="hidden" name="teacher_id" value="{{ teacher.id }}">
