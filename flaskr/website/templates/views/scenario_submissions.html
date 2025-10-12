@@ -174,7 +174,7 @@
                                                     <i class="bi bi-clipboard-data"></i> {% if data.student_scenario.status == 'graded' %}View Grade{% else %}View Submission{% endif %}
                                                 </a>
                                                 {% if submission.patient %}
-                                                <a href="{{ url_for('views.asl', pt=submission.patient.id) }}" class="btn btn-outline-info" target="_blank">
+                                                <a href="{{ url_for('views.asl', patient_id=submission.patient.id) }}" class="btn btn-outline-info" target="_blank">
                                                     <i class="bi bi-eye"></i> View ASL
                                                 </a>
                                                 {% endif %}
