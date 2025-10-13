@@ -161,7 +161,7 @@ function insert_prescription_details(el, drug_id) {
   // Use asl-data, not asl_data
   drug_info_ids.forEach((id) => {
     const $el = $(el).find(`#${id}`);
-    const new_key = `asl-data-${id.slice(-1)}-${id}`;
+    const new_key = `asl-data-${drug_id}-${id}`;
     if (flatted_pt_data[new_key] !== undefined) {
       let data_point = flatted_pt_data[new_key];
       if (data_point === true) {
