@@ -15,9 +15,14 @@ def create_app():
     app.config["SECRET_KEY"] = (
         "dev-secret-key-change-in-production"  # Change this in production!
     )
-    import os
-    # Use a fixed absolute path that both processes will use
-    db_path = "/opt/render/project/src/flaskr/asl_simulation.db"
+    # Determine database path based on environment
+    db_path = os.environ.get("RENDER_DB_PATH")
+    if not db_path:
+        # Default to local instance directory for development
+        instance_dir = os.path.join(os.path.dirname(__file__), "instance")
+        db_path = os.path.join(instance_dir, "asl_simulation.db")
+        # Ensure instance directory exists
+        os.makedirs(instance_dir, exist_ok=True)
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     print(f"DEBUG: Database path configured as: {db_path}")
     print(f"DEBUG: Database file exists: {os.path.exists(db_path)}")
