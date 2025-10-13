@@ -196,59 +196,6 @@
     <div class="row mt-4">
         <div class="col">
             <h3>Available Local Repeats (ALR)</h3>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover" id="alr-table">
-                    <thead class="table-light">
-                        <tr>
-                            <th><input type="checkbox" id="selectAllALR"></th>
-                            <th>Dispensed</th>
-                            <th>Item</th>
-                            <th>Qty</th>
-                            <th>Prescriber</th>
-                            <th>Rpt</th>
-                            <th>Remaining</th>
-                            <th>Paperless</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for item in pt_data['alr-data'] %}
-                        <tr>
-                            <td><input type="checkbox" class="prescription-select" name="prescription_select" value="{{ item['prescription_id'] }}"></td>
-                            <td>{{ item['dispensed-date'] }}</td>
-                            <td>
-                                <strong>{{ item['drug-name'] }}</strong><br>
-                                <small class="text-muted">{{ item['dose-instr'] }}</small><br>
-                                <small class="text-muted">Code: {{ item['drug-code'] }}</small>
-                            </td>
-                            <td>{{ item['dose-qty'] }}</td>
-                            <td>
-                                {{ item['prescriber']['fname'] }} {{ item['prescriber']['lname'] }}<br>
-                                <small class="text-muted">ID: {{ item['prescriber']['prescriber-id'] }}</small>
-                            </td>
-                            <td>{{ item['dose-rpt'] }}</td>
-                            <td>
-                                <span class="badge bg-primary">{{ item['remaining-repeats'] }}</span>
-                            </td>
-                            <td>
-                                {% if item['paperless'] %}
-                                    <span class="badge bg-success">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-secondary">No</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <button class="btn btn-sm btn-info" onclick="viewPrescriptionDetails({{ item['prescription_id'] }})">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
         <table id="alr-table" class="table collapse show">
             <thead>
                 <tr>

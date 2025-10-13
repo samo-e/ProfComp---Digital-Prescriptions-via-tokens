@@ -2056,8 +2056,6 @@ def asl(patient_id: int):
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "asl",  # filter by DSPID
                     # exclude fully dispensed / zero-repeat items
-                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
-                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -2071,8 +2069,6 @@ def asl(patient_id: int):
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "alr",  # filter by DSPID
                     # exclude fully dispensed / zero-repeat items
-                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
-                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -2083,7 +2079,8 @@ def asl(patient_id: int):
             "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no,
             "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder,
             "rpbs-ben-entitlement-cardholder": patient.rpbs_ben_entitlement_cardholder,
-            "name": patient.name,
+            "name": getattr(patient, "name", None)
+                or f"{patient.given_name or ''} {patient.last_name or ''}".strip(),
             "dob": patient.dob,
             "preferred-contact": patient.preferred_contact,
             "address-1": patient.address or "",
@@ -2107,6 +2104,8 @@ def asl(patient_id: int):
 
         # Populate ASL data
         for prescription, prescriber in asl_prescriptions:
+            if hasattr(prescription, "remaining_repeats") and prescription.remaining_repeats == 0:
+                continue
             pt_data["asl-data"].append({
                 "prescription_id": prescription.id,
                 "DSPID": "null",
@@ -2135,6 +2134,9 @@ def asl(patient_id: int):
 
         # Populate ALR data
         for prescription, prescriber in alr_prescriptions:
+            if hasattr(prescription, "remaining_repeats") and prescription.remaining_repeats == 0:
+                continue
+            print(prescription.id, prescription.dose_rpt)
             pt_data["alr-data"].append({
                 "prescription_id": prescription.id,
                 "DSPID": "null",
