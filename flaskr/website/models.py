@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
@@ -5,7 +6,6 @@ from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
 from enum import Enum
-import enum
 
 db = SQLAlchemy()
 
@@ -30,6 +30,7 @@ class ASLStatus(Enum):
 class UserRole(Enum):
     TEACHER = "teacher"
     STUDENT = "student"
+    ADMIN = "admin"
 
 
 class User(db.Model, UserMixin):
@@ -38,6 +39,7 @@ class User(db.Model, UserMixin):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
+    studentnumber = db.Column(db.Integer, unique=True, nullable=True)
     email = db.Column(db.String(100), unique=True, nullable=False)
     password_hash = db.Column(db.String(200), nullable=False)
     role = db.Column(db.String(20), nullable=False)  # 'teacher' or 'student'
@@ -48,18 +50,42 @@ class User(db.Model, UserMixin):
     is_active = db.Column(db.Boolean, default=True)
 
     # Relationships
+    # Association table for many-to-many teacher-student relationship
+    teacher_students = db.Table(
+        "teacher_students",
+        db.Column(
+            "teacher_id", db.Integer, db.ForeignKey("users.id"), primary_key=True
+        ),
+        db.Column(
+            "student_id", db.Integer, db.ForeignKey("users.id"), primary_key=True
+        ),
+        db.Column("assigned_at", db.DateTime, default=datetime.now),
+    )
+    students = db.relationship(
+        "User",
+        secondary=teacher_students,
+        primaryjoin="User.id==teacher_students.c.teacher_id",
+        secondaryjoin="User.id==teacher_students.c.student_id",
+        backref=db.backref("teachers", lazy="dynamic"),
+        lazy="dynamic",
+    )
+
     created_scenarios = db.relationship(
         "Scenario", backref="creator", lazy=True, foreign_keys="Scenario.teacher_id"
     )
     assigned_scenarios = db.relationship(
         "Scenario",
         secondary="student_scenarios",
-        backref="assigned_students",
+        backref=db.backref(
+            "assigned_students", overlaps="assigned_scenarios,assigned_students"
+        ),
         lazy=True,
     )
 
     def set_password(self, password):
         """Hash and set the user's password"""
+        if password is None:
+            return
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
@@ -112,6 +138,13 @@ class Scenario(db.Model):
     # Active patient relationship
     active_patient = db.relationship("Patient", foreign_keys=[active_patient_id])
 
+    # Optional default scheduling for the scenario (used when no per-student rows exist)
+    default_assignment_condition = db.Column(db.String(20), default="assignment")
+    default_exam_start = db.Column(db.DateTime, nullable=True)
+    default_exam_end = db.Column(db.DateTime, nullable=True)
+    # When true, graded scores/feedback are visible to students
+    grades_published = db.Column(db.Boolean, default=False)
+
     def __repr__(self):
         return f"<Scenario {self.name} v{self.version}>"
 
@@ -130,10 +163,25 @@ class StudentScenario(db.Model):
     score = db.Column(db.Float)
     feedback = db.Column(db.Text)
     status = db.Column(db.String(20), default="assigned")  # assigned, submitted, graded
+    # Assignment mode: 'assignment' (default) or 'exam'
+    assignment_condition = db.Column(db.String(20), default="assignment")
+    # Optional exam scheduling
+    exam_start = db.Column(db.DateTime, nullable=True)
+    exam_end = db.Column(db.DateTime, nullable=True)
+    # Whether this student's grade has been published (visible to the student)
+    grade_published = db.Column(db.Boolean, default=False)
 
     # Relationships
-    student = db.relationship("User", foreign_keys=[student_id])
-    scenario = db.relationship("Scenario", foreign_keys=[scenario_id])
+    student = db.relationship(
+        "User",
+        foreign_keys=[student_id],
+        overlaps="assigned_scenarios,assigned_students",
+    )
+    scenario = db.relationship(
+        "Scenario",
+        foreign_keys=[scenario_id],
+        overlaps="assigned_scenarios,assigned_students",
+    )
 
 
 class Submission(db.Model):
@@ -228,8 +276,18 @@ class Patient(db.Model):
     )
     is_registered = db.Column(db.Boolean, default=True)
 
+    # def get_asl_status(self):
+    #    return ASLStatus(self.asl_status)
     def get_asl_status(self):
-        return ASLStatus(self.asl_status)
+        try:
+            # Try interpreting as integer first
+            return ASLStatus(int(self.asl_status))
+        except (ValueError, TypeError):
+            # If it's a string like "GRANTED", try mapping by name
+            try:
+                return ASLStatus[self.asl_status]
+            except (KeyError, TypeError):
+                return None
 
     def can_view_asl(self):
         return self.asl_status == ASLStatus.GRANTED.value

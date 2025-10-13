@@ -1,7 +1,9 @@
 import os
 from flask import Flask
+
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
+from flask_migrate import Migrate
 from flask_minify import Minify
 
 
@@ -33,6 +35,10 @@ def create_app():
     from .models import db, User, Patient
 
     db.init_app(app)
+    # Diagnostic prints were removed to avoid cluttering console output in debug mode
+
+    # Set up Flask-Migrate
+    migrate = Migrate(app, db)
 
     # Database is already created by seeding process, just verify it exists
     with app.app_context():
@@ -62,10 +68,12 @@ def create_app():
 
     from .views import views
     from .auth import auth
+    from .admin import admin
 
     # Register blueprints
     app.register_blueprint(views, url_prefix="/")
     app.register_blueprint(auth, url_prefix="/")
+    app.register_blueprint(admin, url_prefix="/")
 
     # Check and initialize database if needed
     initialize_database(app)
@@ -79,8 +87,8 @@ def create_app():
         return text.replace("\n", "<br>")
 
     GLOBALS = {
-        "ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD" : False,
-        "SHOW_PASSWORD_RESET_ON_LOGIN" : False,
+        "ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD": False,
+        "SHOW_PASSWORD_RESET_ON_LOGIN": False,
         "ENABLE_SCENARIO_PASSWORD_PROTECTION": False,
     }
     app.config["GLOBALS"] = GLOBALS

@@ -5,6 +5,10 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/assign_scenario.css') }}">
 {% endblock %}
 
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/assign_scenario.js') }}"></script>
+{% endblock %}
+
 {% block body %}
 <div class="container">
     <!-- Flash Messages -->
@@ -26,6 +30,20 @@
 
         <form method="POST" id="assignForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <!-- Hidden form action used by JS to signal backend whether this is an unassign request -->
+            <input type="hidden" name="form_action" id="form_action" value="assign" />
+            <!-- Mode is set on the Scenario dashboard. Show read-only mode here and include hidden fields so backend receives values -->
+            <input type="hidden" name="assignment_condition" id="assignment_condition" value="assignment" />
+            <input type="hidden" name="exam_start" id="exam_start" />
+            <input type="hidden" name="exam_end" id="exam_end" />
+            <div class="mb-3 d-flex align-items-center gap-3">
+                <div>
+                    <strong>Mode:</strong> <span id="assignModeLabel">Assignment</span>
+                </div>
+                <div id="assignModeInfo" class="ms-3 small text-muted d-none">
+                    Exam scheduled: <span id="assignModeSchedule"></span>
+                </div>
+            </div>
             
             <!-- Search and Actions Row -->
             <div class="">
@@ -48,107 +66,85 @@
                         </button>
                         </div>
                         <div class="col-3">
-                        <button type="button" id="selectNewBtn" class="btn btn-success w-100 bulk-btn">
-                            <i class="bi bi-person-plus"></i> Select Unassigned
+                        <button type="button" id="selectNewBtn" class="btn btn-info w-100 bulk-btn">
+                            <i class="bi bi-person-plus-fill"></i> Select New
                         </button>
                         </div>
                         <div class="col-3">
-                        <button type="button" id="unassignSelectedBtn" class="btn btn-danger w-100 bulk-btn" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: #fff; border: none;">
-                            <i class="bi bi-person-dash me-1"></i> Unassign Selected
-                        </button>
+                        <div id="selectionSummary" class="d-none">
+                            <span class="badge bg-success fs-6 py-2 px-3">
+                                <span id="selectedCount">0</span> Selected
+                            </span>
+                        </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Hidden form action: 'assign' (default) or 'unassign' -->
-            <input type="hidden" name="form_action" id="form_action" value="assign">
-
-            <!-- Selection Summary -->
-            <div class="selection-summary d-none" id="selectionSummary">
-                <div class="d-flex justify-content-between align-items-center text-dark">
-                    <span><i class="bi bi-check-square me-2"></i><span id="selectedCount">0</span> students selected</span>
-                    <small>Currently assigned: {{ assigned_student_ids|length }}</small>
-                </div>
-            </div>
-
-            <!-- Students List -->
-            <div id="studentsList">
-                {% if students and students|length > 0 %}
-                    <div class="table-responsive students-table-wrapper">
-                        <table class="table students-table">
-                            <thead>
+            <!-- Students Table -->
+            <div class="table-container">
+                {% if students %}
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-header">
                                 <tr>
-                                    <th width="60">
-                                        <div class="form-check d-flex justify-content-center">
-                                            <input class="form-check-input table-checkbox" type="checkbox" id="selectAllCheckbox">
-                                        </div>
+                                    <th width="50">
+                                        <input type="checkbox" class="form-check-input" id="selectAllCheckbox">
                                     </th>
-                                    <th>Student Information</th>
-                                    <th>Contact</th>
-                                    <th>Status</th>
-                                    <th>Assign Patient</th>
+                                    <th>Student Name</th>
+                                    <th>Email</th>
+                                    <th>Assigned Patient</th>
+                                    <th width="120" class="text-center">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for student in students %}
                                 <tr class="student-row" 
-                                    data-name="{{ student.get_full_name()|lower }}" 
-                                    data-email="{{ student.email|lower }}">
-                                    <td class="text-center">
-                                        <div class="form-check d-flex justify-content-center">
-                                            <input class="form-check-input student-checkbox" 
-                                                   type="checkbox" 
-                                                   name="student_ids" 
-                                                   value="{{ student.id }}" 
-                                                   id="student_{{ student.id }}"
-                                                   {% if student.id in assigned_student_ids %}checked{% endif %}>
+                                    data-student-id="{{ student.id }}"
+                                    data-name="{{ student.get_full_name().lower() }}"
+                                    data-email="{{ student.email.lower() }}">
+                                    <td>
+                                        <input type="checkbox" 
+                                               class="form-check-input student-checkbox" 
+                                               name="student_ids" 
+                                               value="{{ student.id }}"
+                                               id="student_{{ student.id }}"
+                                               {% if student.id in assigned_student_ids %}checked{% endif %}>
+                                    </td>
+                                    <td>
+                                        <div class="student-name fw-semibold">
+                                            {{ student.get_full_name() }}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="student-details">
-                                            <div class="student-name text-primary-emphasis">{{ student.get_full_name() }}</div>
-                                            <small class="student-id text-dark-emphasis">ID: {{ student.id }}</small>
-                                        </div>
+                                        <small class="text-muted">{{ student.email }}</small>
                                     </td>
                                     <td>
-                                        <div>
-                                            <a href="mailto:{{ student.email }}" class="student-email">{{ student.email }}</a>
-                                            {% if student.last_login %}
-                                            <br><small class="login-status">Last login: {{ student.last_login.strftime('%d/%m/%Y') }}</small>
-                                            {% else %}
-                                            <br><small class="login-status">Never logged in</small>
-                                            {% endif %}
-                                        </div>
+                                        <select class="form-select form-select-sm patient-select" 
+                                                name="patient_{{ student.id }}"
+                                                data-student-id="{{ student.id }}">
+                                            <option value="">Select a patient...</option>
+                                            {% for patient in available_patients %}
+                                                {% set is_assigned = patient.id in assigned_patients and patient.id != current_assignments.get(student.id) %}
+                                                <option value="{{ patient.id }}" 
+                                                        {% if current_assignments.get(student.id) == patient.id %}selected{% endif %}
+                                                        {% if is_assigned %}disabled data-already-assigned="true"{% endif %}>
+                                                    {{ (patient.title.upper() + ' ' if patient.title else '') + 
+                                                       (patient.given_name + ' ' if patient.given_name else '') + 
+                                                       (patient.last_name if patient.last_name else 'Unnamed Patient') }}
+                                                    {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
+                                                    {% if is_assigned %} (Already Assigned){% endif %}
+                                                </option>
+                                            {% endfor %}
+                                        </select>
+                                        <small class="patient-availability"></small>
                                     </td>
                                     <td class="text-center">
                                         {% if student.id in assigned_student_ids %}
-                                        <span class="status-badge status-assigned">
-                                            <i class="bi bi-check-circle-fill"></i> Assigned
-                                        </span>
+                                            <span class="badge bg-success status-badge">Assigned</span>
                                         {% else %}
-                                        <span class="status-badge status-available">
-                                            <i class="bi bi-circle"></i> Available
-                                        </span>
+                                            <span class="badge bg-secondary status-badge">Available</span>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        <select class="form-select patient-select text-secondary" 
-                                                name="patient_{{ student.id }}" 
-                                                data-student-id="{{ student.id }}">
-                                            <option value="">-- Select Patient --</option>
-                                            {% for patient in available_patients %}
-                                            {% set is_assigned = patient.id in assigned_patients and current_assignments.get(student.id) != patient.id %}
-                                            {% set is_current = current_assignments.get(student.id) == patient.id %}
-                                            <option value="{{ patient.id }}" 
-                                                    {% if is_assigned %}disabled data-already-assigned="true"{% endif %}
-                                                    {% if is_current %}selected{% endif %}>
-                                                {{ (patient.title.upper() + ' ' if patient.title else '') + (patient.given_name + ' ' if patient.given_name else '') + (patient.last_name if patient.last_name else 'Unnamed Patient') }}
-                                                {% if patient.dob %} - DOB: {{ patient.dob }}{% endif %}
-                                                {% if is_assigned %} (Already Assigned){% endif %}
-                                            </option>
-                                            {% endfor %}
-                                        </select>
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -178,9 +174,18 @@
                     <i class="bi bi-arrow-left me-2"></i>Back to Scenario
                 </a>
                 
-                <button type="submit" class="btn btn-custom btn-assign" id="assignBtn" disabled>
-                    <i class="bi bi-check-lg me-2"></i>Assign Selected Students
-                </button>
+                <div class="d-flex gap-2">
+                    {% if assigned_student_ids|length > 0 %}
+                    <!-- id changed to match JS (unassignSelectedBtn) -->
+                    <button type="button" class="btn btn-warning" id="unassignSelectedBtn">
+                        <i class="bi bi-x-circle me-2"></i>Unassign Selected
+                    </button>
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-custom btn-assign" id="assignBtn" disabled>
+                        <i class="bi bi-check-lg me-2"></i>Assign Selected Students
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -221,6 +226,32 @@ function updatePatientAvailability() {
 
 // Add event listeners to patient selects for real-time validation
 document.addEventListener('DOMContentLoaded', function() {
+    // Read ?condition, ?exam_start, ?exam_end from URL and populate hidden inputs & readonly label
+    const urlParams = new URLSearchParams(window.location.search);
+    const cond = urlParams.get('condition');
+    const examStartParam = urlParams.get('exam_start');
+    const examEndParam = urlParams.get('exam_end');
+    if (cond) {
+        const input = document.getElementById('assignment_condition');
+        const label = document.getElementById('assignModeLabel');
+        const info = document.getElementById('assignModeInfo');
+        const scheduleSpan = document.getElementById('assignModeSchedule');
+        if (input) input.value = cond;
+        if (label) label.textContent = cond.charAt(0).toUpperCase() + cond.slice(1);
+        if (cond === 'exam') {
+            // show schedule if provided
+            let parts = [];
+            if (examStartParam) parts.push(new Date(examStartParam).toLocaleString());
+            if (examEndParam) parts.push('to ' + new Date(examEndParam).toLocaleString());
+            if (scheduleSpan) scheduleSpan.textContent = parts.join(' ');
+            if (info) info.classList.remove('d-none');
+            // Also populate hidden inputs used by server on submit
+            const hs = document.getElementById('exam_start');
+            const he = document.getElementById('exam_end');
+            if (hs && examStartParam) hs.value = examStartParam;
+            if (he && examEndParam) he.value = examEndParam;
+        }
+    }
     const patientSelects = document.querySelectorAll('.patient-select');
     
     patientSelects.forEach(select => {
@@ -530,6 +561,31 @@ window.onload = function() {
     // Initialize
     updateCount();
     updatePatientAvailability();
+
+    // Auto-check checkbox when a patient is selected
+    document.querySelectorAll('select.patient-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const row = this.closest('tr');
+        if (!row) return;
+
+        const checkbox = row.querySelector('.student-checkbox');
+        if (!checkbox) return;
+
+        // Check the checkbox if a patient is selected
+        if (this.value && this.value.trim() !== '') {
+        checkbox.checked = true;
+        } else {
+        // Uncheck if no patient is selected
+        checkbox.checked = false;
+        }
+
+        // Update the count display
+        if (typeof updateCount === 'function') {
+        updateCount();
+        }
+    });
+    });
+
 };
 </script>
 {% endblock %}

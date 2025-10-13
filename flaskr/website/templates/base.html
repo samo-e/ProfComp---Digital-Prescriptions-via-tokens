@@ -16,12 +16,18 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     <!-- js-cookie -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/latest/js.cookie.min.js" integrity="sha512-iewyUmLNmAZBOOtFnG+GlGeGudYzwDjE1SX3l9SWpGUs0qJTzdeVgGFeBeU7/BIyOZdDy6DpILikEBBvixqO9Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    
     {% block head %}{% endblock %}
     {% block styles %}{% endblock %}
     {% block scripts %}{% endblock %}
+    
     <script src="{{ url_for('static', filename='js/index.js') }}"></script>
     <link href="{{ url_for('static', filename='css/index.css') }}" rel="stylesheet">
     <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+    
+    <!-- Text Overflow Fixes -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/input-overflow-fix.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/word-break-fix.css') }}">
 </head>
 <body {% block body_attrs %}{% endblock %}>
 {% block body %}{% endblock %}
@@ -40,7 +46,7 @@
 {% endif %}
 
 <!-- Options Menu -->
-<div class="position-fixed top-0 end-0 p-3">
+<div class="options-menu-gear">
     <a type="button" data-bs-toggle="modal" data-bs-target="#options-menu">
         <i class="bi bi-gear-fill h1"></i>
     </a>
@@ -55,7 +61,7 @@
             <div class="modal-body">
                 <h2 class="fs-5 mb-3">Need help?</h2>
                 <p>You can find the documentation <a href="{{ url_for('views.readme') }}">here</a>.</p>
-                <p>Found an issue? Report it <a href="#">here</a>.</p>
+                <p>Found an issue? Report it <a href="https://github.com/samo-e/ProfComp---Digital-Prescriptions-via-tokens/issues">here</a>.</p>
                 <h2 class="fs-5 mb-3 mt-5">Options</h2>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switch-darkmode">
@@ -99,5 +105,8 @@
     </div>
 </div>
 {% endblock %}
+
+<!-- Text Overflow Tooltip Handler -->
+<script src="{{ url_for('static', filename='js/input-overflow-tooltip.js') }}"></script>
 </body>
 </html>

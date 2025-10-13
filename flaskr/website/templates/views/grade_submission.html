@@ -44,7 +44,28 @@
                                                 <span class="text-muted">Not submitted</span>
                                             {% endif %}
                                         </dd>
-                                        
+                                        <dt class="col-sm-4">Start:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if student_scenario.exam_start %}
+                                                {{ student_scenario.exam_start.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                        </dd>
+
+                                        <dt class="col-sm-4">Due:</dt>
+                                        <dd class="col-sm-8">
+                                            {% if student_scenario.exam_end %}
+                                                {{ student_scenario.exam_end.strftime('%d/%m/%Y %H:%M') }}
+                                            {% else %}
+                                                <span class="text-muted">Not set</span>
+                                            {% endif %}
+                                            {% if submission.submitted_at and student_scenario.exam_end and submission.submitted_at > student_scenario.exam_end %}
+                                            <div class="mt-2">
+                                                <span class="badge bg-danger">Late Submitted</span>
+                                            </div>
+                                            {% endif %}
+                                        </dd>
                                         <dt class="col-sm-4">Status:</dt>
                                         <dd class="col-sm-8">
                                             {% if student_scenario.status == 'submitted' %}
@@ -173,7 +194,7 @@
                             
                             <!-- Quick Link to Current ASL -->
                             <div class="mt-3">
-                                <a href="{{ url_for('views.asl', pt=patient.id) }}" class="btn btn-outline-info btn-sm" target="_blank">
+                                <a href="{{ url_for('views.asl', patient_id=patient.id) }}" class="btn btn-outline-info btn-sm" target="_blank">
                                     <i class="bi bi-external-link-alt"></i> View Current ASL (New Tab)
                                 </a>
                             </div>
@@ -189,21 +210,21 @@
                             <h6 class="card-title mb-0">Uploaded Files</h6>
                         </div>
                         <div class="card-body">
-                            {% if submission and submission.submission_data.get('uploaded_files') %}
+                                    {% if submission and submission.submission_data.get('uploaded_files') %}
                                 <div class="list-group list-group-flush">
                                     {% for file_info in submission.submission_data.uploaded_files %}
                                     <div class="list-group-item d-flex justify-content-between align-items-center">
                                         <div>
-                                            <i class="bi bi-file-pdf text-danger me-2"></i>
+                                            <i class="bi bi-file-earmark me-2"></i>
                                             <strong>{{ file_info.original_name }}</strong>
                                             <br>
                                             <small class="text-muted">
-                                                Size: {{ "%.2f"|format(file_info.size / 1024 / 1024) }} MB | 
+                                                Size: {{ "%.2f"|format((file_info.file_size or file_info.get('file_size',0)) / 1024 / 1024) }} MB | 
                                                 Uploaded: {{ file_info.upload_time }}
                                             </small>
                                         </div>
                                         <div>
-                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name) }}" 
+                                            <a href="{{ url_for('views.download_file', filename=file_info.stored_name or file_info.get('stored_name')) }}" 
                                                class="btn btn-sm btn-outline-primary" target="_blank">
                                                 <i class="bi bi-download"></i> Download
                                             </a>

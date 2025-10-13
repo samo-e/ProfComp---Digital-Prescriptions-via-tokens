@@ -110,7 +110,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID="MPK00009002011563",
+                DSPID="asl",
                 status=PrescriptionStatus.AVAILABLE.value,
                 drug_name="Coversyl 5mg tablet, 30 5 mg 30 Tablets",
                 drug_code="9007C",
@@ -127,7 +127,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID="MPK00009002020646",
+                DSPID="asl",
                 status=PrescriptionStatus.PENDING.value,
                 drug_name="Diabex 1 g tablet, 90 1000 mg 90 Tablets",
                 drug_code="8607B",
@@ -143,7 +143,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID="MPK00009002033457",
+                DSPID="asl",
                 status=PrescriptionStatus.AVAILABLE.value,
                 drug_name="Lipitor 10mg tablet, 30 10 mg 30 Tablets",
                 drug_code="8213G",
@@ -159,7 +159,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID="MPK00009002044444",
+                DSPID="asl",
                 status=PrescriptionStatus.CANCELLED.value,
                 drug_name="Panadol Extra 500mg tablet, 20 tablets",
                 drug_code="1234A",
@@ -169,7 +169,7 @@ def init_asl_database():
                 prescribed_date="15/06/2021",
                 paperless=True,
                 brand_sub_not_prmt=False,
-                remaining_repeats=0,
+                remaining_repeats=2,
                 dispensed_at_this_pharmacy=False,
             ),
         ]
@@ -180,7 +180,7 @@ def init_asl_database():
             Prescription(
                 patient_id=2,
                 prescriber_id=1,
-                DSPID="MPK00009002055555",
+                DSPID="asl",
                 status=PrescriptionStatus.AVAILABLE.value,
                 drug_name="Ventolin HFA 100mcg inhaler",
                 drug_code="2345B",
@@ -197,7 +197,7 @@ def init_asl_database():
             Prescription(
                 patient_id=3,
                 prescriber_id=1,
-                DSPID="MPK00009002066666",
+                DSPID="asl",
                 status=PrescriptionStatus.AVAILABLE.value,
                 drug_name="Nexium 20mg tablet, 28 tablets",
                 drug_code="3456C",
@@ -214,7 +214,7 @@ def init_asl_database():
             Prescription(
                 patient_id=4,
                 prescriber_id=1,
-                DSPID="MPK00009002077777",
+                DSPID="asl",
                 status=PrescriptionStatus.AVAILABLE.value,
                 drug_name="Atorvastatin 40mg tablet, 30 tablets",
                 drug_code="4567D",
@@ -235,7 +235,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID=None,  # No DSPID for dispensed
+                DSPID="alr",
                 status=PrescriptionStatus.DISPENSED.value,
                 drug_name="Levlen ED Tablets, 150mcg-30mcg(28)",
                 drug_code="1394J",
@@ -253,7 +253,7 @@ def init_asl_database():
             Prescription(
                 patient_id=1,
                 prescriber_id=1,
-                DSPID=None,
+                DSPID="alr",
                 status=PrescriptionStatus.DISPENSED.value,
                 drug_name="Nexium 20mg tablet, 28 tablets",
                 drug_code="8888X",
@@ -293,7 +293,7 @@ def init_asl_database():
         # print("- Patient 2 (John): PENDING - waiting for SMS/email reply")
         # print("- Patient 3 (Sarah): REJECTED - patient denied access")
         # print("- Patient 4 (Michael): NO_CONSENT - never requested access before")
-
+        #
 
 if __name__ == "__main__":
     init_asl_database()

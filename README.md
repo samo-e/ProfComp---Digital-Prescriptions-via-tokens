@@ -24,6 +24,12 @@
          </nav><!-- TEACHER_ONLY_END -->
          <a class="nav-link mb-1" href="#usage">Usage</a>
          <nav class="nav nav-pills flex-column"><!-- TEACHER_ONLY_START -->
+            <a class="nav-link ms-3 mb-1" href="#usage-admin">For Administrators</a>
+            <nav class="nav nav-pills flex-column">
+               <a class="nav-link ms-5 mb-1" href="#profiles">Profiles</a>
+               <a class="nav-link ms-5 mb-1" href="#create-account">Create Account</a>
+               <a class="nav-link ms-5 mb-1" href="#download">Download All</a>
+            </nav>
             <a class="nav-link ms-3 mb-1" href="#usage-teacher">For Teachers</a>
             <nav class="nav nav-pills flex-column">
                <a class="nav-link ms-5 mb-1" href="#create-scenario">Create Scenarios</a>
@@ -140,6 +146,62 @@ We will require the simulation program to be editable by the Pharmacy Department
 
 ### Usage
 <!-- TEACHER_ONLY_START -->
+<div id="usage-admin">
+
+#### I am an *Administrator*:
+<div id="profiles">
+
+##### Profiles Tab
+
+When you log in as a teacher, you'll be greeted by the Admin Dashboard:
+![Screenshot of Admin Dashboard](static/images/screenshots/admin/ss-42-profiles.png)
+
+Here you can delete accounts, or click to edit them.
+
+</div><div id="create-account">
+
+##### Account Creation Tab
+
+You can also navigate to the Create Accounts tab where you can make new tabs.  
+![Screenshot of Admin Dashboard](static/images/screenshots/admin/ss-40-create-account.png)
+
+Click the green button to add individual accounts or upload a `.csv` files to bulk import files.
+When uploading a file, make sure you include the following columns:
+| studentnumber | first_name | last_name | email |
+|:--------------|:-----------|:----------|:------|
+
+An example is shown below:  
+| studentnumber | first_name | last_name | email |
+|:--------------|:-----------|:----------|:------|
+| 20250123      | Emily      | Stone     | student20@test.com |
+| 20250147      | Lucas      | Nguyen    | student21@test.com |
+| 20250189      | Sophia     | Martins   | student22@test.com |
+
+You can also add a password field if you would like to use some other program to generate these (see below for example). Please note, we cannot guaruntee the passwords generated are cryptographically secure.  
+| studentnumber | first_name | last_name | email | password |
+|:--------------|:-----------|:----------|:------|:---------|
+| 20250123      | Emily      | Stone     | student20@test.com | password123 |
+
+If you would like to bulk create Teachers or Admins, you can add the role column:
+| studentnumber | first_name | last_name | email | role |
+|:--------------|:-----------|:----------|:------|:---------|
+|       | Valery      | Hawk     | admin100@test.com | admin |
+|       | John      | Duley     | teacher1@test.com | admin |
+
+Alternatively, you can manually enter users with the green button.
+
+
+Once you have confirmed everything is as it should be, press the "Confirm Account Creation" button. This will prompt you to download the file which contains all the generated passwords.  
+
+</div><div id="download">
+
+##### Download All Tab
+
+On the Download All tab, you can download all the student data from the server.  
+This will include all students's information, names, emails etc. and also all their submissions along with the respective patient's prescriptions.
+
+</div>
+
 <div id="usage-teacher">
 
 #### I am a *Teacher*:

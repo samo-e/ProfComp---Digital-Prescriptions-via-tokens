@@ -8,7 +8,7 @@ body {
 }
 
 body.modal-open {
-    padding-right: 0 !important;
+  padding-right: 0 !important;
 }
 
 .delete-btn {
@@ -19,6 +19,12 @@ body.modal-open {
 body > .container {
   margin-top: 3.5%;
   margin-bottom: 3.5%;
+  max-width: 75vw;
+}
+@media (max-width: 768px) {
+  body > .container {
+    max-width: 100%;
+  }
 }
 
 .mw-75 {
@@ -27,4 +33,19 @@ body > .container {
 
 .mw-50 {
   max-width: 50%;
+}
+
+.options-menu-gear {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  z-index: 1101 !important;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+#options-menu.modal {
+  z-index: 1200 !important;
 }

@@ -1,4 +1,12 @@
-from flask import Blueprint, render_template, redirect, url_for, request, flash, current_app
+from flask import (
+    Blueprint,
+    render_template,
+    redirect,
+    url_for,
+    request,
+    flash,
+    current_app,
+)
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from .models import db, User, UserRole
@@ -42,7 +50,7 @@ def login():
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-        # role = request.form.get("role")  # 'teacher' or 'student'
+        # ...existing code...
         remember = request.form.get("remember") == "on"
         
         # Debug: List all users in database
@@ -69,7 +77,7 @@ def login():
             print(f"DEBUG: User role: {user.role}")
             print(f"DEBUG: Password check result: {user.check_password(password)}")
 
-        # Check credentials and role
+        # Check credentials
         if not user:
             print("DEBUG: No user found")
             flash("Invalid email or password", "error")
@@ -78,12 +86,7 @@ def login():
         if not user.check_password(password):
             flash("Invalid email or password", "error")
             return render_template("auth/login.html")
-
-        # Check if role matches
-        # role_value = "teacher" if role == "Teacher" else "student"
-        # if user.role != role_value:
-        #     flash(f"This account is not registered as a {role}", "error")
-        #     return render_template("auth/login.html")
+        # ...existing code...
 
         # Check if account is active
         if not user.is_active:
@@ -112,7 +115,9 @@ def login():
         if next_page:
             return redirect(next_page)
 
-        if user.is_teacher():
+        if user.role == "admin":
+            return redirect(url_for("admin.admin_dashboard"))
+        elif user.is_teacher():
             return redirect(url_for("views.teacher_dashboard"))
         else:
             return redirect(url_for("views.student_dashboard"))

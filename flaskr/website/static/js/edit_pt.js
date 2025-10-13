@@ -1,4 +1,4 @@
-$(function() {
+$(function () {
   $('a[data-bs-toggle="tab"]').on("shown.bs.tab", function (e) {
     const activeHref = $(e.target).attr("href");
     const activeText = $(e.target).text();
