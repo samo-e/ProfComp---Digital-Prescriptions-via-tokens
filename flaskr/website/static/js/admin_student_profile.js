@@ -1,5 +1,5 @@
 // DEBUG: Student profile assign/unassign teacher modal logic
-(function () {
+$(function () {
   // DEBUG: Modal and button element references
   const $modal = $("#assignTeacherModal");
   const $btn = $("#assign-teachers-btn");

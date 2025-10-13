@@ -132,7 +132,11 @@ We will require the simulation program to be editable by the Pharmacy Department
     ```sh
     setx SECRET_KEY "your_secret_key_here"
     ```
-4. Run the application
+4. Run the "create_admin" script to create a starter admin account
+   ```sh
+   python flaskr/admin_create.py
+   ```
+5. Run the application
    ```sh
    flask run
    ```
