@@ -16,4 +16,8 @@ six==1.17.0
 tzdata==2025.2
 et-xmlfile==2.0.0
 openpyxl==3.1.5
+gunicorn==21.2.0
+email-validator==2.1.0
+requests==2.31.0
 Flask-Migrate==4.1.0
+
