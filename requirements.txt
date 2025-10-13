@@ -7,7 +7,7 @@ WTForms==3.0.1
 SQLAlchemy==2.0.20
 markdown-it-py==4.0.0
 Flask-Minify==0.50
-pyzipper==0.4.4
+pyzipper==0.3.6
 numpy==2.2.6
 pandas==2.3.3
 python-dateutil==2.9.0.post0
@@ -16,3 +16,4 @@ six==1.17.0
 tzdata==2025.2
 et-xmlfile==2.0.0
 openpyxl==3.1.5
+Flask-Migrate==4.1.0
