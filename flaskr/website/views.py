@@ -3268,9 +3268,9 @@ def create_scenario():
         )
         db.session.add(new_scenario)
         db.session.commit()
-        flash("New scenario created!", "success")
+        # flash("New scenario created!", "success")
     else:
-        flash("Invalid CSRF token. Please try again.", "error")
+        flash("An error occured (Invalid CSRF token). Please try again.", "error")
 
     return redirect(url_for("views.teacher_dashboard"))
 
