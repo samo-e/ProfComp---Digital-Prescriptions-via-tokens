@@ -197,17 +197,6 @@ $(function () {
     $("#no-results").remove();
   }
 
-  $("#script-print").on("click", function () {
-    // console.log("Print button clicked");
-
-    const selectedIds = [];
-    $('#asl-table tbody input[type="checkbox"]:checked').each(function () {
-      selectedIds.push(parseInt($(this).val()));
-    });
-
-    // console.log("Selected prescription IDs:", selectedIds);
-  });
-
   function initializeButtonStates() {
     // consent_status nested structure
     const aslStatus = pt_data["consent-status"]["status"];
@@ -394,13 +383,17 @@ $(function () {
             showAlert("success", "Prescriptions dispensed successfully!");
 
             // Remove dispensed prescriptions from table
-            document.querySelectorAll('#asl-table input[type="checkbox"]:checked').forEach(cb => {
-              const row = cb.closest("tr");
-              if (row) row.remove();
-            });
+            document
+              .querySelectorAll('#asl-table input[type="checkbox"]:checked')
+              .forEach((cb) => {
+                const row = cb.closest("tr");
+                if (row) row.remove();
+              });
 
             // Hide dispense button
-            document.getElementById("dispense-selected").classList.add("d-none");
+            document
+              .getElementById("dispense-selected")
+              .classList.add("d-none");
 
             // Refresh page to show updated status
             setTimeout(() => {

@@ -54,7 +54,7 @@ async function print_scripts() {
       let presc = prescription_container.cloneNode(true);
       const rowId = $row.attr("id");
 
-      presc = insert_prescription_details(presc, rowId);
+      presc = insert_prescription_details(presc, index);
 
       let $wrapper = $("<div></div>").append(presc);
       $wrapper.css({ "break-after": "page", "margin-top": "10px" });
@@ -161,7 +161,7 @@ function insert_prescription_details(el, drug_id) {
   // Use asl-data, not asl_data
   drug_info_ids.forEach((id) => {
     const $el = $(el).find(`#${id}`);
-    const new_key = `asl-data-${drug_id.slice(-1)}-${id}`;
+    const new_key = `asl-data-${id.slice(-1)}-${id}`;
     if (flatted_pt_data[new_key] !== undefined) {
       let data_point = flatted_pt_data[new_key];
       if (data_point === true) {
