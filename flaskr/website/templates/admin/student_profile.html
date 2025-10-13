@@ -25,7 +25,7 @@
         id="edit-student-form"
         class="d-inline me-1"
       >
-        {{ edit_form.hidden_tag() if edit_form is defined }}
+        {{ edit_form.hidden_tag() }}
         <button type="submit" class="btn btn-success btn-sm">
           Confirm Changes
         </button>
@@ -144,7 +144,7 @@
             method="post"
             action="{{ url_for('admin.unassign_student') }}"
           >
-            {{ password_form.csrf_token }}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
             <input type="hidden" name="student_id" value="{{ user.id }}" />
             <input type="hidden" name="teacher_id" value="{{ teacher.id }}" />
             <button type="submit" class="btn btn-sm btn-outline-danger">
@@ -191,7 +191,7 @@
                 method="post"
                 action="{{ url_for('admin.assign_student') }}"
               >
-                {{ password_form.csrf_token }}
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
                 <input type="hidden" name="student_id" value="{{ user.id }}" />
                 <input
                   type="hidden"

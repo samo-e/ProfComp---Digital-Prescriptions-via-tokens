@@ -50,12 +50,15 @@ def update_user(user_id):
     first_name = request.form.get("first_name", "").strip()
     last_name = request.form.get("last_name", "").strip()
     email = request.form.get("email", "").strip()
+    studentnumber = request.form.get("studentnumber", "").strip()
 
     # Only update if a value is provided
     if first_name:
         user.first_name = first_name
     if last_name:
         user.last_name = last_name
+    if studentnumber:
+        user.studentnumber = studentnumber
     if email and email != user.email:
         # Check for email uniqueness
         if User.query.filter(User.email == email, User.id != user.id).first():
@@ -65,7 +68,7 @@ def update_user(user_id):
 
     db.session.commit()
     flash("User information updated successfully.", "success")
-    return redirect(url_for("admin.teacher_profile", user_id=user.id))
+    return redirect(url_for("admin.admin_dashboard"))
 
 
 # Route to list all CSV exports
@@ -280,6 +283,39 @@ class ChangePasswordForm(FlaskForm):
     )
 
 
+class EditAccountForm(FlaskForm):
+    studentnumber = IntegerField(
+        "Student Number",
+        validators=[
+            DataRequired("Student number is required"),
+            NumberRange(
+                min=10000000, max=99999999, message="Student number must be 8 digits"
+            ),
+        ],
+    )
+    first_name = StringField(
+        "First Name",
+        validators=[
+            DataRequired("First name is required"),
+            Length(min=1, max=50, message="First name must be 1-50 characters"),
+        ],
+    )
+    last_name = StringField(
+        "Last Name",
+        validators=[
+            DataRequired("Last name is required"),
+            Length(min=1, max=50, message="Last name must be 1-50 characters"),
+        ],
+    )
+    email = StringField(
+        "Email",
+        validators=[
+            Optional(),
+            Email("Invalid email address"),
+            Length(max=100, message="Email must be less than 100 characters"),
+        ],
+    )
+
 # Account creation form
 class CreateAccountForm(FlaskForm):
     studentnumber = IntegerField(
@@ -414,6 +450,7 @@ def teacher_profile(user_id):
     students = []
     form = AssignStudentForm()
     password_form = ChangePasswordForm()
+    edit_form = EditAccountForm()
     if user.is_teacher():
         students = User.query.filter_by(role=UserRole.STUDENT.value).all()
 
@@ -424,6 +461,7 @@ def teacher_profile(user_id):
         user=user,
         students=students,
         form=form,
+        edit_form=edit_form,
         password_form=password_form,
         is_curr_user=is_curr_user,
     )
@@ -529,6 +567,7 @@ def student_profile(user_id):
 
     user = User.query.get_or_404(user_id)
     password_form = ChangePasswordForm()
+    edit_form = EditAccountForm()
     # Ensure teachers is a list, not a query
     assigned_teachers = (
         user.teachers.all() if hasattr(user.teachers, "all") else list(user.teachers)
@@ -539,6 +578,7 @@ def student_profile(user_id):
         "admin/student_profile.html",
         user=user,
         password_form=password_form,
+        edit_form=edit_form,
         assigned_teachers=assigned_teachers,
         all_teachers=all_teachers,
     )
