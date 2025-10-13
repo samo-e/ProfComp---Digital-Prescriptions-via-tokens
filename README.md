@@ -136,6 +136,13 @@ We will require the simulation program to be editable by the Pharmacy Department
    ```sh
    python flaskr/admin_create.py
    ```
+   you will be prompted to enter the following 
+
+   1. Email 
+   2. First name 
+   3. Last name 
+   4. Password
+   
 5. Run the application
    ```sh
    flask run
