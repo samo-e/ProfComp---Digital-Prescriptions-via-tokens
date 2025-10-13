@@ -1,3 +1,4 @@
+
 from flask import (
     Blueprint,
     render_template,
@@ -878,19 +879,26 @@ def teacher_dashboard():
 
 
 @views.route("/student/dashboard")
+@login_required
 def student_dashboard():
     """Student dashboard showing assigned scenarios"""
     if current_user.is_teacher():
         return redirect(url_for("views.teacher_dashboard"))
 
-    # Get student's assigned scenarios with submission status
-    student_scenarios = (
-        StudentScenario.query.join(Scenario)
-        .filter(
-            StudentScenario.student_id == current_user.id, Scenario.is_archived == False
+    # Block admin accounts
+    if hasattr(current_user, 'role') and current_user.role == 'admin':
+        return "Access denied: Admin accounts cannot access the student dashboard.", 403
+
+    # Get student's assigned scenarios with submission status (only for students)
+    student_scenarios = []
+    if hasattr(current_user, 'role') and current_user.role == 'student':
+        student_scenarios = (
+            StudentScenario.query.join(Scenario)
+            .filter(
+                StudentScenario.student_id == current_user.id, Scenario.is_archived == False
+            )
+            .all()
         )
-        .all()
-    )
 
     # Get detailed information for each scenario
     scenario_data = []
@@ -2051,6 +2059,10 @@ def export_selected_asl_csv(patient_id):
 def asl(patient_id: int):
     """ASL page — ASL-first display. ALR shows only ALR-prescriber items."""
     try:
+        # Only allow teachers and students
+        if not (hasattr(current_user, 'role') and current_user.role in ['teacher', 'student']):
+            return "Access denied: Only teachers and students can view this page.", 403
+        
         patient = Patient.query.get_or_404(patient_id)
 
         can_view_asl = patient.can_view_asl()
@@ -3007,6 +3019,33 @@ def patient_dashboard():
         no_consent_count=no_consent_count,
     )
 
+@views.route("/patients/duplicate/<int:patient_id>", methods=["GET", "POST"])
+@teacher_required
+def duplicate_patient(patient_id):
+    """Duplicate a patient record and redirect to edit page for the new patient."""
+    original = Patient.query.get_or_404(patient_id)
+    try:
+        # Create a new Patient instance with copied fields
+        new_patient = Patient(
+            title=original.title,
+            given_name=original.given_name,
+            last_name=original.last_name,
+            dob=original.dob,
+            medicare=original.medicare,
+            address=original.address,
+            asl_status=original.asl_status,
+            preferred_contact=original.preferred_contact,
+            is_registered=original.is_registered,
+            # Add other fields as needed
+        )
+        db.session.add(new_patient)
+        db.session.commit()
+        flash(f"Patient '{original.given_name} {original.last_name}' duplicated successfully!", "success")
+        return redirect(url_for("views.patient_dashboard"))
+    except Exception as e:
+        db.session.rollback()
+        flash(f"Error duplicating patient: {str(e)}", "error")
+        return redirect(url_for("views.patient_dashboard"))
 
 @views.route("/patients/delete/<int:patient_id>", methods=["POST"])
 @login_required
