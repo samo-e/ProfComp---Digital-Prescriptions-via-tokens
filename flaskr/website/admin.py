@@ -1061,6 +1061,10 @@ def export_all_students_csv():
                     "prescriptions": presc_data,
                 }
             )
+
+    if len(scenario_rows) == 0:
+        scenario_rows.append("No Scenario Data Found")
+
     df_scenarios = pd.DataFrame(scenario_rows)
 
     # --- WRITE XLSX IN MEMORY ---
