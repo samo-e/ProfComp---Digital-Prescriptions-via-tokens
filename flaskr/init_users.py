@@ -4,7 +4,7 @@ Run this after init_data.py to add teacher and student accounts
 """
 
 
-def init_users(auto_mode=False):
+def init_users():
     """Initialize test users for the application"""
     from website import create_app
     from website.models import db, User, UserRole
@@ -14,9 +14,6 @@ def init_users(auto_mode=False):
         # Check if users already exist
         existing_users = User.query.all()
         if existing_users:
-            if auto_mode:
-                # In auto mode, skip if users already exist
-                return
             # print(
             #     f"Users already exist in database ({len(existing_users)} users found)"
             # )
@@ -32,7 +29,7 @@ def init_users(auto_mode=False):
                 db.session.commit()
                 # print("Existing users deleted")
 
-        # Create test users (this runs if no existing users OR if user confirmed deletion)
+        # Create test users
         test_users = [
             # Teachers
             {

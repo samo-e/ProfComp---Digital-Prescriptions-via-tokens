@@ -15,12 +15,7 @@ def create_app():
     app.config["SECRET_KEY"] = (
         "dev-secret-key-change-in-production"  # Change this in production!
     )
-    import os
-    # Use a fixed absolute path that both processes will use
-    db_path = "/opt/render/project/src/flaskr/asl_simulation.db"
-    app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-    print(f"DEBUG: Database path configured as: {db_path}")
-    print(f"DEBUG: Database file exists: {os.path.exists(db_path)}")
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///asl_simulation.db"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Session configuration for better security
@@ -32,28 +27,14 @@ def create_app():
     csrf = CSRFProtect(app)
 
     # import the database
-    from .models import db, User, Patient
+
+    from .models import db, User
 
     db.init_app(app)
     # Diagnostic prints were removed to avoid cluttering console output in debug mode
 
     # Set up Flask-Migrate
     migrate = Migrate(app, db)
-
-    # Database is already created by seeding process, just verify it exists
-    with app.app_context():
-        print(f"DEBUG: Flask startup - Database URI: {app.config['SQLALCHEMY_DATABASE_URI']}")
-        print(f"DEBUG: Flask startup - Database file exists: {os.path.exists(db_path)}")
-        
-        # Just check if we can query users (don't create tables)
-        try:
-            user_count = User.query.count()
-            print(f"DEBUG: Flask startup - Users in database: {user_count}")
-        except Exception as e:
-            print(f"DEBUG: Flask startup - Could not query users: {e}")
-            # Only create tables if we absolutely can't query
-            db.create_all()
-            print(f"DEBUG: Database tables created at: {app.config['SQLALCHEMY_DATABASE_URI']}")
 
     # Initialize Flask-Login
     login_manager = LoginManager()
