@@ -512,7 +512,7 @@ def assign_scenario(scenario_id):
                             # update existing assignment's condition and schedule if provided
                             if assignment_condition:
                                 existing_student.assignment_condition = assignment_condition
-                           if exam_start is not None:
+                            if exam_start is not None:
                                 existing_student.exam_start = exam_start
                             if exam_end is not None:
                                 existing_student.exam_end = exam_end
