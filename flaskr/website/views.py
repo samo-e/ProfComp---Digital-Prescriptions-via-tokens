@@ -815,19 +815,26 @@ def teacher_dashboard():
 
 
 @views.route("/student/dashboard")
+@login_required
 def student_dashboard():
     """Student dashboard showing assigned scenarios"""
     if current_user.is_teacher():
         return redirect(url_for("views.teacher_dashboard"))
 
-    # Get student's assigned scenarios with submission status
-    student_scenarios = (
-        StudentScenario.query.join(Scenario)
-        .filter(
-            StudentScenario.student_id == current_user.id, Scenario.is_archived == False
+    # Block admin accounts
+    if hasattr(current_user, 'role') and current_user.role == 'admin':
+        return "Access denied: Admin accounts cannot access the student dashboard.", 403
+
+    # Get student's assigned scenarios with submission status (only for students)
+    student_scenarios = []
+    if hasattr(current_user, 'role') and current_user.role == 'student':
+        student_scenarios = (
+            StudentScenario.query.join(Scenario)
+            .filter(
+                StudentScenario.student_id == current_user.id, Scenario.is_archived == False
+            )
+            .all()
         )
-        .all()
-    )
 
     # Get detailed information for each scenario
     scenario_data = []
@@ -1910,6 +1917,10 @@ def export_selected_asl_csv(patient_id):
 def asl(pt: int):
     """ASL page - now requires login"""
     try:
+        # Only allow teachers and students
+        if not (hasattr(current_user, 'role') and current_user.role in ['teacher', 'student']):
+            return "Access denied: Only teachers and students can view this page.", 403
+
         patient = Patient.query.get_or_404(pt)
 
         # Check access control
