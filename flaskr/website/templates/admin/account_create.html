@@ -602,19 +602,16 @@ document.addEventListener("DOMContentLoaded", function () {
           return;
         }
 
+        console.log(data);
+        console.log(data.created_emails);
         // Remove cards for successful accounts
         $cards.each(function () {
           const $card = $(this);
-          const $form = $card.find("form");
-          const email = $form.find('input[name="email"]').val().trim();
-          const studentnumber = $form.find('.studentnumber-field').val()?.trim() || '';
-
-          const match = data.created_accounts.some(acc =>
-            (acc.email && acc.email === email) || 
-            (acc.studentnumber && acc.studentnumber === studentnumber)
-          );
-
-          if (match) $card.remove();
+          const email = $card.find('input[name="email"]').val().trim();
+          //const studentnumber = $form.find('.studentnumber-field').val()?.trim() || '';
+          if (data.created_emails && data.created_emails.includes(email)) {
+            $card.remove();
+          }
         });
 
         saveCardsToStorage();
