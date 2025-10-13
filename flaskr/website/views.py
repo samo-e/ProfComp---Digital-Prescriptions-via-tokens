@@ -4237,12 +4237,10 @@ def export_student_list():
         writer.writerow(
             [
                 "Student ID",
-                "Username",
                 "First Name",
                 "Last Name",
                 "Full Name",
                 "Email",
-                "Phone",
                 "Date Joined",
                 "Total Scenarios Assigned",
                 "Scenarios Submitted",
@@ -4266,12 +4264,10 @@ def export_student_list():
             writer.writerow(
                 [
                     student.id,
-                    student.username,
                     student.first_name or "",
                     student.last_name or "",
                     student.get_full_name(),
                     student.email,
-                    student.phone or "",
                     (
                         student.created_at.strftime("%Y-%m-%d")
                         if hasattr(student, "created_at") and student.created_at
