@@ -43,19 +43,22 @@ _last_created_csv_path = None
 @login_required
 def update_user(user_id):
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
     first_name = request.form.get("first_name", "").strip()
     last_name = request.form.get("last_name", "").strip()
     email = request.form.get("email", "").strip()
+    studentnumber = request.form.get("studentnumber", "").strip()
 
     # Only update if a value is provided
     if first_name:
         user.first_name = first_name
     if last_name:
         user.last_name = last_name
+    if studentnumber:
+        user.studentnumber = studentnumber
     if email and email != user.email:
         # Check for email uniqueness
         if User.query.filter(User.email == email, User.id != user.id).first():
@@ -64,8 +67,8 @@ def update_user(user_id):
         user.email = email
 
     db.session.commit()
-    flash("User information updated successfully.", "success")
-    return redirect(url_for("admin.teacher_profile", user_id=user.id))
+    # flash("User information updated successfully.", "success")
+    return redirect(url_for("admin.admin_dashboard"))
 
 
 # Route to list all CSV exports
@@ -73,7 +76,7 @@ def update_user(user_id):
 @login_required
 def csv_exports():
     if current_user.role != "admin":
-        flash("Admin privileges required.", "error")
+        # flash("Admin privileges required.", "error")
         return redirect(url_for("views.home"))
     export_dir = os.path.join(os.path.dirname(__file__), "..", "exports")
     try:
@@ -89,7 +92,7 @@ def csv_exports():
 @login_required
 def download_csv(filename):
     if current_user.role != "admin":
-        flash("Admin privileges required.", "error")
+        # flash("Admin privileges required.", "error")
         return redirect(url_for("views.home"))
     export_dir = os.path.join(os.path.dirname(__file__), "..", "exports")
     # Only allow ZIP files to be downloaded
@@ -144,7 +147,7 @@ def download_last_created_accounts_csv():
 @login_required
 def export_accounts_zip():
     if current_user.role != "admin":
-        flash("Admin privileges required.", "error")
+        # flash("Admin privileges required.", "error")
         return redirect(url_for("views.home"))
     # Example: Query all users and export to CSV
     users = User.query.all()
@@ -210,11 +213,11 @@ def admin_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
-            flash("Please log in to access this page.", "error")
+            # flash("Please log in to access this page.", "error")
             return redirect(url_for("auth.login"))
 
         if current_user.role != "admin":
-            flash("Access denied. Admin privileges required.", "error")
+            # flash("Access denied. Admin privileges required.", "error")
 
             # Redirect based on user role to their appropriate dashboard
             if current_user.role == "teacher":
@@ -251,7 +254,7 @@ def is_admin():
 @admin.route("/admin/unauthorized")
 def unauthorized():
     """Handle unauthorized access attempts"""
-    flash("Access denied. Admin privileges required.", "error")
+    # flash("Access denied. Admin privileges required.", "error")
 
     # Redirect based on user role if authenticated
     if current_user.is_authenticated:
@@ -279,6 +282,39 @@ class ChangePasswordForm(FlaskForm):
         ],
     )
 
+
+class EditAccountForm(FlaskForm):
+    studentnumber = IntegerField(
+        "Student Number",
+        validators=[
+            DataRequired("Student number is required"),
+            NumberRange(
+                min=10000000, max=99999999, message="Student number must be 8 digits"
+            ),
+        ],
+    )
+    first_name = StringField(
+        "First Name",
+        validators=[
+            DataRequired("First name is required"),
+            Length(min=1, max=50, message="First name must be 1-50 characters"),
+        ],
+    )
+    last_name = StringField(
+        "Last Name",
+        validators=[
+            DataRequired("Last name is required"),
+            Length(min=1, max=50, message="Last name must be 1-50 characters"),
+        ],
+    )
+    email = StringField(
+        "Email",
+        validators=[
+            Optional(),
+            Email("Invalid email address"),
+            Length(max=100, message="Email must be less than 100 characters"),
+        ],
+    )
 
 # Account creation form
 class CreateAccountForm(FlaskForm):
@@ -340,12 +376,12 @@ def require_admin():
 
     # Check if user is authenticated
     if not current_user.is_authenticated:
-        flash("Please log in to access admin pages.", "error")
+        # flash("Please log in to access admin pages.", "error")
         return redirect(url_for("auth.login"))
 
     # Check if user has admin role - redirect to their appropriate page
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
 
         # Redirect based on user role to their appropriate dashboard
         if current_user.role == "teacher":
@@ -387,7 +423,7 @@ def admin_dashboard():
 def user_profile(user_id):
     # Only admins can access user profiles
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
@@ -396,8 +432,7 @@ def user_profile(user_id):
     elif user.is_student():
         return redirect(url_for("admin.student_profile", user_id=user.id))
     else:
-        # Optionally handle admin profile or fallback
-        flash("Admin profile view not implemented.", "info")
+        # flash("Admin profile view not implemented.", "info")
         return redirect(url_for("admin.admin_dashboard"))
 
 
@@ -407,13 +442,14 @@ def user_profile(user_id):
 def teacher_profile(user_id):
     # Only admins can access teacher profiles
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
     students = []
     form = AssignStudentForm()
     password_form = ChangePasswordForm()
+    edit_form = EditAccountForm()
     if user.is_teacher():
         students = User.query.filter_by(role=UserRole.STUDENT.value).all()
 
@@ -424,6 +460,7 @@ def teacher_profile(user_id):
         user=user,
         students=students,
         form=form,
+        edit_form=edit_form,
         password_form=password_form,
         is_curr_user=is_curr_user,
     )
@@ -435,7 +472,7 @@ def teacher_profile(user_id):
 def assign_student():
     # Only admins can assign students
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
     teacher_id = int(request.form["teacher_id"])
     student_id = int(request.form["student_id"])
@@ -458,11 +495,11 @@ def assign_student():
                 },
                 csrf_token=request.form.get("csrf_token"),
             )
-        flash("Student assigned successfully!", "success")
+        # flash("Student assigned successfully!", "success")
     else:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return jsonify(success=False, message="Student already assigned!")
-        flash("Student already assigned!", "warning")
+        # flash("Student already assigned!", "warning")
     return redirect(url_for("admin.teacher_profile", user_id=teacher_id))
 
 
@@ -472,7 +509,7 @@ def assign_student():
 def unassign_student():
     # Only admins can unassign students
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
     teacher_id = int(request.form["teacher_id"])
     student_id = int(request.form["student_id"])
@@ -483,7 +520,7 @@ def unassign_student():
         db.session.commit()
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return jsonify(success=True, message="Student unassigned successfully!")
-        flash("Student unassigned successfully!", "success")
+        # flash("Student unassigned successfully!", "success")
     else:
         if request.headers.get("X-Requested-With") == "XMLHttpRequest":
             return jsonify(success=False, message="Student was not assigned!")
@@ -497,7 +534,7 @@ def unassign_student():
 def change_password(user_id):
     # Only admins can change passwords
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
@@ -506,9 +543,10 @@ def change_password(user_id):
     if password_form.validate_on_submit():
         user.set_password(password_form.new_password.data)
         db.session.commit()
-        flash(f"Password updated successfully for {user.get_full_name()}!", "success")
+        # flash(f"Password updated successfully for {user.get_full_name()}!", "success")
     else:
-        flash("Password change failed. Please check the requirements.", "error")
+        pass
+        # flash("Password change failed. Please check the requirements.", "error")
 
     # Redirect back to appropriate profile
     if user.is_teacher():
@@ -524,11 +562,12 @@ def change_password(user_id):
 def student_profile(user_id):
     # Only admins can access student profiles
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
     password_form = ChangePasswordForm()
+    edit_form = EditAccountForm()
     # Ensure teachers is a list, not a query
     assigned_teachers = (
         user.teachers.all() if hasattr(user.teachers, "all") else list(user.teachers)
@@ -539,6 +578,7 @@ def student_profile(user_id):
         "admin/student_profile.html",
         user=user,
         password_form=password_form,
+        edit_form=edit_form,
         assigned_teachers=assigned_teachers,
         all_teachers=all_teachers,
     )
@@ -550,7 +590,7 @@ def student_profile(user_id):
 def create_account():
     # Only admins can create accounts
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+      # ("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     form = CreateAccountForm()
@@ -774,7 +814,7 @@ def batch_create_accounts():
 def account_creation_success(user_id):
     # Only admins can access account creation success page
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user = User.query.get_or_404(user_id)
@@ -787,7 +827,7 @@ def account_creation_success(user_id):
 def delete_user(user_id):
     # Only admins can delete accounts
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     user_to_delete = User.query.get_or_404(user_id)
@@ -830,7 +870,7 @@ def delete_user(user_id):
         db.session.delete(user_to_delete)
         db.session.commit()
 
-        flash(f"Successfully deleted {user_role} account: {user_name}", "success")
+        # flash(f"Successfully deleted {user_role} account: {user_name}", "success")
 
     except Exception as e:
         db.session.rollback()
@@ -844,7 +884,7 @@ def delete_user(user_id):
 @login_required
 def upload_accounts_csv():
     if current_user.role != "admin":
-        flash("Access denied. Admin privileges required.", "error")
+        # flash("Access denied. Admin privileges required.", "error")
         return redirect(url_for("views.home"))
 
     file = request.files.get("csv_file")
@@ -1021,6 +1061,10 @@ def export_all_students_csv():
                     "prescriptions": presc_data,
                 }
             )
+
+    if len(scenario_rows) == 0:
+        scenario_rows.append("No Scenario Data Found")
+
     df_scenarios = pd.DataFrame(scenario_rows)
 
     # --- WRITE XLSX IN MEMORY ---
