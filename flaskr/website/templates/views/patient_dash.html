@@ -114,7 +114,7 @@
                 <div class="col-md-6">
                     <div class="d-flex gap-2 justify-content-end">
                         <input type="text" id="patientSearch" class="form-control form-control-sm" 
-                               placeholder="Search patients..." style="max-width: 250px;">
+                               placeholder="Search patients...">
                         <a href="{{ url_for('views.create_patient') }}" class="btn btn-primary btn-sm">
                             <i class="bi bi-person-plus"></i> Add Patient
                         </a>
@@ -169,7 +169,7 @@
                                 </td>
                                 <td>
                                     <div class="d-flex justify-content-center align-items-center gap-1 flex-wrap">
-                                        <a href="{{ url_for('views.asl', pt=patient.id) }}" 
+                                        <a href="{{ url_for('views.asl', patient_id=patient.id) }}" 
                                            class="btn btn-outline-success btn-sm" title="View ASL">
                                             <i class="bi bi-eye"></i>
                                         </a>

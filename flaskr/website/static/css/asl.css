@@ -1,4 +1,3 @@
-
 body > .container {
   margin-top: 3%;
   margin-bottom: 3%;
@@ -94,7 +93,7 @@ html {
 
 /* Export button group styling */
 .btn-group {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
 }
 
@@ -115,7 +114,7 @@ html {
 /* Export button hover effects */
 .btn-success:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
 }
 
@@ -183,7 +182,7 @@ tr:has(.prescription-select:checked) {
 /* Table responsive improvements */
 .table-responsive {
   border-radius: 0.25rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   margin-bottom: 1.5rem;
 }
 
@@ -256,7 +255,7 @@ tr:has(.prescription-select:checked) {
 /* Customer and ASL cards */
 .customer-card,
 .asl-card {
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border-radius: 0.5rem;
   margin-bottom: 1rem;
   transition: box-shadow 0.3s ease;
@@ -264,7 +263,7 @@ tr:has(.prescription-select:checked) {
 
 .customer-card:hover,
 .asl-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .customer-card h3,
@@ -295,7 +294,7 @@ tr:has(.prescription-select:checked) {
 /* Alert styling */
 .alert {
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   margin-top: 1rem;
 }
 
@@ -363,13 +362,13 @@ h3 {
     flex-direction: column;
     width: 100%;
   }
-  
+
   .btn-group .btn {
     border-radius: 0.25rem !important;
     margin-bottom: 0.5rem;
     width: 100%;
   }
-  
+
   .table-responsive {
     font-size: 0.875rem;
   }
@@ -461,7 +460,7 @@ h3 {
   background-color: #0dcaf0;
   color: white;
   border-radius: 25px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   font-weight: bold;
   display: none;
 }

@@ -388,7 +388,8 @@ class ASL_ALR_PrescriptionSubform(FlaskForm):
     )
     dose_qty = IntegerField("Dose Qty", validators=[Optional(), NumberRange(min=1)])
     dose_rpt = IntegerField(
-        "Dose Repeats (Remaining)", validators=[Optional(), NumberRange(min=0)]
+        "Dose Repeats (Remaining)", validators=[NumberRange(min=1)],
+        render_kw={"placeholder": "Please Enter A Number"}
     )
     brand_sub_not_prmt = SelectField(
         "Brand Substitution Not Permitted",

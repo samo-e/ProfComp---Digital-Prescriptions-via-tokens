@@ -260,7 +260,7 @@
 .condition-chooser .btn-group {
   border-radius: 0.5rem;
   overflow: hidden;
-  border: 1px solid rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
   background: #fff;
 }
 
@@ -278,7 +278,7 @@
   color: #fff;
 }
 
-#smallExamControls input[type=datetime-local] {
+#smallExamControls input[type="datetime-local"] {
   min-width: 180px;
 }
 
@@ -361,4 +361,98 @@
   border-radius: 5px;
   border-left: 4px solid #007bff;
   white-space: pre-wrap;
+}
+
+/* Add the dark mode */
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+
+  .scenario-header {
+    background: linear-gradient(135deg, #2f3c7e 0%, #42336e 100%);
+    color: #f1f1f1;
+  }
+
+  .info-alert {
+    background-color: #1e2a2f;
+    border-color: #2a3b3f;
+    border-left-color: #17a2b8;
+    color: #d1ecf1;
+  }
+
+  .section-card {
+    background: #1e1e1e;
+    border-color: #333;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  }
+
+  .scenario-question-text {
+    background-color: #222;
+    border-left-color: #3a82f7;
+    color: #e0e0e0;
+  }
+
+  .patient-card,
+  .info-card,
+  .action-panel {
+    background: #1e1e1e;
+    border-color: #333;
+    color: #ddd;
+  }
+
+  input,
+  select,
+  textarea {
+    background-color: #2a2a2a;
+    border-color: #555;
+    color: #eee;
+  }
+
+  .btn {
+    border-color: #666;
+  }
+
+  .btn-primary {
+    background-color: #3a82f7;
+    border-color: #3a82f7;
+  }
+
+  .btn-success {
+    background-color: #2fa97a;
+    border-color: #2fa97a;
+  }
+
+  .btn-outline-primary {
+    color: #3a82f7;
+    border-color: #3a82f7;
+  }
+
+  .btn-outline-primary:hover {
+    background-color: #3a82f7;
+    color: white;
+  }
+
+  .text-dark {
+    color: #e0e0e0 !important;
+  }
+
+  .alert {
+    background-color: #1f1f1f;
+    border-color: #333;
+    color: #eaeaea;
+  }
+
+  .section-title {
+    color: #ffffff; /* pure white titles for clarity */
+    border-bottom-color: #444; /* subtle divider line */
+  }
+
+  /* Also make icons and labels lighter for consistency */
+  .section-title i,
+  .section-title span,
+  .section-title small {
+    color: #ffffff;
+  }
 }

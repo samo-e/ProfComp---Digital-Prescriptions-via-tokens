@@ -176,27 +176,38 @@
         {% endif %}
     </div>
 
-    <!-- Assigned Students Section -->
-    {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
-    <div class="section-card">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="section-title mb-0">
-                <i class="bi bi-people me-2"></i>Assigned Students ({{ assigned_students|length }})
-            </h2>
-            <div class="d-flex align-items-center gap-2">
-                <form id="modeForm" method="POST" action="{{ url_for('views.set_scenario_mode', scenario_id=scenario.id) }}" class="d-flex align-items-center" data-teacher-saved="{{ '1' if teacher_saved else '0' }}">
+        <!-- Scenario Timing Section -->
+        {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
+        <div class="section-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2 class="section-title mb-0">
+                    <i class="bi bi-clock-history me-2"></i>Scenario Timing
+                </h2>
+            </div>
+    
+            <form id="modeForm" method="POST" action="{{ url_for('views.set_scenario_mode', scenario_id=scenario.id) }}" class="d-flex align-items-center flex-wrap gap-3" data-teacher-saved="{{ '1' if teacher_saved else '0' }}">
+                
+                <!-- Assignment / Exam toggle buttons -->
                 <div class="condition-chooser">
                     <div class="btn-group btn-group-sm" role="group" aria-label="Condition chooser">
                         <button type="button" class="btn btn-outline-secondary condition-choice {% if not is_exam %}active{% endif %}" data-value="assignment" id="condAssignmentSmall">Assignment</button>
                         <button type="button" class="btn btn-outline-secondary condition-choice {% if is_exam %}active{% endif %}" data-value="exam" id="condExamSmall">Exam</button>
                     </div>
                 </div>
-
-                <div id="smallExamControls" class="ms-3 me-2" data-exam-start="{{ exam_info.start.isoformat() if exam_info and exam_info.start else '' }}" data-exam-end="{{ exam_info.end.isoformat() if exam_info and exam_info.end else '' }}" data-help-assignment="Students will see the scenario at the exact start time; submissions are accepted until 7 days after the due date (or 7 days after start if no due). Late submissions incur a 5% penalty per day." data-help-exam="Students will see the scenario 1 hour before start; submissions close 5 minutes after end.">
+    
+                <!-- Time input fields -->
+                <div id="smallExamControls" class="ms-3 me-2" 
+                    data-exam-start="{{ exam_info.start.isoformat() if exam_info and exam_info.start else '' }}" 
+                    data-exam-end="{{ exam_info.end.isoformat() if exam_info and exam_info.end else '' }}" 
+                    data-help-assignment="Students will see the scenario at the exact start time; submissions are accepted until 7 days after the due date (or 7 days after start if no due). Late submissions incur a 5% penalty per day." 
+                    data-help-exam="Students will see the scenario 1 hour before start; submissions close 5 minutes after end.">
+    
                     <label class="form-label small mb-1">Start / Due</label>
                     <div class="d-flex gap-2">
-                        <input id="small_exam_start" name="exam_start" class="form-control form-control-sm" type="datetime-local" value="{{ exam_info.start.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.start else '' }}" />
-                        <input id="small_exam_end" name="exam_end" class="form-control form-control-sm" type="datetime-local" value="{{ exam_info.end.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.end else '' }}" />
+                        <input id="small_exam_start" name="exam_start" class="form-control form-control-sm" type="datetime-local" 
+                            value="{{ exam_info.start.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.start else '' }}" />
+                        <input id="small_exam_end" name="exam_end" class="form-control form-control-sm" type="datetime-local" 
+                            value="{{ exam_info.end.strftime('%Y-%m-%dT%H:%M') if exam_info and exam_info.end else '' }}" />
                     </div>
                     {% if not is_exam %}
                     <div id="modeHelp" class="form-text small">Students will see the scenario at the exact start time; submissions are accepted until 7 days after the due date (or 7 days after start if no due). Late submissions incur a 5% penalty per day.</div>
@@ -204,10 +215,23 @@
                     <div id="modeHelp" class="form-text small">Students will see the scenario 1 hour before start; submissions close 5 minutes after end.</div>
                     {% endif %}
                 </div>
+    
                 <input type="hidden" name="assignment_condition" id="small_assignment_condition" value="{{ 'exam' if is_exam else 'assignment' }}" />
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                <button id="modeSaveBtn" type="submit" class="btn btn-sm btn-success ms-2">Save</button>
-                </form>
+                <button id="modeSaveBtn" type="submit" class="btn btn-sm btn-success">Save</button>
+            </form>
+        </div>
+        {% endif %}
+    
+
+    <!-- Assigned Students Section -->
+    {% if current_user.is_teacher() and scenario.teacher_id == current_user.id %}
+    <div class="section-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="section-title mb-0">
+                <i class="bi bi-people me-2"></i>Assigned Students ({{ assigned_students|length }})
+            </h2>
+            
 
                 {# Saved/Edit UI handled by external JS (static/js/scenario_dashboard.js) - inline script removed to avoid duplication #}
 
@@ -226,7 +250,7 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>{{ student.first_name }} {{ student.last_name }}</strong>
-                                    <br><small class="text-muted">Student ID: {{ student.id }}</small>
+                                    <br><small class="text-dark">Student ID: {{ student.id }}</small>
                                 </div>
                                 <form method="POST" action="{{ url_for('views.unassign_student_from_scenario', scenario_id=scenario.id, student_id=student.id) }}" class="d-none">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
@@ -451,7 +475,7 @@
                             <div class="action-panel text-center">
                                 <div class="d-grid gap-3">
                                     {% if not is_exam or can_view_details %}
-                                    <a href="{{ url_for('views.asl', pt=assigned_patient.id) }}" class="btn btn-primary btn-lg shadow-sm">
+                                    <a href="{{ url_for('views.asl', patient_id=assigned_patient.id) }}" class="btn btn-primary btn-lg shadow-sm">
                                         <i class="bi bi-file-medical me-2"></i> 
                                         <span class="fw-semibold">View ASL</span>
                                     </a>
@@ -496,7 +520,7 @@
                             </div>
                             {% if is_exam and not can_view_details %}
                                 <div class="alert alert-warning mt-3">
-                                    This exam is scheduled for {{ exam_info.start.strftime('%d/%m/%Y %H:%M') }} — details will be visible from {{ exam_info.viewable_from.strftime('%d/%m/%Y %H:%M') }}.
+                                    This exam is scheduled for {{ exam_info.start.strftime('%d/%m/%Y %H:%M') }} - details will be visible from {{ exam_info.viewable_from.strftime('%d/%m/%Y %H:%M') }}.
                                 </div>
                             {% endif %}
                         </div>
@@ -507,9 +531,9 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body text-center py-5">
                     <div class="empty-state">
-                        <i class="bi bi-person-x text-muted mb-3 fs-1"></i>
-                        <h5 class="text-muted mb-3">No Patient Assigned</h5>
-                        <p class="text-muted mb-4">
+                        <i class="bi bi-person-x text-dark mb-3 fs-1"></i>
+                        <h5 class="text-dark mb-3">No Patient Assigned</h5>
+                        <p class="text-dark mb-4">
                             No patient has been assigned to you for this scenario yet.<br>
                             Please contact your instructor to get a patient assignment.
                         </p>

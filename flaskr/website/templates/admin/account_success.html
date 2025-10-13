@@ -83,7 +83,7 @@
         <p><strong>Created:</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
     </div>
     
-    <div style="margin-top: 20px;">
+    <div class="mt-5">
         <a href="{{ url_for('admin.create_account') }}">Create Another Account</a> |
         <a href="{{ url_for('admin.admin_dashboard') }}">Back to Admin Dashboard</a>
     </div>

@@ -30,6 +30,8 @@
 
         <form method="POST" id="assignForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <!-- Hidden form action used by JS to signal backend whether this is an unassign request -->
+            <input type="hidden" name="form_action" id="form_action" value="assign" />
             <!-- Mode is set on the Scenario dashboard. Show read-only mode here and include hidden fields so backend receives values -->
             <input type="hidden" name="assignment_condition" id="assignment_condition" value="assignment" />
             <input type="hidden" name="exam_start" id="exam_start" />
@@ -174,7 +176,8 @@
                 
                 <div class="d-flex gap-2">
                     {% if assigned_student_ids|length > 0 %}
-                    <button type="button" class="btn btn-warning" id="unassignBtn">
+                    <!-- id changed to match JS (unassignSelectedBtn) -->
+                    <button type="button" class="btn btn-warning" id="unassignSelectedBtn">
                         <i class="bi bi-x-circle me-2"></i>Unassign Selected
                     </button>
                     {% endif %}
@@ -558,6 +561,31 @@ window.onload = function() {
     // Initialize
     updateCount();
     updatePatientAvailability();
+
+    // Auto-check checkbox when a patient is selected
+    document.querySelectorAll('select.patient-select').forEach(select => {
+    select.addEventListener('change', function() {
+        const row = this.closest('tr');
+        if (!row) return;
+
+        const checkbox = row.querySelector('.student-checkbox');
+        if (!checkbox) return;
+
+        // Check the checkbox if a patient is selected
+        if (this.value && this.value.trim() !== '') {
+        checkbox.checked = true;
+        } else {
+        // Uncheck if no patient is selected
+        checkbox.checked = false;
+        }
+
+        // Update the count display
+        if (typeof updateCount === 'function') {
+        updateCount();
+        }
+    });
+    });
+
 };
 </script>
 {% endblock %}

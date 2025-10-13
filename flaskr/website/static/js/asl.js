@@ -1,8 +1,8 @@
-$(function() {
+$(function () {
   // collapse functionality
   $(".btn-collapse").on("click", function () {
-    var $btn = $(this);
-    var $icon = $btn.find("i");
+    let $btn = $(this);
+    let $icon = $btn.find("i");
     $icon.toggleClass("bi-chevron-up bi-chevron-down");
   });
 
@@ -182,11 +182,11 @@ $(function() {
 
     if (!hasResults) {
       const noResultsRow = `
-              <tr id="no-results">
-                  <td colspan="7" class="text-center text-muted py-4">
-                      <i class="bi bi-search"></i> No matching prescriptions found
-                  </td>
-              </tr>`;
+<tr id="no-results">
+  <td colspan="7" class="text-center text-muted py-4">
+    <i class="bi bi-search"></i> No matching prescriptions found
+  </td>
+</tr>`;
       $("#asl-table tbody").append(noResultsRow);
     }
   }
@@ -266,12 +266,12 @@ $(function() {
   }
 
   // debug info
-  console.log("pt_id:", pt_id);
-  console.log("pt_data:", pt_data);
-  console.log("ASL Status:", pt_data["consent-status"]["status"]);
+  // console.log("pt_id:", pt_id);
+  // console.log("pt_data:", pt_data);
+  // console.log("ASL Status:", pt_data["consent-status"]["status"]);
 });
 
-$(function() {
+$(function () {
   // Handle prescription selection for dispensing
   const checkboxes = document.querySelectorAll(
     '#asl-table input[type="checkbox"]'
@@ -392,6 +392,15 @@ $(function() {
 
             // Show success message
             showAlert("success", "Prescriptions dispensed successfully!");
+
+            // Remove dispensed prescriptions from table
+            document.querySelectorAll('#asl-table input[type="checkbox"]:checked').forEach(cb => {
+              const row = cb.closest("tr");
+              if (row) row.remove();
+            });
+
+            // Hide dispense button
+            document.getElementById("dispense-selected").classList.add("d-none");
 
             // Refresh page to show updated status
             setTimeout(() => {

@@ -33,10 +33,9 @@ def create_app():
     db.init_app(app)
     # Diagnostic prints were removed to avoid cluttering console output in debug mode
 
-
     # Set up Flask-Migrate
     migrate = Migrate(app, db)
-    
+
     # Initialize Flask-Login
     login_manager = LoginManager()
     login_manager.init_app(app)
@@ -48,15 +47,14 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-
     from .views import views
     from .auth import auth
     from .admin import admin
 
     # Register blueprints
-    app.register_blueprint(views, url_prefix='/')
-    app.register_blueprint(auth, url_prefix='/')
-    app.register_blueprint(admin, url_prefix='/')
+    app.register_blueprint(views, url_prefix="/")
+    app.register_blueprint(auth, url_prefix="/")
+    app.register_blueprint(admin, url_prefix="/")
 
     # Check and initialize database if needed
     initialize_database(app)
@@ -70,8 +68,8 @@ def create_app():
         return text.replace("\n", "<br>")
 
     GLOBALS = {
-        "ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD" : False,
-        "SHOW_PASSWORD_RESET_ON_LOGIN" : False,
+        "ENABLE_EXPORT_SELECTED_ON_TEACHER_DASHBOARD": False,
+        "SHOW_PASSWORD_RESET_ON_LOGIN": False,
         "ENABLE_SCENARIO_PASSWORD_PROTECTION": False,
     }
     app.config["GLOBALS"] = GLOBALS

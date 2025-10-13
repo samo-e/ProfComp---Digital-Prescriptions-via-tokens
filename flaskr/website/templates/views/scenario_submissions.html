@@ -2,6 +2,10 @@
 
 {% block title %}Submissions - {{ scenario.name }}{% endblock %}
 
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/scenario_submissions.css') }}">
+{% endblock %}
+
 {% block body %}
 <div class="container">
     <div class="row">
@@ -68,30 +72,9 @@
                         {% endif %}
                     </div>
                     {% if submissions_data %}
-                        <style>
-                        /* Inline caret style: text with a small chevron (no rounded square) */
-                        .status-header-cell { position: relative; }
-                        .inline-caret {
-                            display: inline-flex;
-                            align-items: center;
-                            justify-content: center;
-                            gap: 0.15rem;
-                            color: inherit;
-                            background: transparent;
-                            border: none;
-                            padding: 0;
-                            margin: 0;
-                            text-decoration: none;
-                            vertical-align: middle;
-                        }
-                        .inline-caret:focus { outline: none; box-shadow: none; }
-                        .inline-caret .bi { font-size: 0.9rem; line-height: 1; transform: translateY(-2px); }
-                        .status-dropdown-menu { min-width: 8rem; }
-                        </style>
-
                         <div class="list-group">
                         <div class="list-group-item py-2 bg-light rounded-top d-flex align-items-center">
-                            <div style="width:48px; text-align:center;">
+                            <div class="select-student-submission text-center">
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" id="select-all" aria-label="Select all students">
                                 </div>
@@ -134,7 +117,7 @@
                         </div>
                         {% for data in submissions_data %}
                         <div class="list-group-item py-3 d-flex align-items-center">
-                            <div style="width:48px; text-align:center;">
+                            <div class="select-student-submission text-center">
                                 <div class="form-check">
                                     <input class="form-check-input publish-checkbox" type="checkbox" value="{{ data.student_scenario.id }}" id="publish_{{ data.student_scenario.id }}" aria-label="Select student">
                                 </div>
@@ -174,7 +157,7 @@
                                                     <i class="bi bi-clipboard-data"></i> {% if data.student_scenario.status == 'graded' %}View Grade{% else %}View Submission{% endif %}
                                                 </a>
                                                 {% if submission.patient %}
-                                                <a href="{{ url_for('views.asl', pt=submission.patient.id) }}" class="btn btn-outline-info" target="_blank">
+                                                <a href="{{ url_for('views.asl', patient_id=submission.patient.id) }}" class="btn btn-outline-info" target="_blank">
                                                     <i class="bi bi-eye"></i> View ASL
                                                 </a>
                                                 {% endif %}
@@ -243,8 +226,6 @@ document.addEventListener('DOMContentLoaded', function(){
             unpublishInput.value = selected.join(',');
         });
     }
-
-    // status dropdown is handled by bootstrap dropdown links (no JS needed)
 });
 </script>
 {% endblock %}

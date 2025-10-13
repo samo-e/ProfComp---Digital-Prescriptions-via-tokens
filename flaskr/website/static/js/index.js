@@ -1,9 +1,9 @@
 // Darkmode
-$(function() {
+$(function () {
   load_dark_mode();
 });
 
-(function() {
+(function () {
   load_dark_mode();
 })();
 
