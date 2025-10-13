@@ -39,11 +39,11 @@
     {% endwith %}
 
     <!-- Stats Cards -->
-    <div class="row mb-4">
-    <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-primary text-white" style="min-height: 100px;">
+    <div class="row mb-4 align-items-stretch">
+        <div class="col-md-3 d-flex">
+            <div class="card stats-card bg-primary text-white flex-fill d-flex">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between h-100">
                         <div>
                             <h5 class="card-title">Total Patients</h5>
                             <h2 class="mb-0">{{ patients|length if patients else 0 }}</h2>
@@ -55,13 +55,13 @@
                 </div>
             </div>
         </div>
-    <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-success text-white" style="min-height: 100px;">
+        <div class="col-md-3 d-flex">
+            <div class="card stats-card bg-success text-white flex-fill d-flex">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between h-100">
                         <div>
                             <h5 class="card-title">ASL Granted</h5>
-                            <h2 class="mb-0">{{ asl_granted_count }}</h2>
+                            <h2 class="mb-0">{{ asl_granted_count or 0 }}</h2>
                         </div>
                         <div class="align-self-center">
                             <i class="bi bi-check-circle fs-1"></i>
@@ -70,13 +70,13 @@
                 </div>
             </div>
         </div>
-    <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-warning text-white" style="min-height: 100px;">
+        <div class="col-md-3 d-flex">
+            <div class="card stats-card bg-warning text-white flex-fill d-flex">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between h-100">
                         <div>
                             <h5 class="card-title">Pending</h5>
-                            <h2 class="mb-0">{{ pending_count }}</h2>
+                            <h2 class="mb-0">{{ pending_count or 0 }}</h2>
                         </div>
                         <div class="align-self-center">
                             <i class="bi bi-hourglass-split fs-1"></i>
@@ -85,13 +85,13 @@
                 </div>
             </div>
         </div>
-    <div class="col-md-3 mb-3">
-            <div class="card stats-card bg-info text-white" style="min-height: 100px;">
+        <div class="col-md-3 d-flex">
+            <div class="card stats-card bg-info text-white flex-fill d-flex">
                 <div class="card-body">
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between h-100">
                         <div>
                             <h5 class="card-title">Denied</h5>
-                            <h2 class="mb-0">{{ denied_count }}</h2>
+                            <h2 class="mb-0">{{ denied_count or 0 }}</h2>
                         </div>
                         <div class="align-self-center">
                             <i class="bi bi-x-circle fs-1"></i>
@@ -101,6 +101,7 @@
             </div>
         </div>
     </div>
+
 
     <!-- Patients Table Card -->
     <div class="card border-0 shadow-sm">

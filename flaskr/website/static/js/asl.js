@@ -197,17 +197,6 @@ $(function () {
     $("#no-results").remove();
   }
 
-  $("#script-print").on("click", function () {
-    // console.log("Print button clicked");
-
-    const selectedIds = [];
-    $('#asl-table tbody input[type="checkbox"]:checked').each(function () {
-      selectedIds.push(parseInt($(this).val()));
-    });
-
-    // console.log("Selected prescription IDs:", selectedIds);
-  });
-
   function initializeButtonStates() {
     // consent_status nested structure
     const aslStatus = pt_data["consent-status"]["status"];
@@ -292,32 +281,39 @@ $(function () {
   });
 
   // Handle dispense button click
-  dispenseButton.addEventListener("click", function () {
-    const checkedBoxes = document.querySelectorAll(
-      '#asl-table input[type="checkbox"]:checked'
-    );
-    const selectedPrescriptions = Array.from(checkedBoxes).map((cb) => {
-      const row = cb.closest("tr");
-      const cells = row.querySelectorAll("td");
-      return {
-        id: cb.value,
-        prescribed_date: cells[1].textContent.trim(),
-        drug_name: cells[2].querySelector("p")
-          ? cells[2].textContent.split("\n")[0].trim()
-          : cells[2].textContent.trim(),
-        dspid: cells[2].querySelector("p")
-          ? cells[2].querySelector("p").textContent.trim()
-          : "",
-        quantity: cells[3].textContent.trim(),
-        prescriber: cells[4].textContent.split("\n")[0].trim(),
-        repeats: cells[5].textContent.trim(),
-      };
-    });
+  $(dispenseButton).on("click", function () {
+    const $checkedBoxes = $('#asl-table > tbody > tr > td > input[type="checkbox"]:checked');
+    if ($checkedBoxes.length === 0) {
+      alert("Please select at least one prescription.");
+      return;
+    }
 
-    // Populate modal with selected prescriptions
+    const selectedPrescriptions = $checkedBoxes
+      .map(function () {
+        const $row = $(this).closest("tr");
+        const $cells = $row.find("td");
+
+        const $drugCell = $cells.eq(2);
+        const $pTags = $drugCell.find("p");
+        const drugName = $pTags.length
+          ? $pTags.eq(0).text().trim()
+          : $drugCell.text().split("\n")[0].trim();
+        const dspid = $pTags.length > 1 ? $pTags.eq(1).text().trim() : "";
+
+        return {
+          id: $(this).val(),
+          prescribed_date: $cells.eq(1).text().trim(),
+          drug_name: drugName,
+          dspid: dspid,
+          quantity: $cells.eq(3).text().trim(),
+          prescriber: $cells.eq(4).text().trim(),
+          repeats: $cells.eq(5).text().trim(),
+        };
+      })
+      .get();
+
     populateDispensingModal(selectedPrescriptions);
 
-    // Show modal
     const modal = new bootstrap.Modal(
       document.getElementById("dispensingModal")
     );
@@ -394,13 +390,17 @@ $(function () {
             showAlert("success", "Prescriptions dispensed successfully!");
 
             // Remove dispensed prescriptions from table
-            document.querySelectorAll('#asl-table input[type="checkbox"]:checked').forEach(cb => {
-              const row = cb.closest("tr");
-              if (row) row.remove();
-            });
+            document
+              .querySelectorAll('#asl-table input[type="checkbox"]:checked')
+              .forEach((cb) => {
+                const row = cb.closest("tr");
+                if (row) row.remove();
+              });
 
             // Hide dispense button
-            document.getElementById("dispense-selected").classList.add("d-none");
+            document
+              .getElementById("dispense-selected")
+              .classList.add("d-none");
 
             // Refresh page to show updated status
             setTimeout(() => {

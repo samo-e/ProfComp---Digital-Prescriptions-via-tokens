@@ -498,8 +498,16 @@ def assign_scenario(scenario_id):
                         if not existing_student:
                             # If exam_start/exam_end were not provided in the form,
                             # fall back to the scenario default values (if any).
-                            create_exam_start = exam_start if exam_start is not None else getattr(scenario, 'default_exam_start', None)
-                            create_exam_end = exam_end if exam_end is not None else getattr(scenario, 'default_exam_end', None)
+                            create_exam_start = (
+                                exam_start
+                                if exam_start is not None
+                                else getattr(scenario, "default_exam_start", None)
+                            )
+                            create_exam_end = (
+                                exam_end
+                                if exam_end is not None
+                                else getattr(scenario, "default_exam_end", None)
+                            )
 
                             student_assignment = StudentScenario(
                                 student_id=student_id,
@@ -512,7 +520,9 @@ def assign_scenario(scenario_id):
                         else:
                             # update existing assignment's condition and schedule if provided
                             if assignment_condition:
-                                existing_student.assignment_condition = assignment_condition
+                                existing_student.assignment_condition = (
+                                    assignment_condition
+                                )
                             if exam_start is not None:
                                 existing_student.exam_start = exam_start
                             if exam_end is not None:
@@ -1142,7 +1152,7 @@ def student_management():
             total_assignments=total_assignments,
         )
     except Exception as e:
-        print(f"Error in student_management: {str(e)}")
+        # print(f"Error in student_management: {str(e)}")
         import traceback
 
         traceback.print_exc()
@@ -1331,7 +1341,6 @@ def view_student(student_id):
 
         assigned_scenarios = []
         for ss in student_scenarios:
-            print("ss.id=", ss.id)
             scenario = Scenario.query.get(ss.id)
             if scenario:
                 assigned_scenarios.append(
@@ -1919,7 +1928,7 @@ def export_selected_asl_csv(patient_id):
         if not prescription_ids or not prescription_ids[0]:
             flash("No prescriptions selected for export", "warning")
             return redirect(url_for("views.asl", patient_id=patient_id))
-        
+
         # Get selected prescriptions with prescriber info
         prescription_id_list = [int(pid) for pid in prescription_ids if pid.strip()]
         prescriptions = (
@@ -1935,7 +1944,7 @@ def export_selected_asl_csv(patient_id):
         if not prescriptions:
             flash("No valid prescriptions found to export", "error")
             return redirect(url_for("views.asl", patient_id=patient_id))
-        
+
         # Create CSV
         output = StringIO()
         writer = csv.writer(output)
@@ -2031,19 +2040,20 @@ def export_selected_asl_csv(patient_id):
 
         # Create safe filename
         safe_patient_name = "".join(
-            c if c.isalnum() or c in (" ", "_") else "_" for c in patient.name
+            c if c.isalnum() or c in (" ", "_") else "_" for c in (patient.name or "")
         )
+        if not safe_patient_name:
+            safe_patient_name = "report"
         safe_patient_name = safe_patient_name.replace(" ", "_")
         filename = f"ASL_Selected_{safe_patient_name}_{len(prescriptions)}_items.csv"
-
         response.headers["Content-Disposition"] = f"attachment; filename={filename}"
         response.headers["Content-Type"] = "text/csv; charset=utf-8"
-
         return response
 
     except Exception as e:
         flash(f"Error exporting selected prescriptions: {str(e)}", "error")
         return redirect(url_for("views.asl", patient_id=patient_id))
+
 
 @views.route("/asl/<int:patient_id>")
 def asl(patient_id: int):
@@ -2069,8 +2079,6 @@ def asl(patient_id: int):
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "asl",  # filter by DSPID
                     # exclude fully dispensed / zero-repeat items
-                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
-                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -2084,8 +2092,6 @@ def asl(patient_id: int):
                     Prescription.patient_id == patient_id,
                     Prescription.DSPID == "alr",  # filter by DSPID
                     # exclude fully dispensed / zero-repeat items
-                    (Prescription.dose_rpt != 0) if hasattr(Prescription, 'dose_rpt') else True,
-                    (Prescription.remaining_repeats != 0) if hasattr(Prescription, 'remaining_repeats') else True,
                 )
                 .all()
             )
@@ -2096,7 +2102,8 @@ def asl(patient_id: int):
             "pharmaceut-ben-entitlement-no": patient.pharmaceut_ben_entitlement_no,
             "sfty-net-entitlement-cardholder": patient.sfty_net_entitlement_cardholder,
             "rpbs-ben-entitlement-cardholder": patient.rpbs_ben_entitlement_cardholder,
-            "name": patient.name,
+            "name": getattr(patient, "name", None)
+            or f"{patient.given_name or ''} {patient.last_name or ''}".strip(),
             "dob": patient.dob,
             "preferred-contact": patient.preferred_contact,
             "address-1": patient.address or "",
@@ -2120,63 +2127,78 @@ def asl(patient_id: int):
 
         # Populate ASL data
         for prescription, prescriber in asl_prescriptions:
-            pt_data["asl-data"].append({
-                "prescription_id": prescription.id,
-                "DSPID": "null",
-                "status": prescription.get_status().name.title(),
-                "drug-name": prescription.drug_name,
-                "drug-code": prescription.drug_code,
-                "dose-instr": prescription.dose_instr,
-                "dose-qty": prescription.dose_qty,
-                "dose-rpt": prescription.dose_rpt,
-                "prescribed-date": prescription.prescribed_date,
-                "paperless": prescription.paperless,
-                "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
-                "prescriber": {
-                    "fname": prescriber.fname,
-                    "lname": prescriber.lname,
-                    "title": prescriber.title,
-                    "address-1": prescriber.address_1,
-                    "address-2": prescriber.address_2,
-                    "id": prescriber.prescriber_id,
-                    "hpii": prescriber.hpii,
-                    "hpio": prescriber.hpio,
-                    "phone": prescriber.phone,
-                    "fax": prescriber.fax,
-                },
-            })
+            if (
+                hasattr(prescription, "remaining_repeats")
+                and prescription.remaining_repeats == 0
+            ):
+                continue
+            pt_data["asl-data"].append(
+                {
+                    "prescription_id": prescription.id,
+                    "DSPID": "null",
+                    "status": prescription.get_status().name.title(),
+                    "drug-name": prescription.drug_name,
+                    "drug-code": prescription.drug_code,
+                    "dose-instr": prescription.dose_instr,
+                    "dose-qty": prescription.dose_qty,
+                    "dose-rpt": prescription.dose_rpt,
+                    "prescribed-date": prescription.prescribed_date,
+                    "paperless": prescription.paperless,
+                    "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
+                    "prescriber": {
+                        "fname": prescriber.fname,
+                        "lname": prescriber.lname,
+                        "title": prescriber.title,
+                        "address-1": prescriber.address_1,
+                        "address-2": prescriber.address_2,
+                        "id": prescriber.prescriber_id,
+                        "hpii": prescriber.hpii,
+                        "hpio": prescriber.hpio,
+                        "phone": prescriber.phone,
+                        "fax": prescriber.fax,
+                    },
+                }
+            )
 
         # Populate ALR data
         for prescription, prescriber in alr_prescriptions:
-            pt_data["alr-data"].append({
-                "prescription_id": prescription.id,
-                "DSPID": "null",
-                "drug-name": prescription.drug_name,
-                "drug-code": prescription.drug_code,
-                "dose-instr": prescription.dose_instr,
-                "dose-qty": prescription.dose_qty,
-                "dose-rpt": prescription.dose_rpt,
-                "prescribed-date": prescription.prescribed_date,
-                "dispensed-date": prescription.dispensed_date,
-                "paperless": prescription.paperless,
-                "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
-                "remaining-repeats": prescription.remaining_repeats,
-                "prescriber": {
-                    "fname": prescriber.fname,
-                    "lname": prescriber.lname,
-                    "title": prescriber.title,
-                    "address-1": prescriber.address_1,
-                    "address-2": prescriber.address_2,
-                    "id": prescriber.prescriber_id,
-                    "hpii": prescriber.hpii,
-                    "hpio": prescriber.hpio,
-                    "phone": prescriber.phone,
-                    "fax": prescriber.fax,
-                },
-            })
+            if (
+                hasattr(prescription, "remaining_repeats")
+                and prescription.remaining_repeats == 0
+            ):
+                continue
+            pt_data["alr-data"].append(
+                {
+                    "prescription_id": prescription.id,
+                    "DSPID": "null",
+                    "drug-name": prescription.drug_name,
+                    "drug-code": prescription.drug_code,
+                    "dose-instr": prescription.dose_instr,
+                    "dose-qty": prescription.dose_qty,
+                    "dose-rpt": prescription.dose_rpt,
+                    "prescribed-date": prescription.prescribed_date,
+                    "dispensed-date": prescription.dispensed_date,
+                    "paperless": prescription.paperless,
+                    "brand-sub-not-prmt": prescription.brand_sub_not_prmt,
+                    "remaining-repeats": prescription.remaining_repeats,
+                    "prescriber": {
+                        "fname": prescriber.fname,
+                        "lname": prescriber.lname,
+                        "title": prescriber.title,
+                        "address-1": prescriber.address_1,
+                        "address-2": prescriber.address_2,
+                        "id": prescriber.prescriber_id,
+                        "hpii": prescriber.hpii,
+                        "hpio": prescriber.hpio,
+                        "phone": prescriber.phone,
+                        "fax": prescriber.fax,
+                    },
+                }
+            )
 
         # Carer info and notes
         from .models import ASL
+
         asl_record = ASL.query.filter_by(patient_id=patient_id).first()
         pt_data["carer"] = {
             "name": asl_record.carer_name if asl_record else "",
@@ -2187,19 +2209,23 @@ def asl(patient_id: int):
         pt_data["notes"] = asl_record.notes if asl_record else ""
         asl_names = {a["drug-name"].lower().strip() for a in pt_data["asl-data"]}
         pt_data["alr-data"] = [
-            a for a in pt_data["alr-data"]
+            a
+            for a in pt_data["alr-data"]
             if a["drug-name"].lower().strip() not in asl_names
         ]
         user_role = "teacher" if current_user.is_teacher() else "student"
 
         # Render template and provide both 'patient_id' and legacy 'pt' for compatibility
         return render_template(
-            "views/asl.html", patient_id=patient_id, pt=patient_id, pt_data=pt_data, user_role=user_role
+            "views/asl.html",
+            patient_id=patient_id,
+            pt=patient_id,
+            pt_data=pt_data,
+            user_role=user_role,
         )
 
     except Exception as e:
         return f"Error loading ASL data: {str(e)}", 500
-
 
 
 # API routes with authentication
@@ -2512,10 +2538,7 @@ def dispense_prescriptions(patient_id):
         alr_prescriber = Prescriber.query.filter_by(fname="ALR").first()
         if not alr_prescriber:
             alr_prescriber = Prescriber(
-                fname="ALR",
-                lname="System",
-                title="ALR System",
-                prescriber_id="ALR001"
+                fname="ALR", lname="System", title="ALR System", prescriber_id="ALR001"
             )
             db.session.add(alr_prescriber)
             db.session.commit()
@@ -2528,7 +2551,11 @@ def dispense_prescriptions(patient_id):
             # Update prescription status
             # Ensure dose_rpt and remaining_repeats are integers (safe coercion)
             try:
-                dose_rpt = int(prescription.dose_rpt) if prescription.dose_rpt is not None else 0
+                dose_rpt = (
+                    int(prescription.dose_rpt)
+                    if prescription.dose_rpt is not None
+                    else 0
+                )
             except (ValueError, TypeError):
                 dose_rpt = 0
 
@@ -2542,25 +2569,28 @@ def dispense_prescriptions(patient_id):
 
             # Decrement remaining repeats safely (never go below zero)
             if prescription.remaining_repeats > 0:
-                prescription.remaining_repeats = max(0, prescription.remaining_repeats - 1)
+                prescription.remaining_repeats = max(
+                    0, prescription.remaining_repeats - 1
+                )
 
             # Preserve ALR as an immutable record: if an ALR copy doesn't already exist,
             # create one now that preserves the original issue info (dose_rpt etc).
             try:
-                original_dose_rpt = int(prescription.dose_rpt) if prescription.dose_rpt is not None else 0
+                original_dose_rpt = (
+                    int(prescription.dose_rpt)
+                    if prescription.dose_rpt is not None
+                    else 0
+                )
             except (ValueError, TypeError):
                 original_dose_rpt = 0
 
             if original_dose_rpt > 0:
                 # Check whether an ALR copy already exists for this prescription (best-effort)
-                existing_alr = (
-                    Prescription.query.filter_by(
-                        patient_id=prescription.patient_id,
-                        drug_name=prescription.drug_name,
-                        DSPID="alr",
-                    )
-                    .first()
-                )
+                existing_alr = Prescription.query.filter_by(
+                    patient_id=prescription.patient_id,
+                    drug_name=prescription.drug_name,
+                    DSPID="alr",
+                ).first()
 
                 if not existing_alr:
                     # Create ALR copy preserving original dose_rpt and prescriber
@@ -2590,14 +2620,13 @@ def dispense_prescriptions(patient_id):
             # If no repeats remain → mark as fully dispensed
             if prescription.remaining_repeats <= 0:
                 prescription.status = PrescriptionStatus.DISPENSED.value
-            
+
             prescription.dispensed_date = dispensed_date
             prescription.dispensed_at_this_pharmacy = True
             prescription.dispensed_by = dispensed_by
             prescription.dispensing_notes = dispensing_notes
 
             dispensed_count += 1
-
 
         db.session.commit()
 
@@ -3308,9 +3337,9 @@ def create_scenario():
         )
         db.session.add(new_scenario)
         db.session.commit()
-        flash("New scenario created!", "success")
+        # flash("New scenario created!", "success")
     else:
-        flash("Invalid CSRF token. Please try again.", "error")
+        flash("An error occured (Invalid CSRF token). Please try again.", "error")
 
     return redirect(url_for("views.teacher_dashboard"))
 
@@ -3453,7 +3482,6 @@ def asl_form(patient_id):
         form = ASL_ALR_CreationForm(data=data)
 
     if form.validate_on_submit():
-        print("form did validate")
         try:
             # Update patient info
             patient.is_registered = form.consent_status.is_registered.data == "true"
@@ -3489,7 +3517,6 @@ def asl_form(patient_id):
                     if bool_field in presc_data:
                         presc_data[bool_field] = presc_data[bool_field] == "true"
 
-                print("Prescription data:", presc_data)
                 prescription = Prescription(
                     patient_id=patient_id,
                     prescriber_id=prescriber.id,
@@ -3497,7 +3524,6 @@ def asl_form(patient_id):
                     **presc_data,
                 )
                 db.session.add(prescription)
-                print("added prescription to session", prescription)
 
             db.session.commit()
             flash("ASL/ALR data saved successfully.", "success")
@@ -4250,12 +4276,10 @@ def export_student_list():
         writer.writerow(
             [
                 "Student ID",
-                "Username",
                 "First Name",
                 "Last Name",
                 "Full Name",
                 "Email",
-                "Phone",
                 "Date Joined",
                 "Total Scenarios Assigned",
                 "Scenarios Submitted",
@@ -4279,12 +4303,10 @@ def export_student_list():
             writer.writerow(
                 [
                     student.id,
-                    student.username,
                     student.first_name or "",
                     student.last_name or "",
                     student.get_full_name(),
                     student.email,
-                    student.phone or "",
                     (
                         student.created_at.strftime("%Y-%m-%d")
                         if hasattr(student, "created_at") and student.created_at

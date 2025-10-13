@@ -19,6 +19,12 @@ body.modal-open {
 body > .container {
   margin-top: 3.5%;
   margin-bottom: 3.5%;
+  max-width: 75vw;
+}
+@media (max-width: 768px) {
+  body > .container {
+    max-width: 100%;
+  }
 }
 
 .mw-75 {
