@@ -993,32 +993,33 @@ def student_dashboard():
                     can_view = True
                     can_submit = ss.status in ["assigned", "submitted"]
 
-                # compute overdue flag for UI: show overdue when the due date (exam_end) has passed
-                is_overdue = False
-                try:
-                    if ss.exam_end:
-                        is_overdue = now > ss.exam_end
-                    else:
-                        # if no explicit due, we consider not overdue
-                        is_overdue = False
-                except Exception:
+            # compute overdue flag for UI: show overdue when the due date (exam_end) has passed
+            is_overdue = False
+            try:
+                if ss.exam_end:
+                    is_overdue = now > ss.exam_end
+                else:
+                    # if no explicit due, we consider not overdue
                     is_overdue = False
+            except Exception:
+                is_overdue = False
 
-                scenario_data.append(
-                    {
-                        "student_scenario": ss,
-                        "display_start": ss.exam_start,
-                        "display_end": ss.exam_end,
-                        "scenario": scenario,
-                        "patient": assigned_patient,
-                        "submissions": submissions,
-                        "can_view": can_view,
-                        "can_submit": can_submit,
-                        "submission_deadline": submission_deadline,
-                        "include_scenario": include_scenario,
-                        "is_overdue": is_overdue,
-                    }
-                )
+            # Add the scenario to the list (cover both exam and assignment branches)
+            scenario_data.append(
+                {
+                    "student_scenario": ss,
+                    "display_start": ss.exam_start,
+                    "display_end": ss.exam_end,
+                    "scenario": scenario,
+                    "patient": assigned_patient,
+                    "submissions": submissions,
+                    "can_view": can_view,
+                    "can_submit": can_submit,
+                    "submission_deadline": submission_deadline,
+                    "include_scenario": include_scenario,
+                    "is_overdue": is_overdue,
+                }
+            )
 
     # compute how many scenarios will be visible on the dashboard
     visible_count = sum(1 for d in scenario_data if d.get("include_scenario"))
